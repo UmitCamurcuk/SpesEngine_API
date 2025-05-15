@@ -7,14 +7,15 @@ const express_1 = __importDefault(require("express"));
 const auth_1 = require("../middleware/auth");
 const itemTypeController_1 = require("../controllers/itemTypeController");
 const router = express_1.default.Router();
-// GET tüm öğe tiplerini getir
-router.get('/', auth_1.protect, itemTypeController_1.getItemTypes);
-// GET tek bir öğe tipini getir
-router.get('/:id', auth_1.protect, itemTypeController_1.getItemTypeById);
-// POST yeni öğe tipi oluştur
-router.post('/', auth_1.protect, itemTypeController_1.createItemType);
-// PUT öğe tipini güncelle
-router.put('/:id', auth_1.protect, itemTypeController_1.updateItemType);
-// DELETE öğe tipini sil
-router.delete('/:id', auth_1.protect, itemTypeController_1.deleteItemType);
+// Tüm routelar korumalı
+router.use(auth_1.protect);
+router
+    .route('/')
+    .get((0, auth_1.checkPermission)('itemTypes:read'), itemTypeController_1.getItemTypes)
+    .post((0, auth_1.checkPermission)('itemTypes:create'), itemTypeController_1.createItemType);
+router
+    .route('/:id')
+    .get((0, auth_1.checkPermission)('itemTypes:read'), itemTypeController_1.getItemTypeById)
+    .put((0, auth_1.checkPermission)('itemTypes:update'), itemTypeController_1.updateItemType)
+    .delete((0, auth_1.checkPermission)('itemTypes:delete'), itemTypeController_1.deleteItemType);
 exports.default = router;

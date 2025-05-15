@@ -6,14 +6,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const itemController_1 = require("../controllers/itemController");
 const router = express_1.default.Router();
-// GET tüm öğeleri getir - koruma kaldırıldı (geliştirme aşamasında)
-router.get('/', itemController_1.getItems);
-// GET belirli bir öğeyi getir - koruma kaldırıldı (geliştirme aşamasında)
-router.get('/:id', itemController_1.getItemById);
-// POST yeni öğe oluştur - koruma kaldırıldı (geliştirme aşamasında)
-router.post('/', itemController_1.createItem);
-// PUT öğeyi güncelle - koruma kaldırıldı (geliştirme aşamasında)
-router.put('/:id', itemController_1.updateItem);
-// DELETE öğeyi sil - koruma kaldırıldı (geliştirme aşamasında)
-router.delete('/:id', itemController_1.deleteItem);
+// Not: Geliştirme aşamasında olduğu için koruma mekanizmaları geçici olarak kaldırıldı
+// Üretim aşamasında router.use(protect) ve ilgili izin kontrolleri eklenmelidir
+router
+    .route('/')
+    .get(itemController_1.getItems)
+    .post(itemController_1.createItem);
+router
+    .route('/:id')
+    .get(itemController_1.getItemById)
+    .put(itemController_1.updateItem)
+    .delete(itemController_1.deleteItem);
 exports.default = router;

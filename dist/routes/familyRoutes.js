@@ -7,14 +7,15 @@ const express_1 = __importDefault(require("express"));
 const auth_1 = require("../middleware/auth");
 const familyController_1 = require("../controllers/familyController");
 const router = express_1.default.Router();
-// GET tüm aileleri getir
-router.get('/', auth_1.protect, familyController_1.getFamilies);
-// GET tek bir aileyi getir
-router.get('/:id', auth_1.protect, familyController_1.getFamilyById);
-// POST yeni aile oluştur
-router.post('/', auth_1.protect, familyController_1.createFamily);
-// PUT aileyi güncelle
-router.put('/:id', auth_1.protect, familyController_1.updateFamily);
-// DELETE aileyi sil
-router.delete('/:id', auth_1.protect, familyController_1.deleteFamily);
+// Tüm routelar korumalı
+router.use(auth_1.protect);
+router
+    .route('/')
+    .get((0, auth_1.checkPermission)('families:read'), familyController_1.getFamilies)
+    .post((0, auth_1.checkPermission)('families:create'), familyController_1.createFamily);
+router
+    .route('/:id')
+    .get((0, auth_1.checkPermission)('families:read'), familyController_1.getFamilyById)
+    .put((0, auth_1.checkPermission)('families:update'), familyController_1.updateFamily)
+    .delete((0, auth_1.checkPermission)('families:delete'), familyController_1.deleteFamily);
 exports.default = router;

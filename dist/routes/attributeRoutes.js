@@ -7,14 +7,15 @@ const express_1 = __importDefault(require("express"));
 const auth_1 = require("../middleware/auth");
 const attributeController_1 = require("../controllers/attributeController");
 const router = express_1.default.Router();
-// GET tüm öznitelikleri getir
-router.get('/', auth_1.protect, attributeController_1.getAttributes);
-// GET tek bir özniteliği getir
-router.get('/:id', auth_1.protect, attributeController_1.getAttributeById);
-// POST yeni öznitelik oluştur
-router.post('/', auth_1.protect, attributeController_1.createAttribute);
-// PUT özniteliği güncelle
-router.put('/:id', auth_1.protect, attributeController_1.updateAttribute);
-// DELETE özniteliği sil
-router.delete('/:id', auth_1.protect, attributeController_1.deleteAttribute);
+// Tüm routelar korumalı
+router.use(auth_1.protect);
+router
+    .route('/')
+    .get((0, auth_1.checkPermission)('attributes:read'), attributeController_1.getAttributes)
+    .post((0, auth_1.checkPermission)('attributes:create'), attributeController_1.createAttribute);
+router
+    .route('/:id')
+    .get((0, auth_1.checkPermission)('attributes:read'), attributeController_1.getAttributeById)
+    .put((0, auth_1.checkPermission)('attributes:update'), attributeController_1.updateAttribute)
+    .delete((0, auth_1.checkPermission)('attributes:delete'), attributeController_1.deleteAttribute);
 exports.default = router;

@@ -78,6 +78,11 @@ const UserSchema = new mongoose_1.Schema({
     lastLogin: {
         type: Date,
         default: null
+    },
+    role: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Role',
+        required: true
     }
 }, {
     timestamps: true

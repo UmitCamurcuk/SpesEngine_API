@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth';
+import { protect, authorize, checkPermission } from '../middleware/auth';
 import {
   getFamilies,
   getFamilyById,
@@ -10,19 +10,18 @@ import {
 
 const router = express.Router();
 
-// GET tüm aileleri getir
-router.get('/', protect, getFamilies);
+// Tüm routelar korumalı
+router.use(protect);
 
-// GET tek bir aileyi getir
-router.get('/:id', protect, getFamilyById);
+router
+  .route('/')
+  .get(checkPermission('families:read'), getFamilies)
+  .post(checkPermission('families:create'), createFamily);
 
-// POST yeni aile oluştur
-router.post('/', protect, createFamily);
-
-// PUT aileyi güncelle
-router.put('/:id', protect, updateFamily);
-
-// DELETE aileyi sil
-router.delete('/:id', protect, deleteFamily);
+router
+  .route('/:id')
+  .get(checkPermission('families:read'), getFamilyById)
+  .put(checkPermission('families:update'), updateFamily)
+  .delete(checkPermission('families:delete'), deleteFamily);
 
 export default router; 

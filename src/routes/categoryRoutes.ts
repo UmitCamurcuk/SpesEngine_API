@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth';
+import { protect, authorize, checkPermission } from '../middleware/auth';
 import {
   getCategories,
   getCategoryById,
@@ -10,19 +10,18 @@ import {
 
 const router = express.Router();
 
-// GET tüm kategorileri getir (filtreleme ve sayfalama ile)
-router.get('/', protect, getCategories);
+// Tüm routelar korumalı
+router.use(protect);
 
-// GET tek bir kategoriyi getir
-router.get('/:id', protect, getCategoryById);
+router
+  .route('/')
+  .get(checkPermission('categories:read'), getCategories)
+  .post(checkPermission('categories:create'), createCategory);
 
-// POST yeni kategori oluştur
-router.post('/', protect, createCategory);
-
-// PUT kategoriyi güncelle
-router.put('/:id', protect, updateCategory);
-
-// DELETE kategoriyi sil
-router.delete('/:id', protect, deleteCategory);
+router
+  .route('/:id')
+  .get(checkPermission('categories:read'), getCategoryById)
+  .put(checkPermission('categories:update'), updateCategory)
+  .delete(checkPermission('categories:delete'), deleteCategory);
 
 export default router; 

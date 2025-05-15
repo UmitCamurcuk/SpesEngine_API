@@ -1,5 +1,4 @@
 import express from 'express';
-import { protect } from '../middleware/auth';
 import {
   getItems,
   getItemById,
@@ -10,19 +9,18 @@ import {
 
 const router = express.Router();
 
-// GET tüm öğeleri getir - koruma kaldırıldı (geliştirme aşamasında)
-router.get('/', getItems);
+// Not: Geliştirme aşamasında olduğu için koruma mekanizmaları geçici olarak kaldırıldı
+// Üretim aşamasında router.use(protect) ve ilgili izin kontrolleri eklenmelidir
 
-// GET belirli bir öğeyi getir - koruma kaldırıldı (geliştirme aşamasında)
-router.get('/:id', getItemById);
+router
+  .route('/')
+  .get(getItems)
+  .post(createItem);
 
-// POST yeni öğe oluştur - koruma kaldırıldı (geliştirme aşamasında)
-router.post('/', createItem);
-
-// PUT öğeyi güncelle - koruma kaldırıldı (geliştirme aşamasında)
-router.put('/:id', updateItem);
-
-// DELETE öğeyi sil - koruma kaldırıldı (geliştirme aşamasında)
-router.delete('/:id', deleteItem);
+router
+  .route('/:id')
+  .get(getItemById)
+  .put(updateItem)
+  .delete(deleteItem);
 
 export default router; 

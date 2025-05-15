@@ -34,26 +34,21 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const PermissionSchema = new mongoose_1.Schema({
+const PermissionGroupSchema = new mongoose_1.Schema({
     name: {
         type: String,
-        required: [true, 'İzin adı zorunludur'],
+        required: [true, 'İzin grubu adı zorunludur'],
         unique: true,
         trim: true
     },
     description: {
         type: String,
-        required: [true, 'İzin açıklaması zorunludur']
+        required: [true, 'İzin grubu açıklaması zorunludur']
     },
     code: {
         type: String,
-        required: [true, 'İzin kodu zorunludur'],
+        required: [true, 'İzin grubu kodu zorunludur'],
         unique: true
-    },
-    permissionGroup: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'PermissionGroup',
-        required: true
     },
     isActive: {
         type: Boolean,
@@ -62,4 +57,4 @@ const PermissionSchema = new mongoose_1.Schema({
 }, {
     timestamps: true
 });
-exports.default = mongoose_1.default.model('Permission', PermissionSchema);
+exports.default = mongoose_1.default.model('PermissionGroup', PermissionGroupSchema);

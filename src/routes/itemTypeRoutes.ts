@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth';
+import { protect, authorize, checkPermission } from '../middleware/auth';
 import {
   getItemTypes,
   getItemTypeById,
@@ -10,19 +10,18 @@ import {
 
 const router = express.Router();
 
-// GET tüm öğe tiplerini getir
-router.get('/', protect, getItemTypes);
+// Tüm routelar korumalı
+router.use(protect);
 
-// GET tek bir öğe tipini getir
-router.get('/:id', protect, getItemTypeById);
+router
+  .route('/')
+  .get(checkPermission('itemTypes:read'), getItemTypes)
+  .post(checkPermission('itemTypes:create'), createItemType);
 
-// POST yeni öğe tipi oluştur
-router.post('/', protect, createItemType);
-
-// PUT öğe tipini güncelle
-router.put('/:id', protect, updateItemType);
-
-// DELETE öğe tipini sil
-router.delete('/:id', protect, deleteItemType);
+router
+  .route('/:id')
+  .get(checkPermission('itemTypes:read'), getItemTypeById)
+  .put(checkPermission('itemTypes:update'), updateItemType)
+  .delete(checkPermission('itemTypes:delete'), deleteItemType);
 
 export default router; 

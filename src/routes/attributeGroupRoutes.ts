@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth';
+import { protect, authorize, checkPermission } from '../middleware/auth';
 import {
   getAttributeGroups,
   getAttributeGroupById,
@@ -10,19 +10,18 @@ import {
 
 const router = express.Router();
 
-// GET tüm öznitelik gruplarını getir
-router.get('/', protect, getAttributeGroups);
+// Tüm routelar korumalı
+router.use(protect);
 
-// GET tek bir öznitelik grubunu getir
-router.get('/:id', protect, getAttributeGroupById);
+router
+  .route('/')
+  .get(checkPermission('attributeGroups:read'), getAttributeGroups)
+  .post(checkPermission('attributeGroups:create'), createAttributeGroup);
 
-// POST yeni öznitelik grubu oluştur
-router.post('/', protect, createAttributeGroup);
-
-// PUT öznitelik grubunu güncelle
-router.put('/:id', protect, updateAttributeGroup);
-
-// DELETE öznitelik grubunu sil
-router.delete('/:id', protect, deleteAttributeGroup);
+router
+  .route('/:id')
+  .get(checkPermission('attributeGroups:read'), getAttributeGroupById)
+  .put(checkPermission('attributeGroups:update'), updateAttributeGroup)
+  .delete(checkPermission('attributeGroups:delete'), deleteAttributeGroup);
 
 export default router; 

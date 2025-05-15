@@ -17,7 +17,9 @@ const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const familyRoutes_1 = __importDefault(require("./routes/familyRoutes"));
 const itemTypeRoutes_1 = __importDefault(require("./routes/itemTypeRoutes"));
 const itemRoutes_1 = __importDefault(require("./routes/itemRoutes"));
-const historyRoutes_1 = __importDefault(require("./routes/historyRoutes"));
+const roleRoutes_1 = __importDefault(require("./routes/roleRoutes"));
+const permissionRoutes_1 = __importDefault(require("./routes/permissionRoutes"));
+const permissionGroupRoutes_1 = __importDefault(require("./routes/permissionGroupRoutes"));
 // Env değişkenlerini yükle
 dotenv_1.default.config();
 // JWT gizli anahtarını kontrol et
@@ -40,16 +42,17 @@ app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
 // Routes
-app.use('/api/auth', authRoutes_1.default);
 app.use('/api/users', userRoutes_1.default);
+app.use('/api/auth', authRoutes_1.default);
 app.use('/api/attributes', attributeRoutes_1.default);
-app.use('/api/attribute-groups', attributeGroupRoutes_1.default);
+app.use('/api/attributeGroups', attributeGroupRoutes_1.default);
 app.use('/api/categories', categoryRoutes_1.default);
 app.use('/api/families', familyRoutes_1.default);
-app.use('/api/item-types', itemTypeRoutes_1.default);
+app.use('/api/itemTypes', itemTypeRoutes_1.default);
 app.use('/api/items', itemRoutes_1.default);
-app.use('/api/history', historyRoutes_1.default);
-// Diğer route'ları daha sonra ekleyeceğiz
+app.use('/api/roles', roleRoutes_1.default);
+app.use('/api/permissions', permissionRoutes_1.default);
+app.use('/api/permissionGroups', permissionGroupRoutes_1.default);
 // Ana route
 app.get('/', (req, res) => {
     res.send('SpesEngine API çalışıyor');

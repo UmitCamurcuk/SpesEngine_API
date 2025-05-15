@@ -33,8 +33,15 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     try {
         // Token doğrulama
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || 'gizli_anahtar');
-        // Kullanıcıyı bul
-        const user = yield User_1.default.findById(decoded.id);
+        // Kullanıcıyı bul ve rolü ile birlikte getir
+        const user = yield User_1.default.findById(decoded.id).populate({
+            path: 'role',
+            select: 'name permissions',
+            populate: {
+                path: 'permissions',
+                select: 'name code'
+            }
+        });
         if (!user) {
             res.status(404).json({ success: false, message: 'Kullanıcı bulunamadı' });
             return;
@@ -49,19 +56,68 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.protect = protect;
-// Rol bazlı yetkilendirme - basitleştirilmiş
+// Rol bazlı yetkilendirme
 const authorize = (...roles) => {
     return (req, res, next) => {
-        // Şimdilik herkese izin ver
+        if (!req.user) {
+            res.status(401).json({ success: false, message: 'Bu kaynağa erişim için yetkiniz yok' });
+            return;
+        }
+        // Kullanıcının rolü var mı kontrol ediyoruz
+        const userRole = req.user.role;
+        if (!userRole) {
+            res.status(403).json({ success: false, message: 'Bu kaynağa erişmek için gerekli role sahip değilsiniz' });
+            return;
+        }
+        // Admin ise her şeye erişim sağlar
+        if (req.user.isAdmin) {
+            next();
+            return;
+        }
+        // Popülasyon sonrası role tipini düzeltmek için tip dönüşümü kullanıyoruz
+        const populatedRole = userRole;
+        const hasRole = roles.some(role => populatedRole.name === role);
+        if (!hasRole) {
+            res.status(403).json({ success: false, message: 'Bu kaynağa erişmek için gerekli role sahip değilsiniz' });
+            return;
+        }
         next();
     };
 };
 exports.authorize = authorize;
-// İzin kontrolü - basitleştirilmiş
+// İzin kontrolü
 const checkPermission = (permissionCode) => {
-    return (req, res, next) => {
-        // Şimdilik herkese izin ver
-        next();
-    };
+    return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+        if (!req.user) {
+            res.status(401).json({ success: false, message: 'Bu kaynağa erişim için yetkiniz yok' });
+            return;
+        }
+        // Admin ise her şeye erişim sağlar
+        if (req.user.isAdmin) {
+            next();
+            return;
+        }
+        // Kullanıcının rolü var mı kontrol ediyoruz
+        const userRole = req.user.role;
+        if (!userRole) {
+            res.status(403).json({ success: false, message: 'Bu kaynağa erişmek için gerekli izinlere sahip değilsiniz' });
+            return;
+        }
+        try {
+            // Populate işlemi daha önce yapılmış olmalı, tipini düzeltiyoruz
+            const populatedRole = userRole;
+            // Kullanıcının izinleri içinde istenen izin kodu var mı kontrol ediyoruz
+            const hasPermission = populatedRole.permissions.some(permission => permission.code === permissionCode);
+            if (!hasPermission) {
+                res.status(403).json({ success: false, message: 'Bu kaynağa erişmek için gerekli izinlere sahip değilsiniz' });
+                return;
+            }
+            next();
+        }
+        catch (error) {
+            console.error('İzin kontrolü sırasında hata:', error);
+            res.status(500).json({ success: false, message: 'Sunucu hatası: İzinler kontrol edilirken bir hata oluştu' });
+        }
+    });
 };
 exports.checkPermission = checkPermission;

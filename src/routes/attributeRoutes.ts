@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth';
+import { protect, authorize, checkPermission } from '../middleware/auth';
 import {
   getAttributes,
   getAttributeById,
@@ -10,19 +10,18 @@ import {
 
 const router = express.Router();
 
-// GET tüm öznitelikleri getir
-router.get('/', protect, getAttributes);
+// Tüm routelar korumalı
+router.use(protect);
 
-// GET tek bir özniteliği getir
-router.get('/:id', protect, getAttributeById);
+router
+  .route('/')
+  .get(checkPermission('attributes:read'), getAttributes)
+  .post(checkPermission('attributes:create'), createAttribute);
 
-// POST yeni öznitelik oluştur
-router.post('/', protect, createAttribute);
-
-// PUT özniteliği güncelle
-router.put('/:id', protect, updateAttribute);
-
-// DELETE özniteliği sil
-router.delete('/:id', protect, deleteAttribute);
+router
+  .route('/:id')
+  .get(checkPermission('attributes:read'), getAttributeById)
+  .put(checkPermission('attributes:update'), updateAttribute)
+  .delete(checkPermission('attributes:delete'), deleteAttribute);
 
 export default router; 
