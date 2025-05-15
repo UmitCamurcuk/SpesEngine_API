@@ -9,6 +9,7 @@
     "debug-windows": "set NODE_ENV=development && set DEBUG=* && nodemon --inspect dist/server.js",
     "build": "tsc",
     "seed": "tsc && node dist/scripts/seedPermissionsAndRoles.js",
+    "seed:localizations": "tsc && node dist/scripts/seedLocalizations.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
