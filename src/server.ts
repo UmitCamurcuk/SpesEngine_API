@@ -57,6 +57,7 @@ app.use('/api/items', itemRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/permissionGroups', permissionGroupRoutes);
+app.use('/api/history', historyRoutes);
 
 // Ana route
 app.get('/', (req: Request, res: Response) => {

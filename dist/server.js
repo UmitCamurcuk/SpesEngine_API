@@ -17,6 +17,7 @@ const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const familyRoutes_1 = __importDefault(require("./routes/familyRoutes"));
 const itemTypeRoutes_1 = __importDefault(require("./routes/itemTypeRoutes"));
 const itemRoutes_1 = __importDefault(require("./routes/itemRoutes"));
+const historyRoutes_1 = __importDefault(require("./routes/historyRoutes"));
 const roleRoutes_1 = __importDefault(require("./routes/roleRoutes"));
 const permissionRoutes_1 = __importDefault(require("./routes/permissionRoutes"));
 const permissionGroupRoutes_1 = __importDefault(require("./routes/permissionGroupRoutes"));
@@ -53,6 +54,7 @@ app.use('/api/items', itemRoutes_1.default);
 app.use('/api/roles', roleRoutes_1.default);
 app.use('/api/permissions', permissionRoutes_1.default);
 app.use('/api/permissionGroups', permissionGroupRoutes_1.default);
+app.use('/api/history', historyRoutes_1.default);
 // Ana route
 app.get('/', (req, res) => {
     res.send('SpesEngine API çalışıyor');
