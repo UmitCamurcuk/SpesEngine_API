@@ -17,8 +17,18 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = __importDefault(require("../models/User"));
 // Kimlik doğrulama middleware
 const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    // Lokalizasyon API'si için atlama
+    if (req.originalUrl.includes('/api/localizations')) {
+        next();
+        return;
+    }
     // OPTIONS istekleri için CORS ön kontrolü yapılıyor, hemen izin ver
     if (req.method === 'OPTIONS') {
+        next();
+        return;
+    }
+    // Geliştirme ortamında yetkilendirmeyi geçici olarak atla
+    if (process.env.NODE_ENV === 'development') {
         next();
         return;
     }

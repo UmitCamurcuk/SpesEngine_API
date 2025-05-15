@@ -8,10 +8,7 @@ const router = express.Router();
 router.get('/languages', getSupportedLanguages);
 router.get('/:lang', getTranslations);
 
-// Sadece yönetim işlemleri için koruma ekle
-router.use(protect);
-
 // Çeviri ekle/güncelle - sadece admin veya localization:write izni olanlar
-router.post('/', checkPermission('localization:write'), upsertTranslation);
+router.post('/', protect, checkPermission('localization:write'), upsertTranslation);
 
 export default router; 

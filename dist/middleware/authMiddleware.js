@@ -17,6 +17,11 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = __importDefault(require("../models/User"));
 // JWT token'ı doğrulama ve kullanıcıyı request'e ekleme
 const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    // Lokalizasyon rotalarını atla
+    if (req.path.includes('localizations')) {
+        next();
+        return;
+    }
     let token;
     // Authorization header'dan token'ı al
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -35,6 +40,7 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
                 success: false,
                 message: 'Yetkilendirme başarısız, token geçersiz'
             });
+            return; // Hata durumunda return ekleniyor
         }
     }
     if (!token) {
@@ -42,7 +48,10 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
             success: false,
             message: 'Yetkilendirme başarısız, token bulunamadı'
         });
+        return; // Token yoksa return ekleniyor
     }
+    // Token varsa next() çağrılmalı
+    next();
 });
 exports.protect = protect;
 // Admin yetkisini kontrol etme

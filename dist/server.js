@@ -65,6 +65,15 @@ app.use('/api/localizations', localizationRoutes_1.default);
 app.get('/', (req, res) => {
     res.send('SpesEngine API çalışıyor');
 });
+// Debug route
+app.get('/api/debug', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Debug endpoint çalışıyor',
+        headers: req.headers,
+        path: req.path
+    });
+});
 // Server'ı başlat
 app.listen(PORT, () => {
     console.log(`Server ${PORT} portunda çalışıyor`);

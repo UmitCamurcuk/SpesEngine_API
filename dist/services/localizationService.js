@@ -25,38 +25,36 @@ class LocalizationService {
     // Tüm çevirileri belirli bir dil için getir
     getAllTranslationsForLanguage(lang) {
         return __awaiter(this, void 0, void 0, function* () {
-            const allTranslations = yield Localization_1.default.find({});
-            const result = {};
+            console.log(`[LocalizationService] getAllTranslationsForLanguage çağrıldı. Dil: ${lang}`);
+            // Ham dokümanlar olarak çevirileri al
+            const allTranslations = yield Localization_1.default.find({}).lean();
+            console.log(`[LocalizationService] Veritabanında ${allTranslations.length} çeviri bulundu.`);
             // Namespace'lere göre grupla
+            const result = {};
+            // Önce namespace'leri oluştur
             allTranslations.forEach(item => {
                 if (!result[item.namespace]) {
                     result[item.namespace] = {};
                 }
-                // Sadece istenen dildeki çeviriyi al
-                // MongoDB'de Map JavaScript objesine çevriliyor, doğrudan erişebiliriz
-                if (item.translations && typeof item.translations === 'object') {
-                    const translationsObj = item.translations;
-                    if (translationsObj[lang]) {
-                        result[item.namespace][item.key] = translationsObj[lang];
-                    }
-                }
             });
+            // Çevirileri ekle
+            for (const item of allTranslations) {
+                // Eğer bu namespace ve dilde çeviri varsa, ekle
+                if (item.translations && item.translations[lang]) {
+                    result[item.namespace][item.key] = item.translations[lang];
+                }
+            }
+            console.log(`[LocalizationService] Dönüş yapılıyor. Namespace sayısı: ${Object.keys(result).length}`);
             return result;
         });
     }
     // Bir çeviriyi tüm dillerde getir
     getTranslation(key_1) {
         return __awaiter(this, arguments, void 0, function* (key, namespace = 'common') {
-            const translation = yield Localization_1.default.findOne({ key, namespace });
+            const translation = yield Localization_1.default.findOne({ key, namespace }).lean();
             if (!translation)
                 return null;
-            // Map'i düz objeye çevir - MongoDB Map'i zaten JavaScript objesi olarak döndürüyor
-            const translationsObj = {};
-            if (translation.translations && typeof translation.translations === 'object') {
-                // Doğrudan obje olarak ele al
-                return translation.translations;
-            }
-            return translationsObj;
+            return translation.translations;
         });
     }
     // Çeviri sil
@@ -69,10 +67,10 @@ class LocalizationService {
     // Desteklenen dilleri getir (unique dil kodlarını bul)
     getSupportedLanguages() {
         return __awaiter(this, void 0, void 0, function* () {
-            const translations = yield Localization_1.default.find({});
+            const translations = yield Localization_1.default.find({}).lean();
             const langSet = new Set();
             translations.forEach(item => {
-                if (item.translations && typeof item.translations === 'object') {
+                if (item.translations) {
                     // Obje anahtarlarını al
                     const langs = Object.keys(item.translations);
                     langs.forEach(lang => langSet.add(lang));

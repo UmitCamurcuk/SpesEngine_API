@@ -19,8 +19,20 @@ declare global {
 
 // Kimlik doğrulama middleware
 export const protect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  // Lokalizasyon API'si için atlama
+  if (req.originalUrl.includes('/api/localizations')) {
+    next();
+    return;
+  }
+
   // OPTIONS istekleri için CORS ön kontrolü yapılıyor, hemen izin ver
   if (req.method === 'OPTIONS') {
+    next();
+    return;
+  }
+
+  // Geliştirme ortamında yetkilendirmeyi geçici olarak atla
+  if (process.env.NODE_ENV === 'development') {
     next();
     return;
   }

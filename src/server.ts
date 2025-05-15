@@ -71,6 +71,16 @@ app.get('/', (req: Request, res: Response) => {
   res.send('SpesEngine API çalışıyor');
 });
 
+// Debug route
+app.get('/api/debug', (req: Request, res: Response) => {
+  res.json({ 
+    success: true,
+    message: 'Debug endpoint çalışıyor',
+    headers: req.headers,
+    path: req.path
+  });
+});
+
 // Server'ı başlat
 app.listen(PORT, () => {
   console.log(`Server ${PORT} portunda çalışıyor`);

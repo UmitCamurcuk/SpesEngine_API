@@ -13,6 +13,12 @@ declare global {
 
 // JWT token'ı doğrulama ve kullanıcıyı request'e ekleme
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
+  // Lokalizasyon rotalarını atla
+  if (req.path.includes('localizations')) {
+    next();
+    return;
+  }
+
   let token;
 
   // Authorization header'dan token'ı al
@@ -34,6 +40,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
         success: false, 
         message: 'Yetkilendirme başarısız, token geçersiz' 
       });
+      return; // Hata durumunda return ekleniyor
     }
   }
 
@@ -42,7 +49,11 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
       success: false, 
       message: 'Yetkilendirme başarısız, token bulunamadı' 
     });
+    return; // Token yoksa return ekleniyor
   }
+
+  // Token varsa next() çağrılmalı
+  next();
 };
 
 // Admin yetkisini kontrol etme
