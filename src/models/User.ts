@@ -9,6 +9,7 @@ export interface IUser extends Document {
   isAdmin: boolean;
   isActive: boolean;
   lastLogin: Date;
+  role: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -46,6 +47,11 @@ const UserSchema: Schema = new Schema({
   lastLogin: {
     type: Date,
     default: null
+  },
+  role: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role',
+    required: true
   }
 }, {
   timestamps: true

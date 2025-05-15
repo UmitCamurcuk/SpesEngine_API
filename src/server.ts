@@ -14,6 +14,9 @@ import familyRoutes from './routes/familyRoutes';
 import itemTypeRoutes from './routes/itemTypeRoutes';
 import itemRoutes from './routes/itemRoutes';
 import historyRoutes from './routes/historyRoutes';
+import roleRoutes from './routes/roleRoutes';
+import permissionRoutes from './routes/permissionRoutes';
+import permissionGroupRoutes from './routes/permissionGroupRoutes';
 
 // Env değişkenlerini yükle
 dotenv.config();
@@ -43,16 +46,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Routes
-app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/attributes', attributeRoutes);
-app.use('/api/attribute-groups', attributeGroupRoutes);
+app.use('/api/attributeGroups', attributeGroupRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/families', familyRoutes);
-app.use('/api/item-types', itemTypeRoutes);
+app.use('/api/itemTypes', itemTypeRoutes);
 app.use('/api/items', itemRoutes);
-app.use('/api/history', historyRoutes);
-// Diğer route'ları daha sonra ekleyeceğiz
+app.use('/api/roles', roleRoutes);
+app.use('/api/permissions', permissionRoutes);
+app.use('/api/permissionGroups', permissionGroupRoutes);
 
 // Ana route
 app.get('/', (req: Request, res: Response) => {

@@ -4,6 +4,7 @@ export interface IPermission extends Document {
   name: string;
   description: string;
   code: string;
+  permissionGroup: mongoose.Types.ObjectId;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -25,6 +26,11 @@ const PermissionSchema: Schema = new Schema(
       type: String,
       required: [true, 'İzin kodu zorunludur'],
       unique: true
+    },
+    permissionGroup: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'PermissionGroup',
+      required: true
     },
     isActive: {
       type: Boolean,
