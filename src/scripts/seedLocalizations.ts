@@ -300,6 +300,118 @@ const commonTranslations: Translation[] = [
       tr: 'Seçenekler',
       en: 'Options'
     }
+  },
+  {
+    key: 'general_information',
+    namespace: 'common',
+    translations: {
+      tr: 'Genel Bilgiler',
+      en: 'General Information'
+    }
+  },
+  {
+    key: 'status',
+    namespace: 'common',
+    translations: {
+      tr: 'Durum',
+      en: 'Status'
+    }
+  },
+  {
+    key: 'active',
+    namespace: 'common',
+    translations: {
+      tr: 'Aktif',
+      en: 'Active'
+    }
+  },
+  {
+    key: 'inactive',
+    namespace: 'common',
+    translations: {
+      tr: 'Pasif',
+      en: 'Inactive'
+    }
+  },
+  {
+    key: 'saving',
+    namespace: 'common',
+    translations: {
+      tr: 'Kaydediliyor...',
+      en: 'Saving...'
+    }
+  },
+  {
+    key: 'select_all',
+    namespace: 'common',
+    translations: {
+      tr: 'Tümünü Seç',
+      en: 'Select All'
+    }
+  },
+  {
+    key: 'select_none',
+    namespace: 'common',
+    translations: {
+      tr: 'Hiçbirini Seçme',
+      en: 'Select None'
+    }
+  },
+  {
+    key: 'history',
+    namespace: 'common',
+    translations: {
+      tr: 'Değişiklik Geçmişi',
+      en: 'Change History'
+    }
+  },
+  {
+    key: 'created',
+    namespace: 'common',
+    translations: {
+      tr: 'Oluşturuldu',
+      en: 'Created'
+    }
+  },
+  {
+    key: 'updated',
+    namespace: 'common',
+    translations: {
+      tr: 'Güncellendi',
+      en: 'Updated'
+    }
+  },
+  {
+    key: 'deleted',
+    namespace: 'common',
+    translations: {
+      tr: 'Silindi',
+      en: 'Deleted'
+    }
+  },
+  {
+    key: 'changed_by',
+    namespace: 'common',
+    translations: {
+      tr: 'Değiştiren',
+      en: 'Changed By'
+    }
+  },
+  {
+    key: 'changes',
+    namespace: 'common',
+    translations: {
+      tr: 'Değişiklikler',
+      en: 'Changes'
+    }
+  },
+  {
+    key: 'no_history_available',
+    namespace: 'common',
+    translations: {
+      tr: 'Değişiklik geçmişi bulunmuyor',
+      en: 'No change history available'
+    }
   }
 ];
 
@@ -371,6 +483,998 @@ const errorTranslations: Translation[] = [
     translations: {
       tr: 'Sunucu hatası oluştu',
       en: 'Server error occurred'
+    }
+  }
+];
+
+// Sistem ayarları çevirileri
+const systemTranslations: Translation[] = [
+  {
+    key: 'system_settings',
+    namespace: 'system',
+    translations: {
+      tr: 'Sistem Ayarları',
+      en: 'System Settings'
+    }
+  },
+  {
+    key: 'system_settings_description',
+    namespace: 'system',
+    translations: {
+      tr: 'Sistem ayarları ve yapılandırmalarını yönetin.',
+      en: 'Manage system settings and configurations.'
+    }
+  },
+  {
+    key: 'general_settings',
+    namespace: 'system',
+    translations: {
+      tr: 'Genel Ayarlar',
+      en: 'General Settings'
+    }
+  },
+  {
+    key: 'security_settings',
+    namespace: 'system',
+    translations: {
+      tr: 'Güvenlik Ayarları',
+      en: 'Security Settings'
+    }
+  },
+  {
+    key: 'backup_restore',
+    namespace: 'system',
+    translations: {
+      tr: 'Yedekleme ve Geri Yükleme',
+      en: 'Backup & Restore'
+    }
+  },
+  {
+    key: 'integrations',
+    namespace: 'system',
+    translations: {
+      tr: 'Entegrasyonlar',
+      en: 'Integrations'
+    }
+  },
+  {
+    key: 'notifications',
+    namespace: 'system',
+    translations: {
+      tr: 'Bildirimler',
+      en: 'Notifications'
+    }
+  },
+  {
+    key: 'appearance_themes',
+    namespace: 'system',
+    translations: {
+      tr: 'Görünüm ve Temalar',
+      en: 'Appearance & Themes'
+    }
+  },
+  {
+    key: 'license_info',
+    namespace: 'system',
+    translations: {
+      tr: 'Lisans Bilgileri',
+      en: 'License Information'
+    }
+  },
+  {
+    key: 'save_settings',
+    namespace: 'system',
+    translations: {
+      tr: 'Ayarları Kaydet',
+      en: 'Save Settings'
+    }
+  },
+  {
+    key: 'company_name',
+    namespace: 'system',
+    translations: {
+      tr: 'Şirket Adı',
+      en: 'Company Name'
+    }
+  },
+  {
+    key: 'company_name_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Şirketinizin adı raporlarda ve sistem çıktılarında görünecektir.',
+      en: 'Your company name will appear in reports and system outputs.'
+    }
+  },
+  {
+    key: 'system_title',
+    namespace: 'system',
+    translations: {
+      tr: 'Sistem Başlığı',
+      en: 'System Title'
+    }
+  },
+  {
+    key: 'system_title_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Tarayıcı başlığında ve panel üst kısmında görünecek başlık.',
+      en: 'Title that will appear in browser title and panel header.'
+    }
+  },
+  {
+    key: 'default_language',
+    namespace: 'system',
+    translations: {
+      tr: 'Varsayılan Dil',
+      en: 'Default Language'
+    }
+  },
+  {
+    key: 'timezone',
+    namespace: 'system',
+    translations: {
+      tr: 'Zaman Dilimi',
+      en: 'Timezone'
+    }
+  },
+  {
+    key: 'date_format',
+    namespace: 'system',
+    translations: {
+      tr: 'Tarih Formatı',
+      en: 'Date Format'
+    }
+  },
+  {
+    key: 'time_format',
+    namespace: 'system',
+    translations: {
+      tr: 'Saat Formatı',
+      en: 'Time Format'
+    }
+  },
+  {
+    key: 'hour',
+    namespace: 'common',
+    translations: {
+      tr: 'Saat',
+      en: 'Hour'
+    }
+  },
+  {
+    key: 'system_information',
+    namespace: 'system',
+    translations: {
+      tr: 'Sistem Bilgileri',
+      en: 'System Information'
+    }
+  },
+  {
+    key: 'version',
+    namespace: 'system',
+    translations: {
+      tr: 'Versiyon',
+      en: 'Version'
+    }
+  },
+  {
+    key: 'install_date',
+    namespace: 'system',
+    translations: {
+      tr: 'Kurulum Tarihi',
+      en: 'Installation Date'
+    }
+  },
+  {
+    key: 'server_environment',
+    namespace: 'system',
+    translations: {
+      tr: 'Sunucu Ortamı',
+      en: 'Server Environment'
+    }
+  },
+  {
+    key: 'last_update',
+    namespace: 'system',
+    translations: {
+      tr: 'Son Güncelleme',
+      en: 'Last Update'
+    }
+  },
+  // Security Settings
+  {
+    key: 'password_policy',
+    namespace: 'system',
+    translations: {
+      tr: 'Şifre Politikası',
+      en: 'Password Policy'
+    }
+  },
+  {
+    key: 'password_strength',
+    namespace: 'system',
+    translations: {
+      tr: 'Şifre Gücü',
+      en: 'Password Strength'
+    }
+  },
+  {
+    key: 'basic',
+    namespace: 'system',
+    translations: {
+      tr: 'Basit',
+      en: 'Basic'
+    }
+  },
+  {
+    key: 'medium',
+    namespace: 'system',
+    translations: {
+      tr: 'Orta',
+      en: 'Medium'
+    }
+  },
+  {
+    key: 'strong',
+    namespace: 'system',
+    translations: {
+      tr: 'Güçlü',
+      en: 'Strong'
+    }
+  },
+  {
+    key: 'very_strong',
+    namespace: 'system',
+    translations: {
+      tr: 'Çok Güçlü',
+      en: 'Very Strong'
+    }
+  },
+  {
+    key: 'characters',
+    namespace: 'system',
+    translations: {
+      tr: 'karakter',
+      en: 'characters'
+    }
+  },
+  {
+    key: 'letters_and_numbers',
+    namespace: 'system',
+    translations: {
+      tr: 'harf ve rakamlar',
+      en: 'letters and numbers'
+    }
+  },
+  {
+    key: 'mixed_case_numbers_symbols',
+    namespace: 'system',
+    translations: {
+      tr: 'büyük-küçük harf, rakam ve semboller',
+      en: 'mixed case, numbers and symbols'
+    }
+  },
+  {
+    key: 'password_strength_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Kullanıcıların şifreleri için gereken güvenlik seviyesini belirleyin.',
+      en: 'Set the required security level for users passwords.'
+    }
+  },
+  {
+    key: 'password_expiration',
+    namespace: 'system',
+    translations: {
+      tr: 'Şifre Son Kullanma Süresi',
+      en: 'Password Expiration'
+    }
+  },
+  {
+    key: 'days',
+    namespace: 'common',
+    translations: {
+      tr: 'gün',
+      en: 'days'
+    }
+  },
+  {
+    key: 'password_expiration_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Şifrenin kaç gün sonra yenilenmesi gerektiğini belirleyin. 0 değeri, şifrelerin hiçbir zaman sona ermeyeceği anlamına gelir.',
+      en: 'Set how many days until passwords need to be renewed. A value of 0 means passwords never expire.'
+    }
+  },
+  {
+    key: 'authentication',
+    namespace: 'system',
+    translations: {
+      tr: 'Kimlik Doğrulama',
+      en: 'Authentication'
+    }
+  },
+  {
+    key: 'enable_2fa',
+    namespace: 'system',
+    translations: {
+      tr: 'İki Faktörlü Kimlik Doğrulamayı Etkinleştir',
+      en: 'Enable Two-Factor Authentication'
+    }
+  },
+  {
+    key: '2fa_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Kullanıcılar, hesaplarına giriş yaparken bir doğrulama kodu girmelidir.',
+      en: 'Users must enter a verification code when signing into their accounts.'
+    }
+  },
+  {
+    key: 'max_login_attempts',
+    namespace: 'system',
+    translations: {
+      tr: 'Maksimum Giriş Denemeleri',
+      en: 'Maximum Login Attempts'
+    }
+  },
+  {
+    key: 'login_attempts_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Hesap kilitlenmeden önce izin verilen başarısız giriş denemesi sayısı.',
+      en: 'Number of failed login attempts allowed before the account is locked.'
+    }
+  },
+  {
+    key: 'session_settings',
+    namespace: 'system',
+    translations: {
+      tr: 'Oturum Ayarları',
+      en: 'Session Settings'
+    }
+  },
+  {
+    key: 'session_timeout',
+    namespace: 'system',
+    translations: {
+      tr: 'Oturum Zaman Aşımı',
+      en: 'Session Timeout'
+    }
+  },
+  {
+    key: 'minutes',
+    namespace: 'common',
+    translations: {
+      tr: 'dakika',
+      en: 'minutes'
+    }
+  },
+  {
+    key: 'session_timeout_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Kullanıcı hareketsiz kaldıktan sonra oturumun sonlandırılması için geçmesi gereken süre.',
+      en: 'Time after which the session is terminated when the user is inactive.'
+    }
+  },
+  {
+    key: 'network_security',
+    namespace: 'system',
+    translations: {
+      tr: 'Ağ Güvenliği',
+      en: 'Network Security'
+    }
+  },
+  {
+    key: 'allowed_ips',
+    namespace: 'system',
+    translations: {
+      tr: 'İzin Verilen IP Adresleri',
+      en: 'Allowed IP Addresses'
+    }
+  },
+  {
+    key: 'allowed_ips_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Sisteme erişim sağlayabilecek IP adresleri veya CIDR aralıkları. Boş bırakırsanız tüm IP adreslerine izin verilir.',
+      en: 'IP addresses or CIDR ranges that can access the system. Leave empty to allow all IP addresses.'
+    }
+  },
+  {
+    key: 'enforce_ssl',
+    namespace: 'system',
+    translations: {
+      tr: 'SSL Bağlantısını Zorunlu Kıl',
+      en: 'Enforce SSL Connection'
+    }
+  },
+  {
+    key: 'enforce_ssl_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Sisteme sadece güvenli HTTPS bağlantısı üzerinden erişime izin verir.',
+      en: 'Only allows access to the system over secure HTTPS connection.'
+    }
+  },
+  // Backup Settings
+  {
+    key: 'scheduled_backups',
+    namespace: 'system',
+    translations: {
+      tr: 'Zamanlanmış Yedeklemeler',
+      en: 'Scheduled Backups'
+    }
+  },
+  {
+    key: 'backup_frequency',
+    namespace: 'system',
+    translations: {
+      tr: 'Yedekleme Sıklığı',
+      en: 'Backup Frequency'
+    }
+  },
+  {
+    key: 'hourly',
+    namespace: 'system',
+    translations: {
+      tr: 'Saatlik',
+      en: 'Hourly'
+    }
+  },
+  {
+    key: 'daily',
+    namespace: 'system',
+    translations: {
+      tr: 'Günlük',
+      en: 'Daily'
+    }
+  },
+  {
+    key: 'weekly',
+    namespace: 'system',
+    translations: {
+      tr: 'Haftalık',
+      en: 'Weekly'
+    }
+  },
+  {
+    key: 'monthly',
+    namespace: 'system',
+    translations: {
+      tr: 'Aylık',
+      en: 'Monthly'
+    }
+  },
+  {
+    key: 'manual_only',
+    namespace: 'system',
+    translations: {
+      tr: 'Sadece Manuel',
+      en: 'Manual Only'
+    }
+  },
+  {
+    key: 'backup_time',
+    namespace: 'system',
+    translations: {
+      tr: 'Yedekleme Zamanı',
+      en: 'Backup Time'
+    }
+  },
+  {
+    key: 'backup_time_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Zamanlanmış yedeklemelerin başlatılacağı saat.',
+      en: 'The hour when scheduled backups will start.'
+    }
+  },
+  {
+    key: 'retention_period',
+    namespace: 'system',
+    translations: {
+      tr: 'Saklama Süresi',
+      en: 'Retention Period'
+    }
+  },
+  {
+    key: 'retention_period_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Yedeklemelerin saklanacağı gün sayısı. Eski yedeklemeler otomatik olarak silinir.',
+      en: 'Number of days backups will be kept. Older backups are automatically deleted.'
+    }
+  },
+  {
+    key: 'backup_storage',
+    namespace: 'system',
+    translations: {
+      tr: 'Yedekleme Depolama',
+      en: 'Backup Storage'
+    }
+  },
+  {
+    key: 'local_storage',
+    namespace: 'system',
+    translations: {
+      tr: 'Yerel Depolama',
+      en: 'Local Storage'
+    }
+  },
+  {
+    key: 'bucket_name',
+    namespace: 'system',
+    translations: {
+      tr: 'Bucket Adı',
+      en: 'Bucket Name'
+    }
+  },
+  {
+    key: 'region',
+    namespace: 'system',
+    translations: {
+      tr: 'Bölge',
+      en: 'Region'
+    }
+  },
+  {
+    key: 'backup_content',
+    namespace: 'system',
+    translations: {
+      tr: 'Yedekleme İçeriği',
+      en: 'Backup Content'
+    }
+  },
+  {
+    key: 'database',
+    namespace: 'system',
+    translations: {
+      tr: 'Veritabanı',
+      en: 'Database'
+    }
+  },
+  {
+    key: 'uploaded_files',
+    namespace: 'system',
+    translations: {
+      tr: 'Yüklenen Dosyalar',
+      en: 'Uploaded Files'
+    }
+  },
+  {
+    key: 'system_logs',
+    namespace: 'system',
+    translations: {
+      tr: 'Sistem Logları',
+      en: 'System Logs'
+    }
+  },
+  {
+    key: 'manual_operations',
+    namespace: 'system',
+    translations: {
+      tr: 'Manuel İşlemler',
+      en: 'Manual Operations'
+    }
+  },
+  {
+    key: 'create_backup_now',
+    namespace: 'system',
+    translations: {
+      tr: 'Şimdi Yedekleme Oluştur',
+      en: 'Create Backup Now'
+    }
+  },
+  {
+    key: 'manual_backup_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Mevcut sistem verilerinin bir yedeklemesini hemen oluşturun.',
+      en: 'Create a backup of the current system data immediately.'
+    }
+  },
+  {
+    key: 'upload_backup_file',
+    namespace: 'system',
+    translations: {
+      tr: 'Yedek Dosyasını Yükle',
+      en: 'Upload Backup File'
+    }
+  },
+  {
+    key: 'restore_system',
+    namespace: 'system',
+    translations: {
+      tr: 'Sistemi Geri Yükle',
+      en: 'Restore System'
+    }
+  },
+  {
+    key: 'restore_warning',
+    namespace: 'system',
+    translations: {
+      tr: 'Dikkat: Geri yükleme, mevcut verilerin üzerine yazacaktır. Bu işlem geri alınamaz.',
+      en: 'Warning: Restoration will overwrite existing data. This action cannot be undone.'
+    }
+  },
+  // Theme Settings
+  {
+    key: 'theme_settings',
+    namespace: 'system',
+    translations: {
+      tr: 'Tema Ayarları',
+      en: 'Theme Settings'
+    }
+  },
+  {
+    key: 'color_mode',
+    namespace: 'system',
+    translations: {
+      tr: 'Renk Modu',
+      en: 'Color Mode'
+    }
+  },
+  {
+    key: 'light_mode',
+    namespace: 'system',
+    translations: {
+      tr: 'Açık Mod',
+      en: 'Light Mode'
+    }
+  },
+  {
+    key: 'dark_mode',
+    namespace: 'system',
+    translations: {
+      tr: 'Koyu Mod',
+      en: 'Dark Mode'
+    }
+  },
+  {
+    key: 'system_preference',
+    namespace: 'system',
+    translations: {
+      tr: 'Sistem Tercihi',
+      en: 'System Preference'
+    }
+  },
+  {
+    key: 'enable_dark_mode_switch',
+    namespace: 'system',
+    translations: {
+      tr: 'Koyu Mod Geçişini Etkinleştir',
+      en: 'Enable Dark Mode Switch'
+    }
+  },
+  {
+    key: 'default_to_dark_mode',
+    namespace: 'system',
+    translations: {
+      tr: 'Varsayılan Olarak Koyu Mod',
+      en: 'Default to Dark Mode'
+    }
+  },
+  {
+    key: 'color_scheme',
+    namespace: 'system',
+    translations: {
+      tr: 'Renk Şeması',
+      en: 'Color Scheme'
+    }
+  },
+  {
+    key: 'primary_color',
+    namespace: 'system',
+    translations: {
+      tr: 'Ana Renk',
+      en: 'Primary Color'
+    }
+  },
+  {
+    key: 'accent_color',
+    namespace: 'system',
+    translations: {
+      tr: 'Vurgu Rengi',
+      en: 'Accent Color'
+    }
+  },
+  {
+    key: 'layout_settings',
+    namespace: 'system',
+    translations: {
+      tr: 'Düzen Ayarları',
+      en: 'Layout Settings'
+    }
+  },
+  {
+    key: 'menu_style',
+    namespace: 'system',
+    translations: {
+      tr: 'Menü Stili',
+      en: 'Menu Style'
+    }
+  },
+  {
+    key: 'side_menu',
+    namespace: 'system',
+    translations: {
+      tr: 'Yan Menü',
+      en: 'Side Menu'
+    }
+  },
+  {
+    key: 'top_menu',
+    namespace: 'system',
+    translations: {
+      tr: 'Üst Menü',
+      en: 'Top Menu'
+    }
+  },
+  {
+    key: 'collapsed_menu',
+    namespace: 'system',
+    translations: {
+      tr: 'Daraltılmış Menü',
+      en: 'Collapsed Menu'
+    }
+  },
+  {
+    key: 'show_logo',
+    namespace: 'system',
+    translations: {
+      tr: 'Logo Göster',
+      en: 'Show Logo'
+    }
+  },
+  {
+    key: 'show_user_avatar',
+    namespace: 'system',
+    translations: {
+      tr: 'Kullanıcı Avatarını Göster',
+      en: 'Show User Avatar'
+    }
+  },
+  // Integration Settings
+  {
+    key: 'api_integration',
+    namespace: 'system',
+    translations: {
+      tr: 'API Entegrasyonu',
+      en: 'API Integration'
+    }
+  },
+  {
+    key: 'enable_public_api',
+    namespace: 'system',
+    translations: {
+      tr: 'Herkese Açık API\'yi Etkinleştir',
+      en: 'Enable Public API'
+    }
+  },
+  {
+    key: 'api_rate_limit',
+    namespace: 'system',
+    translations: {
+      tr: 'API Hız Sınırı',
+      en: 'API Rate Limit'
+    }
+  },
+  {
+    key: 'requests_per_hour',
+    namespace: 'system',
+    translations: {
+      tr: 'saat başına istek',
+      en: 'requests per hour'
+    }
+  },
+  {
+    key: 'api_keys',
+    namespace: 'system',
+    translations: {
+      tr: 'API Anahtarları',
+      en: 'API Keys'
+    }
+  },
+  {
+    key: 'api_keys_info',
+    namespace: 'system',
+    translations: {
+      tr: 'API erişimi için kullanılan API anahtarlarını yönetin. Hassas bilgiler içerir, güvenli bir şekilde saklayın.',
+      en: 'Manage API keys used for API access. Contains sensitive information, keep them secure.'
+    }
+  },
+  {
+    key: 'manage_api_keys',
+    namespace: 'system',
+    translations: {
+      tr: 'API Anahtarlarını Yönet',
+      en: 'Manage API Keys'
+    }
+  },
+  {
+    key: 'erp_integration',
+    namespace: 'system',
+    translations: {
+      tr: 'ERP Entegrasyonu',
+      en: 'ERP Integration'
+    }
+  },
+  {
+    key: 'erp_system',
+    namespace: 'system',
+    translations: {
+      tr: 'ERP Sistemi',
+      en: 'ERP System'
+    }
+  },
+  {
+    key: 'none',
+    namespace: 'common',
+    translations: {
+      tr: 'Hiçbiri',
+      en: 'None'
+    }
+  },
+  {
+    key: 'custom',
+    namespace: 'system',
+    translations: {
+      tr: 'Özel',
+      en: 'Custom'
+    }
+  },
+  {
+    key: 'connection_url',
+    namespace: 'system',
+    translations: {
+      tr: 'Bağlantı URL\'si',
+      en: 'Connection URL'
+    }
+  },
+  {
+    key: 'username',
+    namespace: 'common',
+    translations: {
+      tr: 'Kullanıcı Adı',
+      en: 'Username'
+    }
+  },
+  {
+    key: 'password',
+    namespace: 'common',
+    translations: {
+      tr: 'Şifre',
+      en: 'Password'
+    }
+  },
+  {
+    key: 'test_connection',
+    namespace: 'system',
+    translations: {
+      tr: 'Bağlantıyı Test Et',
+      en: 'Test Connection'
+    }
+  },
+  {
+    key: 'email_service',
+    namespace: 'system',
+    translations: {
+      tr: 'E-posta Servisi',
+      en: 'Email Service'
+    }
+  },
+  {
+    key: 'email_provider',
+    namespace: 'system',
+    translations: {
+      tr: 'E-posta Sağlayıcısı',
+      en: 'Email Provider'
+    }
+  },
+  {
+    key: 'sender_email',
+    namespace: 'system',
+    translations: {
+      tr: 'Gönderen E-posta',
+      en: 'Sender Email'
+    }
+  },
+  {
+    key: 'host',
+    namespace: 'system',
+    translations: {
+      tr: 'Sunucu',
+      en: 'Host'
+    }
+  },
+  {
+    key: 'language_selection_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Arayüz dilini değiştirmek için kullanabilirsiniz. Değişiklikler anında uygulanır.',
+      en: 'Use this to change the interface language. Changes are applied immediately.'
+    }
+  },
+  {
+    key: 'default_language_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Yeni kullanıcılar için varsayılan olarak ayarlanan dil. Mevcut kullanıcıları etkilemez.',
+      en: 'The language set as default for new users. Does not affect existing users.'
+    }
+  },
+  {
+    key: 'logo_settings',
+    namespace: 'system',
+    translations: {
+      tr: 'Logo Ayarları',
+      en: 'Logo Settings'
+    }
+  },
+  {
+    key: 'company_logo',
+    namespace: 'system',
+    translations: {
+      tr: 'Şirket Logosu',
+      en: 'Company Logo'
+    }
+  },
+  {
+    key: 'upload_logo',
+    namespace: 'system',
+    translations: {
+      tr: 'Logo Yükle',
+      en: 'Upload Logo'
+    }
+  },
+  {
+    key: 'logo_url',
+    namespace: 'system',
+    translations: {
+      tr: 'Logo URL',
+      en: 'Logo URL'
+    }
+  },
+  {
+    key: 'logo_help',
+    namespace: 'system',
+    translations: {
+      tr: 'Logo için bir URL girin veya bilgisayarınızdan bir dosya yükleyin.',
+      en: 'Enter a URL for your logo or upload a file from your computer.'
+    }
+  },
+  {
+    key: 'logo_requirements',
+    namespace: 'system',
+    translations: {
+      tr: 'Logo Gereksinimleri',
+      en: 'Logo Requirements'
+    }
+  },
+  {
+    key: 'logo_size_recommendation',
+    namespace: 'system',
+    translations: {
+      tr: 'Önerilen boyut: 200x200 piksel veya daha büyük, kare oranında',
+      en: 'Recommended size: 200x200 pixels or larger, square ratio'
+    }
+  },
+  {
+    key: 'logo_format_support',
+    namespace: 'system',
+    translations: {
+      tr: 'Desteklenen formatlar: PNG, JPG, SVG',
+      en: 'Supported formats: PNG, JPG, SVG'
+    }
+  },
+  {
+    key: 'logo_transparent_recommendation',
+    namespace: 'system',
+    translations: {
+      tr: 'Şeffaf arka planlı PNG önerilir',
+      en: 'PNG with transparent background recommended'
     }
   }
 ];
@@ -693,56 +1797,6 @@ const attributeTranslations: Translation[] = [
       en: 'Are you sure you want to delete the attribute?'
     }
   },
-  // AttributeType çevirileri
-  {
-    key: 'text',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Metin',
-      en: 'Text'
-    }
-  },
-  {
-    key: 'number',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Sayı',
-      en: 'Number'
-    }
-  },
-  {
-    key: 'date',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Tarih',
-      en: 'Date'
-    }
-  },
-  {
-    key: 'boolean',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Evet/Hayır',
-      en: 'Yes/No'
-    }
-  },
-  {
-    key: 'select',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Seçim',
-      en: 'Select'
-    }
-  },
-  {
-    key: 'multiselect',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Çoklu Seçim',
-      en: 'Multi-select'
-    }
-  },
-  // Create sayfası ek çevirileri
   {
     key: 'name_required',
     namespace: 'attributes',
@@ -863,6 +1917,22 @@ const attributeTranslations: Translation[] = [
       en: 'Saving...'
     }
   },
+  {
+    key: 'option',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Seçenek',
+      en: 'Option'
+    }
+  },
+  {
+    key: 'attribute_create_error',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Öznitelik oluşturulurken bir hata oluştu',
+      en: 'An error occurred while creating the attribute'
+    }
+  },
   // AttributeDetailsPage için ek çeviriler
   {
     key: 'attribute_details_fetch_error',
@@ -921,22 +1991,6 @@ const attributeTranslations: Translation[] = [
     }
   },
   {
-    key: 'attribute_group',
-    namespace: 'attributes',
-    translations: {
-      tr: 'Öznitelik Grubu',
-      en: 'Attribute Group'
-    }
-  },
-  {
-    key: 'options_placeholder',
-    namespace: 'attributes',
-    translations: {
-      tr: 'Seçenekleri virgülle ayırarak yazın',
-      en: 'Enter options separated by commas'
-    }
-  },
-  {
     key: 'options_help',
     namespace: 'attributes',
     translations: {
@@ -958,1068 +2012,6 @@ const attributeTranslations: Translation[] = [
     translations: {
       tr: 'Sistem Bilgileri ve İşlem Geçmişi',
       en: 'System Information and History'
-    }
-  }
-];
-
-// Profil sayfası çevirileri
-const profileTranslations: Translation[] = [
-  {
-    key: 'profile',
-    translations: {
-      tr: 'Profil',
-      en: 'Profile'
-    }
-  },
-  {
-    key: 'profile_information',
-    translations: {
-      tr: 'Profil Bilgileri',
-      en: 'Profile Information'
-    }
-  },
-  {
-    key: 'name',
-    translations: {
-      tr: 'Ad',
-      en: 'Name'
-    }
-  },
-  {
-    key: 'email',
-    translations: {
-      tr: 'E-posta',
-      en: 'Email'
-    }
-  },
-  {
-    key: 'role',
-    translations: {
-      tr: 'Rol',
-      en: 'Role'
-    }
-  }
-];
-
-// UI öğeleri ve menüler için çeviriler
-const uiTranslations: Translation[] = [
-  // Sidebar ana menü
-  {
-    key: 'home',
-    namespace: 'menu',
-    translations: {
-      tr: 'Ana Sayfa',
-      en: 'Home'
-    }
-  },
-  {
-    key: 'attributes',
-    namespace: 'menu',
-    translations: {
-      tr: 'Öznitelikler',
-      en: 'Attributes'
-    }
-  },
-  {
-    key: 'attribute_groups',
-    namespace: 'menu',
-    translations: {
-      tr: 'Öznitelik Grupları',
-      en: 'Attribute Groups'
-    }
-  },
-  {
-    key: 'item_types',
-    namespace: 'menu',
-    translations: {
-      tr: 'Öğe Tipleri',
-      en: 'Item Types'
-    }
-  },
-  {
-    key: 'items',
-    namespace: 'menu',
-    translations: {
-      tr: 'Öğeler',
-      en: 'Items'
-    }
-  },
-  {
-    key: 'categories',
-    namespace: 'menu',
-    translations: {
-      tr: 'Kategoriler',
-      en: 'Categories'
-    }
-  },
-  {
-    key: 'families',
-    namespace: 'menu',
-    translations: {
-      tr: 'Aileler',
-      en: 'Families'
-    }
-  },
-  {
-    key: 'roles',
-    namespace: 'menu',
-    translations: {
-      tr: 'Roller',
-      en: 'Roles'
-    }
-  },
-  {
-    key: 'permissions',
-    namespace: 'menu',
-    translations: {
-      tr: 'İzinler',
-      en: 'Permissions'
-    }
-  },
-  {
-    key: 'permission_groups',
-    namespace: 'menu',
-    translations: {
-      tr: 'İzin Grupları',
-      en: 'Permission Groups'
-    }
-  },
-  {
-    key: 'relationships',
-    namespace: 'menu',
-    translations: {
-      tr: 'İlişkiler',
-      en: 'Relationships'
-    }
-  },
-  {
-    key: 'localization',
-    namespace: 'menu',
-    translations: {
-      tr: 'Lokalizasyon',
-      en: 'Localization'
-    }
-  },
-  
-  // Alt menü öğeleri
-  {
-    key: 'attribute_list',
-    namespace: 'menu',
-    translations: {
-      tr: 'Öznitelik Listesi',
-      en: 'Attribute List'
-    }
-  },
-  {
-    key: 'add_attribute',
-    namespace: 'menu',
-    translations: {
-      tr: 'Öznitelik Ekle',
-      en: 'Add Attribute'
-    }
-  },
-  {
-    key: 'group_list',
-    namespace: 'menu',
-    translations: {
-      tr: 'Grup Listesi',
-      en: 'Group List'
-    }
-  },
-  {
-    key: 'add_group',
-    namespace: 'menu',
-    translations: {
-      tr: 'Grup Ekle',
-      en: 'Add Group'
-    }
-  },
-  {
-    key: 'type_list',
-    namespace: 'menu',
-    translations: {
-      tr: 'Tip Listesi',
-      en: 'Type List'
-    }
-  },
-  {
-    key: 'add_type',
-    namespace: 'menu',
-    translations: {
-      tr: 'Tip Ekle',
-      en: 'Add Type'
-    }
-  },
-  {
-    key: 'item_list',
-    namespace: 'menu',
-    translations: {
-      tr: 'Öğe Listesi',
-      en: 'Item List'
-    }
-  },
-  {
-    key: 'add_item',
-    namespace: 'menu',
-    translations: {
-      tr: 'Öğe Ekle',
-      en: 'Add Item'
-    }
-  },
-  {
-    key: 'category_list',
-    namespace: 'menu',
-    translations: {
-      tr: 'Kategori Listesi',
-      en: 'Category List'
-    }
-  },
-  {
-    key: 'add_category',
-    namespace: 'menu',
-    translations: {
-      tr: 'Kategori Ekle',
-      en: 'Add Category'
-    }
-  },
-  {
-    key: 'family_list',
-    namespace: 'menu',
-    translations: {
-      tr: 'Aile Listesi',
-      en: 'Family List'
-    }
-  },
-  {
-    key: 'add_family',
-    namespace: 'menu',
-    translations: {
-      tr: 'Aile Ekle',
-      en: 'Add Family'
-    }
-  },
-  {
-    key: 'role_list',
-    namespace: 'menu',
-    translations: {
-      tr: 'Rol Listesi',
-      en: 'Role List'
-    }
-  },
-  {
-    key: 'add_role',
-    namespace: 'menu',
-    translations: {
-      tr: 'Rol Ekle',
-      en: 'Add Role'
-    }
-  },
-  {
-    key: 'permission_list',
-    namespace: 'menu',
-    translations: {
-      tr: 'İzin Listesi',
-      en: 'Permission List'
-    }
-  },
-  {
-    key: 'add_permission',
-    namespace: 'menu',
-    translations: {
-      tr: 'İzin Ekle',
-      en: 'Add Permission'
-    }
-  },
-  {
-    key: 'permission_group_list',
-    namespace: 'menu',
-    translations: {
-      tr: 'Grup Listesi',
-      en: 'Group List'
-    }
-  },
-  {
-    key: 'add_permission_group',
-    namespace: 'menu',
-    translations: {
-      tr: 'Grup Ekle',
-      en: 'Add Group'
-    }
-  },
-  {
-    key: 'relationship_type_list',
-    namespace: 'menu',
-    translations: {
-      tr: 'İlişki Tipleri Listesi',
-      en: 'Relationship Types List'
-    }
-  },
-  {
-    key: 'add_relationship_type',
-    namespace: 'menu',
-    translations: {
-      tr: 'İlişki Tipi Ekle',
-      en: 'Add Relationship Type'
-    }
-  },
-  {
-    key: 'translation_list',
-    namespace: 'menu',
-    translations: {
-      tr: 'Çeviri Listesi',
-      en: 'Translation List'
-    }
-  },
-  {
-    key: 'add_translation',
-    namespace: 'menu',
-    translations: {
-      tr: 'Çeviri Ekle',
-      en: 'Add Translation'
-    }
-  },
-  
-  // Lokalizasyon sayfası metinleri
-  {
-    key: 'translations',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Çeviriler',
-      en: 'Translations'
-    }
-  },
-  {
-    key: 'manage_all_translations',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Sistemdeki tüm çevirileri yönetin',
-      en: 'Manage all translations in the system'
-    }
-  },
-  {
-    key: 'add_new_translation',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Yeni Çeviri Ekle',
-      en: 'Add New Translation'
-    }
-  },
-  {
-    key: 'total_translations',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Toplam Çeviri',
-      en: 'Total Translations'
-    }
-  },
-  {
-    key: 'namespace_count',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Namespace Sayısı',
-      en: 'Namespace Count'
-    }
-  },
-  {
-    key: 'language_count',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Dil Sayısı',
-      en: 'Language Count'
-    }
-  },
-  {
-    key: 'search_key_namespace',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Anahtar veya namespace ara...',
-      en: 'Search key or namespace...'
-    }
-  },
-  {
-    key: 'key',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Anahtar',
-      en: 'Key'
-    }
-  },
-  {
-    key: 'namespace',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Namespace',
-      en: 'Namespace'
-    }
-  },
-  {
-    key: 'turkish',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Türkçe',
-      en: 'Turkish'
-    }
-  },
-  {
-    key: 'english',
-    namespace: 'localizations',
-    translations: {
-      tr: 'İngilizce',
-      en: 'English'
-    }
-  },
-  {
-    key: 'actions',
-    namespace: 'localizations',
-    translations: {
-      tr: 'İşlemler',
-      en: 'Actions'
-    }
-  },
-  {
-    key: 'details',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Detay',
-      en: 'Details'
-    }
-  },
-  {
-    key: 'delete',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Sil',
-      en: 'Delete'
-    }
-  },
-  {
-    key: 'no_translations_found',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Hiç çeviri bulunamadı.',
-      en: 'No translations found.'
-    }
-  },
-  {
-    key: 'translation_details',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Çeviri Detayları',
-      en: 'Translation Details'
-    }
-  },
-  {
-    key: 'add_new_translation',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Yeni Çeviri Ekle',
-      en: 'Add New Translation'
-    }
-  },
-  {
-    key: 'fill_form_to_add',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Sisteme yeni çeviri eklemek için formu doldurun',
-      en: 'Fill the form to add a new translation to the system'
-    }
-  },
-  {
-    key: 'edit',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Düzenle',
-      en: 'Edit'
-    }
-  },
-  {
-    key: 'cancel',
-    namespace: 'localizations',
-    translations: {
-      tr: 'İptal',
-      en: 'Cancel'
-    }
-  },
-  {
-    key: 'save',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Kaydet',
-      en: 'Save'
-    }
-  },
-  {
-    key: 'saving',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Kaydediliyor...',
-      en: 'Saving...'
-    }
-  },
-  {
-    key: 'adding',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Ekleniyor...',
-      en: 'Adding...'
-    }
-  },
-  {
-    key: 'add',
-    namespace: 'localizations',
-    translations: {
-      tr: 'Ekle',
-      en: 'Add'
-    }
-  },
-  
-  // Genel UI öğeleri
-  {
-    key: 'search',
-    namespace: 'ui',
-    translations: {
-      tr: 'Ara',
-      en: 'Search'
-    }
-  },
-  {
-    key: 'loading',
-    namespace: 'ui',
-    translations: {
-      tr: 'Yükleniyor...',
-      en: 'Loading...'
-    }
-  },
-  {
-    key: 'page_not_found',
-    namespace: 'ui',
-    translations: {
-      tr: 'Sayfa bulunamadı.',
-      en: 'Page not found.'
-    }
-  }
-];
-
-// Tema çevirileri
-const themeTranslations: Translation[] = [
-  {
-    key: 'switch_to_light',
-    namespace: 'theme',
-    translations: {
-      tr: 'Açık temaya geç',
-      en: 'Switch to light theme'
-    }
-  },
-  {
-    key: 'switch_to_dark',
-    namespace: 'theme',
-    translations: {
-      tr: 'Koyu temaya geç',
-      en: 'Switch to dark theme'
-    }
-  }
-];
-
-// Auth çevirileri
-const authTranslations: Translation[] = [
-  {
-    key: 'login_to_account',
-    namespace: 'auth',
-    translations: {
-      tr: 'Hesabınıza giriş yapın',
-      en: 'Log in to your account'
-    }
-  },
-  {
-    key: 'create_new_account',
-    namespace: 'auth',
-    translations: {
-      tr: 'yeni bir hesap oluşturun',
-      en: 'create a new account'
-    }
-  },
-  {
-    key: 'email_address',
-    namespace: 'auth',
-    translations: {
-      tr: 'E-posta Adresi',
-      en: 'Email Address'
-    }
-  },
-  {
-    key: 'password',
-    namespace: 'auth',
-    translations: {
-      tr: 'Şifre',
-      en: 'Password'
-    }
-  },
-  {
-    key: 'forgot_password',
-    namespace: 'auth',
-    translations: {
-      tr: 'Şifrenizi mi unuttunuz?',
-      en: 'Forgot your password?'
-    }
-  },
-  {
-    key: 'remember_me',
-    namespace: 'auth',
-    translations: {
-      tr: 'Beni hatırla',
-      en: 'Remember me'
-    }
-  },
-  {
-    key: 'login',
-    namespace: 'auth',
-    translations: {
-      tr: 'Giriş Yap',
-      en: 'Log in'
-    }
-  },
-  {
-    key: 'or_continue_with',
-    namespace: 'auth',
-    translations: {
-      tr: 'Veya şununla devam et',
-      en: 'Or continue with'
-    }
-  },
-  {
-    key: 'register',
-    namespace: 'auth',
-    translations: {
-      tr: 'Kayıt Ol',
-      en: 'Register'
-    }
-  },
-  {
-    key: 'register_account',
-    namespace: 'auth',
-    translations: {
-      tr: 'Yeni bir hesap oluşturun',
-      en: 'Create a new account'
-    }
-  },
-  {
-    key: 'first_name',
-    namespace: 'auth',
-    translations: {
-      tr: 'Ad',
-      en: 'First Name'
-    }
-  },
-  {
-    key: 'last_name',
-    namespace: 'auth',
-    translations: {
-      tr: 'Soyad',
-      en: 'Last Name'
-    }
-  },
-  {
-    key: 'confirm_password',
-    namespace: 'auth',
-    translations: {
-      tr: 'Şifreyi Onayla',
-      en: 'Confirm Password'
-    }
-  },
-  {
-    key: 'passwords_dont_match',
-    namespace: 'auth',
-    translations: {
-      tr: 'Şifreler eşleşmiyor.',
-      en: 'Passwords do not match.'
-    }
-  },
-  {
-    key: 'login_with_existing',
-    namespace: 'auth',
-    translations: {
-      tr: 'mevcut hesabınızla giriş yapın',
-      en: 'log in with your existing account'
-    }
-  },
-  {
-    key: 'terms_of_service',
-    namespace: 'auth',
-    translations: {
-      tr: 'Kullanım Koşulları',
-      en: 'Terms of Service'
-    }
-  },
-  {
-    key: 'privacy_policy',
-    namespace: 'auth',
-    translations: {
-      tr: 'Gizlilik Politikası',
-      en: 'Privacy Policy'
-    }
-  },
-  {
-    key: 'accept_terms',
-    namespace: 'auth',
-    translations: {
-      tr: "'nı kabul ediyorum",
-      en: "I accept"
-    }
-  }
-];
-
-// Common namespace için ek çeviriler
-const additionalCommonTranslations: Translation[] = [
-  {
-    key: 'or',
-    namespace: 'common',
-    translations: {
-      tr: 'Veya',
-      en: 'Or'
-    }
-  },
-  {
-    key: 'and',
-    namespace: 'common',
-    translations: {
-      tr: 've',
-      en: 'and'
-    }
-  }
-];
-
-// Navigasyon çevirileri
-const navTranslations: Translation[] = [
-  {
-    key: 'open_user_menu',
-    namespace: 'nav',
-    translations: {
-      tr: 'Kullanıcı menüsünü aç',
-      en: 'Open user menu'
-    }
-  },
-  {
-    key: 'my_profile',
-    namespace: 'nav',
-    translations: {
-      tr: 'Profilim',
-      en: 'My Profile'
-    }
-  },
-  {
-    key: 'notifications',
-    namespace: 'nav',
-    translations: {
-      tr: 'Bildirimler',
-      en: 'Notifications'
-    }
-  }
-];
-
-// AttributeType çevirileri için tip açıklamaları
-const attributeTypeDescriptions: Translation[] = [
-  {
-    key: 'text_type_description',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Metin girişi için kullanılır. Ürün açıklaması, model numarası gibi bilgiler için idealdir.',
-      en: 'Used for text input. Ideal for product descriptions, model numbers, and similar information.'
-    }
-  },
-  {
-    key: 'number_type_description',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Sayısal değerler için kullanılır. Fiyat, miktar, ağırlık gibi bilgiler için idealdir.',
-      en: 'Used for numerical values. Ideal for price, quantity, weight, and similar information.'
-    }
-  },
-  {
-    key: 'date_type_description',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Tarih bilgisi için kullanılır. Üretim tarihi, son kullanma tarihi gibi bilgiler için idealdir.',
-      en: 'Used for date information. Ideal for production date, expiration date, and similar information.'
-    }
-  },
-  {
-    key: 'boolean_type_description',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Evet/Hayır tipinde bilgiler için kullanılır. Stokta var mı, aktif mi gibi bilgiler için idealdir.',
-      en: 'Used for Yes/No type information. Ideal for in stock, active status, and similar information.'
-    }
-  },
-  {
-    key: 'select_type_description',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Tek seçimlik listeler için kullanılır. Renk, beden, kategori gibi bilgiler için idealdir.',
-      en: 'Used for single selection lists. Ideal for color, size, category, and similar information.'
-    }
-  },
-  {
-    key: 'multiselect_type_description',
-    namespace: 'attribute_types',
-    translations: {
-      tr: 'Çoklu seçim gerektiren listeler için kullanılır. Özellikler, etiketler gibi bilgiler için idealdir.',
-      en: 'Used for multiple selection lists. Ideal for features, tags, and similar information.'
-    }
-  }
-];
-
-// AttributeGroup çevirileri
-const attributeGroupTranslations: Translation[] = [
-  {
-    key: 'attribute_groups_fetch_error',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik grupları getirilirken bir hata oluştu',
-      en: 'An error occurred while fetching attribute groups'
-    }
-  },
-  {
-    key: 'attribute_group_delete_error',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik grubu silinirken bir hata oluştu',
-      en: 'An error occurred while deleting the attribute group'
-    }
-  },
-  {
-    key: 'confirm_delete_attribute_group',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: '"{{name}}" öznitelik grubunu silmek istediğinize emin misiniz?',
-      en: 'Are you sure you want to delete the attribute group "{{name}}"?'
-    }
-  },
-  {
-    key: 'attribute_count',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik Sayısı',
-      en: 'Attribute Count'
-    }
-  },
-  {
-    key: 'no_attribute_groups_found',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik grubu bulunamadı',
-      en: 'No attribute groups found'
-    }
-  },
-  {
-    key: 'new_group',
-    namespace: 'attributes',
-    translations: {
-      tr: 'Yeni Grup',
-      en: 'New Group'
-    }
-  },
-  {
-    key: 'group_name_required',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik grup adı zorunludur',
-      en: 'Attribute group name is required'
-    }
-  },
-  {
-    key: 'group_code_required',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik grup kodu zorunludur',
-      en: 'Attribute group code is required'
-    }
-  },
-  {
-    key: 'attribute_group_create_error',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik grubu oluşturulurken bir hata oluştu',
-      en: 'An error occurred while creating the attribute group'
-    }
-  },
-  {
-    key: 'newAttributeGroup',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Yeni Öznitelik Grubu Oluştur',
-      en: 'Create New Attribute Group'
-    }
-  },
-  {
-    key: 'createAttributeGroupDescription',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Ürün ve hizmetleriniz için yeni bir öznitelik grubu tanımlayın',
-      en: 'Define a new attribute group for your products and services'
-    }
-  },
-  {
-    key: 'returnToList',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Listeye Dön',
-      en: 'Return to List'
-    }
-  },
-  {
-    key: 'groupName',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Grup Adı',
-      en: 'Group Name'
-    }
-  },
-  {
-    key: 'enterGroupName',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Örn: Temel Bilgiler',
-      en: 'E.g.: Basic Information'
-    }
-  },
-  {
-    key: 'groupCode',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Grup Kodu',
-      en: 'Group Code'
-    }
-  },
-  {
-    key: 'enterGroupCode',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Örn: temel_bilgiler',
-      en: 'E.g.: basic_information'
-    }
-  },
-  {
-    key: 'groupCodeInstructions',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Yalnızca küçük harfler, sayılar ve alt çizgi kullanın. Boşluk olmamalıdır.',
-      en: 'Use only lowercase letters, numbers, and underscores. No spaces allowed.'
-    }
-  },
-  {
-    key: 'enterDescription',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Bu grup hakkında kısa bir açıklama yazın...',
-      en: 'Write a short description about this group...'
-    }
-  },
-  {
-    key: 'related_attributes_fetch_error',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'İlişkili öznitelikler getirilirken hata oluştu',
-      en: 'Error occurred while fetching related attributes'
-    }
-  },
-  {
-    key: 'attribute_group_details_fetch_error',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik grubu bilgileri getirilirken bir hata oluştu',
-      en: 'An error occurred while fetching attribute group details'
-    }
-  },
-  {
-    key: 'attribute_group_updated_success',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik grubu başarıyla güncellendi',
-      en: 'Attribute group updated successfully'
-    }
-  },
-  {
-    key: 'attribute_group_update_error',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik grubu güncellenirken bir hata oluştu',
-      en: 'An error occurred while updating the attribute group'
-    }
-  },
-  {
-    key: 'attribute_group_not_found',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik grubu bulunamadı veya silinmiş olabilir',
-      en: 'Attribute group not found or may have been deleted'
-    }
-  },
-  {
-    key: 'attribute_group_name',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik Grup Adı',
-      en: 'Attribute Group Name'
-    }
-  },
-  {
-    key: 'metadata',
-    namespace: 'common',
-    translations: {
-      tr: 'Meta Bilgiler',
-      en: 'Metadata'
-    }
-  },
-  {
-    key: 'related_attributes',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'İlişkili Öznitelikler',
-      en: 'Related Attributes'
-    }
-  },
-  {
-    key: 'attribute',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'öznitelik',
-      en: 'attribute'
-    }
-  },
-  {
-    key: 'attributes_loading',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Öznitelik detayları yükleniyor...',
-      en: 'Loading attribute details...'
-    }
-  },
-  {
-    key: 'no_related_attributes',
-    namespace: 'attribute_groups',
-    translations: {
-      tr: 'Bu gruba bağlı öznitelik bulunmuyor',
-      en: 'No attributes associated with this group'
-    }
-  }
-];
-
-// Attributes için ek çeviriler 
-const additionalAttributeTranslations: Translation[] = [
-  {
-    key: 'option',
-    namespace: 'attributes',
-    translations: {
-      tr: 'Seçenek',
-      en: 'Option'
-    }
-  },
-  {
-    key: 'attribute_create_error',
-    namespace: 'attributes',
-    translations: {
-      tr: 'Öznitelik oluşturulurken bir hata oluştu',
-      en: 'An error occurred while creating the attribute'
     }
   },
   // Stepper bileşeni adım başlıkları
@@ -2182,484 +2174,15 @@ const additionalAttributeTranslations: Translation[] = [
       tr: 'Bir sonraki adıma geçerek doğrulama kuralları tanımlayabilirsiniz.',
       en: 'You can define validation rules by proceeding to the next step.'
     }
-  }
-];
-
-// Validation namespace için çeviriler
-const validationTranslations: Translation[] = [
-  {
-    key: 'no_validation_rules_yet',
-    namespace: 'validation',
-    translations: {
-      tr: 'Henüz doğrulama kuralı belirlemediniz',
-      en: 'You have not yet defined any validation rules'
-    }
   },
   {
-    key: 'add_validation_rules_prompt',
-    namespace: 'validation',
+    key: 'new_group',
+    namespace: 'attributes',
     translations: {
-      tr: 'Veri doğruluğunu sağlamak için lütfen en az bir doğrulama kuralı ekleyin.',
-      en: 'Please add at least one validation rule to ensure data accuracy.'
-    }
-  },
-  {
-    key: 'boolean_validation_rules',
-    namespace: 'validation',
-    translations: {
-      tr: 'Boolean Doğrulama Kuralları',
-      en: 'Boolean Validation Rules'
-    }
-  },
-  {
-    key: 'boolean_validation_info',
-    namespace: 'validation',
-    translations: {
-      tr: 'Boolean (Evet/Hayır) tipi için özel doğrulama kuralları gerekmez. Bu tip, sadece iki değer alabilir: true veya false.',
-      en: 'No special validation rules are required for Boolean (Yes/No) type. This type can only have two values: true or false.'
-    }
-  },
-  {
-    key: 'no_validation_rules_for_type',
-    namespace: 'validation',
-    translations: {
-      tr: 'Bu öznitelik tipi için doğrulama kuralları bulunmamaktadır.',
-      en: 'There are no validation rules for this attribute type.'
-    }
-  },
-  {
-    key: 'text_validation_rules',
-    namespace: 'validation',
-    translations: {
-      tr: 'Metin Doğrulama Kuralları',
-      en: 'Text Validation Rules'
-    }
-  },
-  {
-    key: 'min_length',
-    namespace: 'validation',
-    translations: {
-      tr: 'Minimum Uzunluk',
-      en: 'Minimum Length'
-    }
-  },
-  {
-    key: 'min_length_placeholder',
-    namespace: 'validation',
-    translations: {
-      tr: 'Örn: 3',
-      en: 'Ex: 3'
-    }
-  },
-  {
-    key: 'min_length_help',
-    namespace: 'validation',
-    translations: {
-      tr: 'Minimum karakter sayısı (doldurmayın: sınır yok)',
-      en: 'Minimum number of characters (leave empty: no limit)'
-    }
-  },
-  {
-    key: 'max_length',
-    namespace: 'validation',
-    translations: {
-      tr: 'Maksimum Uzunluk',
-      en: 'Maximum Length'
-    }
-  },
-  {
-    key: 'max_length_placeholder',
-    namespace: 'validation',
-    translations: {
-      tr: 'Örn: 100',
-      en: 'Ex: 100'
-    }
-  },
-  {
-    key: 'max_length_help',
-    namespace: 'validation',
-    translations: {
-      tr: 'Maximum karakter sayısı (doldurmayın: sınır yok)',
-      en: 'Maximum number of characters (leave empty: no limit)'
-    }
-  },
-  {
-    key: 'pattern',
-    namespace: 'validation',
-    translations: {
-      tr: 'Desen (Regex)',
-      en: 'Pattern (Regex)'
-    }
-  },
-  {
-    key: 'pattern_placeholder',
-    namespace: 'validation',
-    translations: {
-      tr: 'Örn: ^[a-zA-Z0-9]+$',
-      en: 'Ex: ^[a-zA-Z0-9]+$'
-    }
-  },
-  {
-    key: 'pattern_help',
-    namespace: 'validation',
-    translations: {
-      tr: 'Değer bu desene (regex) uygun olmalıdır (doldurmayın: serbest)',
-      en: 'Value must match this pattern (regex) (leave empty: free form)'
-    }
-  },
-  {
-    key: 'number_validation_rules',
-    namespace: 'validation',
-    translations: {
-      tr: 'Sayı Doğrulama Kuralları',
-      en: 'Number Validation Rules'
-    }
-  },
-  {
-    key: 'exact_digits_number',
-    namespace: 'validation',
-    translations: {
-      tr: 'Tam Olarak X Haneli Sayı',
-      en: 'Exactly X Digits Number'
-    }
-  },
-  {
-    key: 'exact_digits_placeholder',
-    namespace: 'validation',
-    translations: {
-      tr: 'Örn: 11',
-      en: 'Ex: 11'
-    }
-  },
-  {
-    key: 'exact_digits_label',
-    namespace: 'validation',
-    translations: {
-      tr: 'haneli sayı olsun (Örn: TCKNO için 11)',
-      en: 'digits number (Ex: 11 for Natl. ID)'
-    }
-  },
-  {
-    key: 'exact_digits_range',
-    namespace: 'validation',
-    translations: {
-      tr: '{digits} haneli sayı: {min} ile {max} arasında',
-      en: '{digits} digit number: between {min} and {max}'
-    }
-  },
-  {
-    key: 'min_value',
-    namespace: 'validation',
-    translations: {
-      tr: 'Minimum Değer',
-      en: 'Minimum Value'
-    }
-  },
-  {
-    key: 'min_value_placeholder',
-    namespace: 'validation',
-    translations: {
-      tr: 'Örn: 1',
-      en: 'Ex: 1'
-    }
-  },
-  {
-    key: 'min_value_help',
-    namespace: 'validation',
-    translations: {
-      tr: 'İzin verilen minimum değer (doldurmayın: sınır yok)',
-      en: 'Minimum allowed value (leave empty: no limit)'
-    }
-  },
-  {
-    key: 'max_value',
-    namespace: 'validation',
-    translations: {
-      tr: 'Maksimum Değer',
-      en: 'Maximum Value'
-    }
-  },
-  {
-    key: 'max_value_placeholder',
-    namespace: 'validation',
-    translations: {
-      tr: 'Örn: 100',
-      en: 'Ex: 100'
-    }
-  },
-  {
-    key: 'max_value_help',
-    namespace: 'validation',
-    translations: {
-      tr: 'İzin verilen maksimum değer (doldurmayın: sınır yok)',
-      en: 'Maximum allowed value (leave empty: no limit)'
-    }
-  },
-  {
-    key: 'number_type_constraints',
-    namespace: 'validation',
-    translations: {
-      tr: 'Sayı Tipi Kısıtlamaları',
-      en: 'Number Type Constraints'
-    }
-  },
-  {
-    key: 'only_integers',
-    namespace: 'validation',
-    translations: {
-      tr: 'Sadece tam sayılar (1, 2, 3...)',
-      en: 'Only integers (1, 2, 3...)'
-    }
-  },
-  {
-    key: 'only_positive',
-    namespace: 'validation',
-    translations: {
-      tr: 'Sadece pozitif',
-      en: 'Only positive'
-    }
-  },
-  {
-    key: 'only_negative',
-    namespace: 'validation',
-    translations: {
-      tr: 'Sadece negatif',
-      en: 'Only negative'
-    }
-  },
-  {
-    key: 'allow_zero',
-    namespace: 'validation',
-    translations: {
-      tr: 'Sıfır kabul edilsin',
-      en: 'Allow zero'
+      tr: 'Yeni Grup',
+      en: 'New Group'
     }
   }
-];
-
-// Common namespace için ek çeviriler
-const moreCommonTranslations: Translation[] = [
-  {
-    key: 'status',
-    namespace: 'common',
-    translations: {
-      tr: 'Durum',
-      en: 'Status'
-    }
-  },
-  {
-    key: 'active',
-    namespace: 'common',
-    translations: {
-      tr: 'Aktif',
-      en: 'Active'
-    }
-  },
-  {
-    key: 'inactive',
-    namespace: 'common',
-    translations: {
-      tr: 'Pasif',
-      en: 'Inactive'
-    }
-  },
-  {
-    key: 'last_update',
-    namespace: 'common',
-    translations: {
-      tr: 'Son Güncelleme',
-      en: 'Last Update'
-    }
-  },
-  {
-    key: 'total',
-    namespace: 'common',
-    translations: {
-      tr: 'Toplam',
-      en: 'Total'
-    }
-  },
-  {
-    key: 'group',
-    namespace: 'common',
-    translations: {
-      tr: 'grup',
-      en: 'group'
-    }
-  }
-];
-
-// Durum Çevirileri
-const statusTranslations: Translation[] = [
-  {
-    key: 'active',
-    namespace: 'status',
-    translations: {
-      tr: 'Aktif',
-      en: 'Active'
-    }
-  },
-  {
-    key: 'inactive',
-    namespace: 'status',
-    translations: {
-      tr: 'Pasif',
-      en: 'Inactive'
-    }
-  },
-  {
-    key: 'pending',
-    namespace: 'status',
-    translations: {
-      tr: 'Beklemede',
-      en: 'Pending'
-    }
-  },
-  {
-    key: 'archived',
-    namespace: 'status',
-    translations: {
-      tr: 'Arşivlenmiş',
-      en: 'Archived'
-    }
-  }
-];
-
-// Tüm çeviriler
-const translations: Translation[] = [
-  ...commonTranslations,
-  ...productTranslations,
-  ...errorTranslations,
-  ...attributeTranslations,
-  ...profileTranslations,
-  ...uiTranslations,
-  ...themeTranslations,
-  ...authTranslations,
-  ...additionalCommonTranslations,
-  ...navTranslations,
-  ...attributeGroupTranslations,
-  ...additionalAttributeTranslations,
-  ...moreCommonTranslations,
-  ...attributeTypeDescriptions,
-  ...validationTranslations,
-  ...statusTranslations,
-  // Form Onayları
-  {
-    key: 'confirm_delete',
-    namespace: 'confirmation',
-    translations: {
-      tr: 'Bu öğeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
-      en: 'Are you sure you want to delete this item? This action cannot be undone.'
-    }
-  },
-  
-  // İlişkiler
-  {
-    key: 'relationships',
-    namespace: 'relationships',
-    translations: {
-      tr: 'İlişkiler',
-      en: 'Relationships'
-    }
-  },
-  {
-    key: 'relationship_types',
-    namespace: 'relationships',
-    translations: {
-      tr: 'İlişki Tipleri',
-      en: 'Relationship Types'
-    }
-  },
-  {
-    key: 'relationship_types_description',
-    namespace: 'relationships',
-    translations: {
-      tr: 'İlişki tipleri, varlıklar arasındaki bağlantıları tanımlar ve yönetir.',
-      en: 'Relationship types define and manage connections between entities.'
-    }
-  },
-  {
-    key: 'no_relationship_types_found',
-    namespace: 'relationships',
-    translations: {
-      tr: 'Henüz herhangi bir ilişki tipi bulunamadı.',
-      en: 'No relationship types found yet.'
-    }
-  },
-  {
-    key: 'directional',
-    namespace: 'relationships',
-    translations: {
-      tr: 'Yönlü',
-      en: 'Directional'
-    }
-  },
-  {
-    key: 'source_types',
-    namespace: 'relationships',
-    translations: {
-      tr: 'Kaynak Tipleri',
-      en: 'Source Types'
-    }
-  },
-  {
-    key: 'target_types',
-    namespace: 'relationships',
-    translations: {
-      tr: 'Hedef Tipleri',
-      en: 'Target Types'
-    }
-  },
-  {
-    key: 'all_relationships',
-    namespace: 'relationships',
-    translations: {
-      tr: 'Tüm İlişkiler',
-      en: 'All Relationships'
-    }
-  },
-  {
-    key: 'outgoing_relationships',
-    namespace: 'relationships',
-    translations: {
-      tr: 'Giden İlişkiler',
-      en: 'Outgoing Relationships'
-    }
-  },
-  {
-    key: 'incoming_relationships',
-    namespace: 'relationships',
-    translations: {
-      tr: 'Gelen İlişkiler',
-      en: 'Incoming Relationships'
-    }
-  },
-  {
-    key: 'outgoing',
-    namespace: 'relationships',
-    translations: {
-      tr: 'Giden',
-      en: 'Outgoing'
-    }
-  },
-  {
-    key: 'incoming',
-    namespace: 'relationships',
-    translations: {
-      tr: 'Gelen',
-      en: 'Incoming'
-    }
-  },
-  {
-    key: 'no_relationships_found',
-    namespace: 'relationships',
-    translations: {
-      tr: 'Henüz herhangi bir ilişki bulunamadı.',
-      en: 'No relationships found yet.'
-    }
-  },
-  
-  // Durum Çevirileri
 ];
 
 // Çevirileri ekle
@@ -2669,8 +2192,486 @@ const seedLocalizations = async () => {
     await Localization.deleteMany({});
     console.log('Mevcut çeviriler silindi');
 
+    // Tüm çevirileri birleştir
+    const allTranslations = [
+      ...commonTranslations,
+      ...productTranslations,
+      ...errorTranslations,
+      ...attributeTranslations,
+      ...systemTranslations, // Yeni eklenen sistem çevirileri
+      
+      // Profil çevirileri
+      {
+        key: 'profile',
+        namespace: 'profile',
+        translations: {
+          tr: 'Profil',
+          en: 'Profile'
+        }
+      },
+      {
+        key: 'profile_information',
+        namespace: 'profile',
+        translations: {
+          tr: 'Profil Bilgileri',
+          en: 'Profile Information'
+        }
+      },
+      {
+        key: 'name',
+        namespace: 'profile',
+        translations: {
+          tr: 'Ad',
+          en: 'Name'
+        }
+      },
+      {
+        key: 'email',
+        namespace: 'profile',
+        translations: {
+          tr: 'E-posta',
+          en: 'Email'
+        }
+      },
+      {
+        key: 'role',
+        namespace: 'profile',
+        translations: {
+          tr: 'Rol',
+          en: 'Role'
+        }
+      },
+      
+      // Menü çevirileri
+      {
+        key: 'home',
+        namespace: 'menu',
+        translations: {
+          tr: 'Ana Sayfa',
+          en: 'Home'
+        }
+      },
+      {
+        key: 'attributes',
+        namespace: 'menu',
+        translations: {
+          tr: 'Öznitelikler',
+          en: 'Attributes'
+        }
+      },
+      {
+        key: 'attribute_groups',
+        namespace: 'menu',
+        translations: {
+          tr: 'Öznitelik Grupları',
+          en: 'Attribute Groups'
+        }
+      },
+      {
+        key: 'item_types',
+        namespace: 'menu',
+        translations: {
+          tr: 'Öğe Tipleri',
+          en: 'Item Types'
+        }
+      },
+      {
+        key: 'items',
+        namespace: 'menu',
+        translations: {
+          tr: 'Öğeler',
+          en: 'Items'
+        }
+      },
+      {
+        key: 'categories',
+        namespace: 'menu',
+        translations: {
+          tr: 'Kategoriler',
+          en: 'Categories'
+        }
+      },
+      {
+        key: 'families',
+        namespace: 'menu',
+        translations: {
+          tr: 'Aileler',
+          en: 'Families'
+        }
+      },
+      {
+        key: 'roles',
+        namespace: 'menu',
+        translations: {
+          tr: 'Roller',
+          en: 'Roles'
+        }
+      },
+      {
+        key: 'permissions',
+        namespace: 'menu',
+        translations: {
+          tr: 'İzinler',
+          en: 'Permissions'
+        }
+      },
+      
+      // Tema çevirileri
+      {
+        key: 'switch_to_light',
+        namespace: 'theme',
+        translations: {
+          tr: 'Açık temaya geç',
+          en: 'Switch to light theme'
+        }
+      },
+      {
+        key: 'switch_to_dark',
+        namespace: 'theme',
+        translations: {
+          tr: 'Koyu temaya geç',
+          en: 'Switch to dark theme'
+        }
+      },
+      
+      // Auth çevirileri
+      {
+        key: 'login_to_account',
+        namespace: 'auth',
+        translations: {
+          tr: 'Hesabınıza giriş yapın',
+          en: 'Log in to your account'
+        }
+      },
+      {
+        key: 'email_address',
+        namespace: 'auth',
+        translations: {
+          tr: 'E-posta Adresi',
+          en: 'Email Address'
+        }
+      },
+      {
+        key: 'password',
+        namespace: 'auth',
+        translations: {
+          tr: 'Şifre',
+          en: 'Password'
+        }
+      },
+      {
+        key: 'login',
+        namespace: 'auth',
+        translations: {
+          tr: 'Giriş Yap',
+          en: 'Log in'
+        }
+      },
+      
+      // Navigasyon çevirileri
+      {
+        key: 'open_user_menu',
+        namespace: 'nav',
+        translations: {
+          tr: 'Kullanıcı menüsünü aç',
+          en: 'Open user menu'
+        }
+      },
+      {
+        key: 'my_profile',
+        namespace: 'nav',
+        translations: {
+          tr: 'Profilim',
+          en: 'My Profile'
+        }
+      },
+      {
+        key: 'notifications',
+        namespace: 'nav',
+        translations: {
+          tr: 'Bildirimler',
+          en: 'Notifications'
+        }
+      },
+      
+      // Doğrulama çevirileri
+      {
+        key: 'no_validation_rules_yet',
+        namespace: 'validation',
+        translations: {
+          tr: 'Henüz doğrulama kuralı belirlemediniz',
+          en: 'You have not yet defined any validation rules'
+        }
+      },
+      {
+        key: 'min_length',
+        namespace: 'validation',
+        translations: {
+          tr: 'Minimum Uzunluk',
+          en: 'Minimum Length'
+        }
+      },
+      {
+        key: 'max_length',
+        namespace: 'validation',
+        translations: {
+          tr: 'Maksimum Uzunluk',
+          en: 'Maximum Length'
+        }
+      },
+      {
+        key: 'pattern',
+        namespace: 'validation',
+        translations: {
+          tr: 'Desen (Regex)',
+          en: 'Pattern (Regex)'
+        }
+      },
+      
+      // Durum çevirileri
+      {
+        key: 'active',
+        namespace: 'status',
+        translations: {
+          tr: 'Aktif',
+          en: 'Active'
+        }
+      },
+      {
+        key: 'inactive',
+        namespace: 'status',
+        translations: {
+          tr: 'Pasif',
+          en: 'Inactive'
+        }
+      },
+      {
+        key: 'pending',
+        namespace: 'status',
+        translations: {
+          tr: 'Beklemede',
+          en: 'Pending'
+        }
+      },
+      {
+        key: 'archived',
+        namespace: 'status',
+        translations: {
+          tr: 'Arşivlenmiş',
+          en: 'Archived'
+        }
+      },
+      
+      // İlişkiler çevirileri
+      {
+        key: 'relationships',
+        namespace: 'relationships',
+        translations: {
+          tr: 'İlişkiler',
+          en: 'Relationships'
+        }
+      },
+      {
+        key: 'relationship_types',
+        namespace: 'relationships',
+        translations: {
+          tr: 'İlişki Tipleri',
+          en: 'Relationship Types'
+        }
+      },
+      {
+        key: 'directional',
+        namespace: 'relationships',
+        translations: {
+          tr: 'Yönlü',
+          en: 'Directional'
+        }
+      },
+      {
+        key: 'source_types',
+        namespace: 'relationships',
+        translations: {
+          tr: 'Kaynak Tipleri',
+          en: 'Source Types'
+        }
+      },
+      {
+        key: 'target_types',
+        namespace: 'relationships',
+        translations: {
+          tr: 'Hedef Tipleri',
+          en: 'Target Types'
+        }
+      },
+      
+      // AttributeGroup çevirileri
+      {
+        key: 'attribute_groups_fetch_error',
+        namespace: 'attribute_groups',
+        translations: {
+          tr: 'Öznitelik grupları getirilirken bir hata oluştu',
+          en: 'An error occurred while fetching attribute groups'
+        }
+      },
+      {
+        key: 'attribute_group_delete_error',
+        namespace: 'attribute_groups',
+        translations: {
+          tr: 'Öznitelik grubu silinirken bir hata oluştu',
+          en: 'An error occurred while deleting the attribute group'
+        }
+      },
+      {
+        key: 'confirm_delete_attribute_group',
+        namespace: 'attribute_groups',
+        translations: {
+          tr: '"{{name}}" öznitelik grubunu silmek istediğinize emin misiniz?',
+          en: 'Are you sure you want to delete the attribute group "{{name}}"?'
+        }
+      },
+      {
+        key: 'attribute_count',
+        namespace: 'attribute_groups',
+        translations: {
+          tr: 'Öznitelik Sayısı',
+          en: 'Attribute Count'
+        }
+      },
+      {
+        key: 'no_attribute_groups_found',
+        namespace: 'attribute_groups',
+        translations: {
+          tr: 'Öznitelik grubu bulunamadı',
+          en: 'No attribute groups found'
+        }
+      },
+      
+      // Attribute types namespace çevirileri
+      {
+        key: 'text',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Metin',
+          en: 'Text'
+        }
+      },
+      {
+        key: 'number',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Sayı',
+          en: 'Number'
+        }
+      },
+      {
+        key: 'date',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Tarih',
+          en: 'Date'
+        }
+      },
+      {
+        key: 'boolean',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Evet/Hayır',
+          en: 'Yes/No'
+        }
+      },
+      {
+        key: 'select',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Seçim',
+          en: 'Select'
+        }
+      },
+      {
+        key: 'multiselect',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Çoklu Seçim',
+          en: 'Multiselect'
+        }
+      },
+      {
+        key: 'text_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Tek satır veya çok satırlı metin girilebilir.',
+          en: 'Enter single-line or multi-line text.'
+        }
+      },
+      {
+        key: 'number_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Tam sayı veya ondalıklı sayı girilebilir.',
+          en: 'Enter an integer or decimal number.'
+        }
+      },
+      {
+        key: 'date_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Tarih bilgisi seçilebilir.',
+          en: 'Select a date.'
+        }
+      },
+      {
+        key: 'boolean_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Evet veya hayır değeri seçilebilir.',
+          en: 'Select yes or no value.'
+        }
+      },
+      {
+        key: 'select_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Önceden tanımlanmış seçeneklerden birisi seçilebilir.',
+          en: 'Select one from predefined options.'
+        }
+      },
+      {
+        key: 'multiselect_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Önceden tanımlanmış seçeneklerden birden fazlası seçilebilir.',
+          en: 'Select multiple from predefined options.'
+        }
+      },
+      // Ekstra öznitelik tipleri
+      {
+        key: 'category_id',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Kategori',
+          en: 'Category'
+        }
+      },
+      {
+        key: 'brand_id',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Marka',
+          en: 'Brand'
+        }
+      },
+      {
+        key: 'product_id',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Ürün',
+          en: 'Product'
+        }
+      }
+    ];
+
     // Her çeviriyi ekle
-    for (const translation of translations) {
+    for (const translation of allTranslations) {
       const { key, namespace = 'common', translations } = translation;
       console.log(`Çeviri ekleniyor: ${namespace}:${key}`);
       await localizationService.upsertTranslation({
@@ -2680,7 +2681,7 @@ const seedLocalizations = async () => {
       });
     }
 
-    console.log(`${translations.length} çeviri başarıyla eklendi`);
+    console.log(`${allTranslations.length} çeviri başarıyla eklendi`);
     process.exit(0);
   } catch (error) {
     console.error('Hata oluştu:', error);
