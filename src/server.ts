@@ -68,7 +68,7 @@ app.use('/api/permission-groups', permissionGroupRoutes);
 app.use('/api/localizations', localizationRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/relationships', relationshipRoutes);
-app.use('/api/relationship-types', relationshipTypeRoutes);// Eski URL yapısını da destekleyelim
+app.use('/api/relationship-types', relationshipTypeRoutes);
 
 // Ana route
 app.get('/', (req: Request, res: Response) => {

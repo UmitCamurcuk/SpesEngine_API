@@ -1081,6 +1081,14 @@ const uiTranslations = [
         }
     },
     {
+        key: 'relationships',
+        namespace: 'menu',
+        translations: {
+            tr: 'İlişkiler',
+            en: 'Relationships'
+        }
+    },
+    {
         key: 'localization',
         namespace: 'menu',
         translations: {
@@ -1231,6 +1239,22 @@ const uiTranslations = [
         translations: {
             tr: 'Grup Ekle',
             en: 'Add Group'
+        }
+    },
+    {
+        key: 'relationship_type_list',
+        namespace: 'menu',
+        translations: {
+            tr: 'İlişki Tipleri Listesi',
+            en: 'Relationship Types List'
+        }
+    },
+    {
+        key: 'add_relationship_type',
+        namespace: 'menu',
+        translations: {
+            tr: 'İlişki Tipi Ekle',
+            en: 'Add Relationship Type'
         }
     },
     {
@@ -1983,6 +2007,418 @@ const additionalAttributeTranslations = [
             tr: 'Öznitelik oluşturulurken bir hata oluştu',
             en: 'An error occurred while creating the attribute'
         }
+    },
+    // Stepper bileşeni adım başlıkları
+    {
+        key: 'general_info',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Genel Bilgiler',
+            en: 'General Information'
+        }
+    },
+    {
+        key: 'name_code_description',
+        namespace: 'attributes',
+        translations: {
+            tr: 'İsim, kod, açıklama',
+            en: 'Name, code, description'
+        }
+    },
+    {
+        key: 'type_selection',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Tip Seçimi',
+            en: 'Type Selection'
+        }
+    },
+    {
+        key: 'attribute_type_and_requirement',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Öznitelik tipi ve gerekliliği',
+            en: 'Attribute type and requirement'
+        }
+    },
+    {
+        key: 'type_properties',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Tip Özellikleri',
+            en: 'Type Properties'
+        }
+    },
+    {
+        key: 'type_specific_info',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Tipe özel bilgiler',
+            en: 'Type specific information'
+        }
+    },
+    {
+        key: 'validation_rules',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Doğrulama Kuralları',
+            en: 'Validation Rules'
+        }
+    },
+    {
+        key: 'validation_rules_desc',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Validasyon kuralları',
+            en: 'Validation rules'
+        }
+    },
+    {
+        key: 'previous_step',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Önceki Adım',
+            en: 'Previous Step'
+        }
+    },
+    {
+        key: 'next_step',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Sonraki Adım',
+            en: 'Next Step'
+        }
+    },
+    {
+        key: 'create_attribute',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Özniteliği Oluştur',
+            en: 'Create Attribute'
+        }
+    },
+    {
+        key: 'attribute_name',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Öznitelik Adı',
+            en: 'Attribute Name'
+        }
+    },
+    {
+        key: 'attribute_code',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Öznitelik Kodu',
+            en: 'Attribute Code'
+        }
+    },
+    {
+        key: 'is_required_description',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Bu öznitelik ürün oluşturulurken zorunlu olsun',
+            en: 'This attribute is required when creating a product'
+        }
+    },
+    {
+        key: 'attribute_type',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Öznitelik Tipi',
+            en: 'Attribute Type'
+        }
+    },
+    {
+        key: 'date_no_validation_confirm',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Tarih tipi için herhangi bir doğrulama kuralı belirtmediniz. Devam etmek istiyor musunuz?',
+            en: 'You have not specified any validation rules for the date type. Do you want to continue?'
+        }
+    },
+    {
+        key: 'multiselect_no_validation_confirm',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Çoklu seçim tipi için seçim sayısı sınırlaması belirtmediniz. Devam etmek istiyor musunuz?',
+            en: 'You have not specified a selection count limit for the multi-select type. Do you want to continue?'
+        }
+    },
+    {
+        key: 'select_optional',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Seçiniz (İsteğe bağlı)',
+            en: 'Select (Optional)'
+        }
+    },
+    {
+        key: 'type_no_extra_properties',
+        namespace: 'attributes',
+        translations: {
+            tr: 'tipi için ek özellik gerekmiyor.',
+            en: 'type does not require additional properties.'
+        }
+    },
+    {
+        key: 'proceed_to_validation',
+        namespace: 'attributes',
+        translations: {
+            tr: 'Bir sonraki adıma geçerek doğrulama kuralları tanımlayabilirsiniz.',
+            en: 'You can define validation rules by proceeding to the next step.'
+        }
+    }
+];
+// Validation namespace için çeviriler
+const validationTranslations = [
+    {
+        key: 'no_validation_rules_yet',
+        namespace: 'validation',
+        translations: {
+            tr: 'Henüz doğrulama kuralı belirlemediniz',
+            en: 'You have not yet defined any validation rules'
+        }
+    },
+    {
+        key: 'add_validation_rules_prompt',
+        namespace: 'validation',
+        translations: {
+            tr: 'Veri doğruluğunu sağlamak için lütfen en az bir doğrulama kuralı ekleyin.',
+            en: 'Please add at least one validation rule to ensure data accuracy.'
+        }
+    },
+    {
+        key: 'boolean_validation_rules',
+        namespace: 'validation',
+        translations: {
+            tr: 'Boolean Doğrulama Kuralları',
+            en: 'Boolean Validation Rules'
+        }
+    },
+    {
+        key: 'boolean_validation_info',
+        namespace: 'validation',
+        translations: {
+            tr: 'Boolean (Evet/Hayır) tipi için özel doğrulama kuralları gerekmez. Bu tip, sadece iki değer alabilir: true veya false.',
+            en: 'No special validation rules are required for Boolean (Yes/No) type. This type can only have two values: true or false.'
+        }
+    },
+    {
+        key: 'no_validation_rules_for_type',
+        namespace: 'validation',
+        translations: {
+            tr: 'Bu öznitelik tipi için doğrulama kuralları bulunmamaktadır.',
+            en: 'There are no validation rules for this attribute type.'
+        }
+    },
+    {
+        key: 'text_validation_rules',
+        namespace: 'validation',
+        translations: {
+            tr: 'Metin Doğrulama Kuralları',
+            en: 'Text Validation Rules'
+        }
+    },
+    {
+        key: 'min_length',
+        namespace: 'validation',
+        translations: {
+            tr: 'Minimum Uzunluk',
+            en: 'Minimum Length'
+        }
+    },
+    {
+        key: 'min_length_placeholder',
+        namespace: 'validation',
+        translations: {
+            tr: 'Örn: 3',
+            en: 'Ex: 3'
+        }
+    },
+    {
+        key: 'min_length_help',
+        namespace: 'validation',
+        translations: {
+            tr: 'Minimum karakter sayısı (doldurmayın: sınır yok)',
+            en: 'Minimum number of characters (leave empty: no limit)'
+        }
+    },
+    {
+        key: 'max_length',
+        namespace: 'validation',
+        translations: {
+            tr: 'Maksimum Uzunluk',
+            en: 'Maximum Length'
+        }
+    },
+    {
+        key: 'max_length_placeholder',
+        namespace: 'validation',
+        translations: {
+            tr: 'Örn: 100',
+            en: 'Ex: 100'
+        }
+    },
+    {
+        key: 'max_length_help',
+        namespace: 'validation',
+        translations: {
+            tr: 'Maximum karakter sayısı (doldurmayın: sınır yok)',
+            en: 'Maximum number of characters (leave empty: no limit)'
+        }
+    },
+    {
+        key: 'pattern',
+        namespace: 'validation',
+        translations: {
+            tr: 'Desen (Regex)',
+            en: 'Pattern (Regex)'
+        }
+    },
+    {
+        key: 'pattern_placeholder',
+        namespace: 'validation',
+        translations: {
+            tr: 'Örn: ^[a-zA-Z0-9]+$',
+            en: 'Ex: ^[a-zA-Z0-9]+$'
+        }
+    },
+    {
+        key: 'pattern_help',
+        namespace: 'validation',
+        translations: {
+            tr: 'Değer bu desene (regex) uygun olmalıdır (doldurmayın: serbest)',
+            en: 'Value must match this pattern (regex) (leave empty: free form)'
+        }
+    },
+    {
+        key: 'number_validation_rules',
+        namespace: 'validation',
+        translations: {
+            tr: 'Sayı Doğrulama Kuralları',
+            en: 'Number Validation Rules'
+        }
+    },
+    {
+        key: 'exact_digits_number',
+        namespace: 'validation',
+        translations: {
+            tr: 'Tam Olarak X Haneli Sayı',
+            en: 'Exactly X Digits Number'
+        }
+    },
+    {
+        key: 'exact_digits_placeholder',
+        namespace: 'validation',
+        translations: {
+            tr: 'Örn: 11',
+            en: 'Ex: 11'
+        }
+    },
+    {
+        key: 'exact_digits_label',
+        namespace: 'validation',
+        translations: {
+            tr: 'haneli sayı olsun (Örn: TCKNO için 11)',
+            en: 'digits number (Ex: 11 for Natl. ID)'
+        }
+    },
+    {
+        key: 'exact_digits_range',
+        namespace: 'validation',
+        translations: {
+            tr: '{digits} haneli sayı: {min} ile {max} arasında',
+            en: '{digits} digit number: between {min} and {max}'
+        }
+    },
+    {
+        key: 'min_value',
+        namespace: 'validation',
+        translations: {
+            tr: 'Minimum Değer',
+            en: 'Minimum Value'
+        }
+    },
+    {
+        key: 'min_value_placeholder',
+        namespace: 'validation',
+        translations: {
+            tr: 'Örn: 1',
+            en: 'Ex: 1'
+        }
+    },
+    {
+        key: 'min_value_help',
+        namespace: 'validation',
+        translations: {
+            tr: 'İzin verilen minimum değer (doldurmayın: sınır yok)',
+            en: 'Minimum allowed value (leave empty: no limit)'
+        }
+    },
+    {
+        key: 'max_value',
+        namespace: 'validation',
+        translations: {
+            tr: 'Maksimum Değer',
+            en: 'Maximum Value'
+        }
+    },
+    {
+        key: 'max_value_placeholder',
+        namespace: 'validation',
+        translations: {
+            tr: 'Örn: 100',
+            en: 'Ex: 100'
+        }
+    },
+    {
+        key: 'max_value_help',
+        namespace: 'validation',
+        translations: {
+            tr: 'İzin verilen maksimum değer (doldurmayın: sınır yok)',
+            en: 'Maximum allowed value (leave empty: no limit)'
+        }
+    },
+    {
+        key: 'number_type_constraints',
+        namespace: 'validation',
+        translations: {
+            tr: 'Sayı Tipi Kısıtlamaları',
+            en: 'Number Type Constraints'
+        }
+    },
+    {
+        key: 'only_integers',
+        namespace: 'validation',
+        translations: {
+            tr: 'Sadece tam sayılar (1, 2, 3...)',
+            en: 'Only integers (1, 2, 3...)'
+        }
+    },
+    {
+        key: 'only_positive',
+        namespace: 'validation',
+        translations: {
+            tr: 'Sadece pozitif',
+            en: 'Only positive'
+        }
+    },
+    {
+        key: 'only_negative',
+        namespace: 'validation',
+        translations: {
+            tr: 'Sadece negatif',
+            en: 'Only negative'
+        }
+    },
+    {
+        key: 'allow_zero',
+        namespace: 'validation',
+        translations: {
+            tr: 'Sıfır kabul edilsin',
+            en: 'Allow zero'
+        }
     }
 ];
 // Common namespace için ek çeviriler
@@ -2036,6 +2472,41 @@ const moreCommonTranslations = [
         }
     }
 ];
+// Durum Çevirileri
+const statusTranslations = [
+    {
+        key: 'active',
+        namespace: 'status',
+        translations: {
+            tr: 'Aktif',
+            en: 'Active'
+        }
+    },
+    {
+        key: 'inactive',
+        namespace: 'status',
+        translations: {
+            tr: 'Pasif',
+            en: 'Inactive'
+        }
+    },
+    {
+        key: 'pending',
+        namespace: 'status',
+        translations: {
+            tr: 'Beklemede',
+            en: 'Pending'
+        }
+    },
+    {
+        key: 'archived',
+        namespace: 'status',
+        translations: {
+            tr: 'Arşivlenmiş',
+            en: 'Archived'
+        }
+    }
+];
 // Tüm çeviriler
 const translations = [
     ...commonTranslations,
@@ -2051,7 +2522,124 @@ const translations = [
     ...attributeGroupTranslations,
     ...additionalAttributeTranslations,
     ...moreCommonTranslations,
-    ...attributeTypeDescriptions
+    ...attributeTypeDescriptions,
+    ...validationTranslations,
+    ...statusTranslations,
+    // Form Onayları
+    {
+        key: 'confirm_delete',
+        namespace: 'confirmation',
+        translations: {
+            tr: 'Bu öğeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
+            en: 'Are you sure you want to delete this item? This action cannot be undone.'
+        }
+    },
+    // İlişkiler
+    {
+        key: 'relationships',
+        namespace: 'relationships',
+        translations: {
+            tr: 'İlişkiler',
+            en: 'Relationships'
+        }
+    },
+    {
+        key: 'relationship_types',
+        namespace: 'relationships',
+        translations: {
+            tr: 'İlişki Tipleri',
+            en: 'Relationship Types'
+        }
+    },
+    {
+        key: 'relationship_types_description',
+        namespace: 'relationships',
+        translations: {
+            tr: 'İlişki tipleri, varlıklar arasındaki bağlantıları tanımlar ve yönetir.',
+            en: 'Relationship types define and manage connections between entities.'
+        }
+    },
+    {
+        key: 'no_relationship_types_found',
+        namespace: 'relationships',
+        translations: {
+            tr: 'Henüz herhangi bir ilişki tipi bulunamadı.',
+            en: 'No relationship types found yet.'
+        }
+    },
+    {
+        key: 'directional',
+        namespace: 'relationships',
+        translations: {
+            tr: 'Yönlü',
+            en: 'Directional'
+        }
+    },
+    {
+        key: 'source_types',
+        namespace: 'relationships',
+        translations: {
+            tr: 'Kaynak Tipleri',
+            en: 'Source Types'
+        }
+    },
+    {
+        key: 'target_types',
+        namespace: 'relationships',
+        translations: {
+            tr: 'Hedef Tipleri',
+            en: 'Target Types'
+        }
+    },
+    {
+        key: 'all_relationships',
+        namespace: 'relationships',
+        translations: {
+            tr: 'Tüm İlişkiler',
+            en: 'All Relationships'
+        }
+    },
+    {
+        key: 'outgoing_relationships',
+        namespace: 'relationships',
+        translations: {
+            tr: 'Giden İlişkiler',
+            en: 'Outgoing Relationships'
+        }
+    },
+    {
+        key: 'incoming_relationships',
+        namespace: 'relationships',
+        translations: {
+            tr: 'Gelen İlişkiler',
+            en: 'Incoming Relationships'
+        }
+    },
+    {
+        key: 'outgoing',
+        namespace: 'relationships',
+        translations: {
+            tr: 'Giden',
+            en: 'Outgoing'
+        }
+    },
+    {
+        key: 'incoming',
+        namespace: 'relationships',
+        translations: {
+            tr: 'Gelen',
+            en: 'Incoming'
+        }
+    },
+    {
+        key: 'no_relationships_found',
+        namespace: 'relationships',
+        translations: {
+            tr: 'Henüz herhangi bir ilişki bulunamadı.',
+            en: 'No relationships found yet.'
+        }
+    },
+    // Durum Çevirileri
 ];
 // Çevirileri ekle
 const seedLocalizations = () => __awaiter(void 0, void 0, void 0, function* () {

@@ -1085,6 +1085,14 @@ const uiTranslations: Translation[] = [
     }
   },
   {
+    key: 'relationships',
+    namespace: 'menu',
+    translations: {
+      tr: 'İlişkiler',
+      en: 'Relationships'
+    }
+  },
+  {
     key: 'localization',
     namespace: 'menu',
     translations: {
@@ -1236,6 +1244,22 @@ const uiTranslations: Translation[] = [
     translations: {
       tr: 'Grup Ekle',
       en: 'Add Group'
+    }
+  },
+  {
+    key: 'relationship_type_list',
+    namespace: 'menu',
+    translations: {
+      tr: 'İlişki Tipleri Listesi',
+      en: 'Relationship Types List'
+    }
+  },
+  {
+    key: 'add_relationship_type',
+    namespace: 'menu',
+    translations: {
+      tr: 'İlişki Tipi Ekle',
+      en: 'Add Relationship Type'
     }
   },
   {
@@ -2465,6 +2489,42 @@ const moreCommonTranslations: Translation[] = [
   }
 ];
 
+// Durum Çevirileri
+const statusTranslations: Translation[] = [
+  {
+    key: 'active',
+    namespace: 'status',
+    translations: {
+      tr: 'Aktif',
+      en: 'Active'
+    }
+  },
+  {
+    key: 'inactive',
+    namespace: 'status',
+    translations: {
+      tr: 'Pasif',
+      en: 'Inactive'
+    }
+  },
+  {
+    key: 'pending',
+    namespace: 'status',
+    translations: {
+      tr: 'Beklemede',
+      en: 'Pending'
+    }
+  },
+  {
+    key: 'archived',
+    namespace: 'status',
+    translations: {
+      tr: 'Arşivlenmiş',
+      en: 'Archived'
+    }
+  }
+];
+
 // Tüm çeviriler
 const translations: Translation[] = [
   ...commonTranslations,
@@ -2481,7 +2541,125 @@ const translations: Translation[] = [
   ...additionalAttributeTranslations,
   ...moreCommonTranslations,
   ...attributeTypeDescriptions,
-  ...validationTranslations
+  ...validationTranslations,
+  ...statusTranslations,
+  // Form Onayları
+  {
+    key: 'confirm_delete',
+    namespace: 'confirmation',
+    translations: {
+      tr: 'Bu öğeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
+      en: 'Are you sure you want to delete this item? This action cannot be undone.'
+    }
+  },
+  
+  // İlişkiler
+  {
+    key: 'relationships',
+    namespace: 'relationships',
+    translations: {
+      tr: 'İlişkiler',
+      en: 'Relationships'
+    }
+  },
+  {
+    key: 'relationship_types',
+    namespace: 'relationships',
+    translations: {
+      tr: 'İlişki Tipleri',
+      en: 'Relationship Types'
+    }
+  },
+  {
+    key: 'relationship_types_description',
+    namespace: 'relationships',
+    translations: {
+      tr: 'İlişki tipleri, varlıklar arasındaki bağlantıları tanımlar ve yönetir.',
+      en: 'Relationship types define and manage connections between entities.'
+    }
+  },
+  {
+    key: 'no_relationship_types_found',
+    namespace: 'relationships',
+    translations: {
+      tr: 'Henüz herhangi bir ilişki tipi bulunamadı.',
+      en: 'No relationship types found yet.'
+    }
+  },
+  {
+    key: 'directional',
+    namespace: 'relationships',
+    translations: {
+      tr: 'Yönlü',
+      en: 'Directional'
+    }
+  },
+  {
+    key: 'source_types',
+    namespace: 'relationships',
+    translations: {
+      tr: 'Kaynak Tipleri',
+      en: 'Source Types'
+    }
+  },
+  {
+    key: 'target_types',
+    namespace: 'relationships',
+    translations: {
+      tr: 'Hedef Tipleri',
+      en: 'Target Types'
+    }
+  },
+  {
+    key: 'all_relationships',
+    namespace: 'relationships',
+    translations: {
+      tr: 'Tüm İlişkiler',
+      en: 'All Relationships'
+    }
+  },
+  {
+    key: 'outgoing_relationships',
+    namespace: 'relationships',
+    translations: {
+      tr: 'Giden İlişkiler',
+      en: 'Outgoing Relationships'
+    }
+  },
+  {
+    key: 'incoming_relationships',
+    namespace: 'relationships',
+    translations: {
+      tr: 'Gelen İlişkiler',
+      en: 'Incoming Relationships'
+    }
+  },
+  {
+    key: 'outgoing',
+    namespace: 'relationships',
+    translations: {
+      tr: 'Giden',
+      en: 'Outgoing'
+    }
+  },
+  {
+    key: 'incoming',
+    namespace: 'relationships',
+    translations: {
+      tr: 'Gelen',
+      en: 'Incoming'
+    }
+  },
+  {
+    key: 'no_relationships_found',
+    namespace: 'relationships',
+    translations: {
+      tr: 'Henüz herhangi bir ilişki bulunamadı.',
+      en: 'No relationships found yet.'
+    }
+  },
+  
+  // Durum Çevirileri
 ];
 
 // Çevirileri ekle
