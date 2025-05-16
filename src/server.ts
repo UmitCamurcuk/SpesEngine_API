@@ -19,6 +19,8 @@ import roleRoutes from './routes/roleRoutes';
 import permissionRoutes from './routes/permissionRoutes';
 import permissionGroupRoutes from './routes/permissionGroupRoutes';
 import localizationRoutes from './routes/localizationRoutes';
+import relationshipRoutes from './routes/relationshipRoutes';
+import relationshipTypeRoutes from './routes/relationshipTypeRoutes';
 
 // Env değişkenlerini yükle
 dotenv.config();
@@ -52,19 +54,21 @@ app.use(getTranslationsMiddleware);
 app.use(translateEntityMiddleware);
 
 // Routes
-app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/attributes', attributeRoutes);
-app.use('/api/attributeGroups', attributeGroupRoutes);
+app.use('/api/attribute-groups', attributeGroupRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/families', familyRoutes);
-app.use('/api/itemTypes', itemTypeRoutes);
+app.use('/api/item-types', itemTypeRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/permissions', permissionRoutes);
-app.use('/api/permissionGroups', permissionGroupRoutes);
-app.use('/api/history', historyRoutes);
+app.use('/api/permission-groups', permissionGroupRoutes);
 app.use('/api/localizations', localizationRoutes);
+app.use('/api/history', historyRoutes);
+app.use('/api/relationships', relationshipRoutes);
+app.use('/api/relationship-types', relationshipTypeRoutes);// Eski URL yapısını da destekleyelim
 
 // Ana route
 app.get('/', (req: Request, res: Response) => {
