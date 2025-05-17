@@ -1,22 +1,20 @@
 import express from 'express';
 import { getUsers, getUser, createUser, updateUser, deleteUser } from '../controllers/userController';
-import { protect, authorize, checkPermission } from '../middleware/auth';
+import { authenticateToken, checkAccess } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
-// Koruma middleware'i uygula
-router.use(protect);
+// Tüm rotalar için token kontrolü
+router.use(authenticateToken);
 
-// Rota tanımlamaları
-router
-  .route('/')
-  .get(authorize('admin'), checkPermission('users:read'), getUsers)
-  .post(authorize('admin'), checkPermission('users:create'), createUser);
+// Kullanıcı işlemleri
+router.route('/')
+  .get(checkAccess(['USERS_VIEW']), getUsers)
+  .post(checkAccess(['USERS_CREATE']), createUser);
 
-router
-  .route('/:id')
-  .get(authorize('admin'), checkPermission('users:read'), getUser)
-  .put(authorize('admin'), checkPermission('users:update'), updateUser)
-  .delete(authorize('admin'), checkPermission('users:delete'), deleteUser);
+router.route('/:id')
+  .get(checkAccess(['USERS_VIEW']), getUser)
+  .put(checkAccess(['USERS_UPDATE']), updateUser)
+  .delete(checkAccess(['USERS_DELETE']), deleteUser);
 
 export default router;

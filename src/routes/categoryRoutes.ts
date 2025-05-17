@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, authorize, checkPermission } from '../middleware/auth';
+import { authenticateToken, checkAccess } from '../middleware/auth.middleware';
 import {
   getCategories,
   getCategoryById,
@@ -10,18 +10,18 @@ import {
 
 const router = express.Router();
 
-// Tüm routelar korumalı
-router.use(protect);
+// Tüm rotalar için token kontrolü
+router.use(authenticateToken);
 
 router
   .route('/')
-  .get(checkPermission('categories:read'), getCategories)
-  .post(checkPermission('categories:create'), createCategory);
+  .get(checkAccess(['CATEGORIES_VIEW']), getCategories)
+  .post(checkAccess(['CATEGORIES_CREATE']), createCategory);
 
 router
   .route('/:id')
-  .get(checkPermission('categories:read'), getCategoryById)
-  .put(checkPermission('categories:update'), updateCategory)
-  .delete(checkPermission('categories:delete'), deleteCategory);
+  .get(checkAccess(['CATEGORIES_VIEW']), getCategoryById)
+  .put(checkAccess(['CATEGORIES_UPDATE']), updateCategory)
+  .delete(checkAccess(['CATEGORIES_DELETE']), deleteCategory);
 
 export default router; 

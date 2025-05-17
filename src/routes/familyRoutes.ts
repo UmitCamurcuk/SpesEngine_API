@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, authorize, checkPermission } from '../middleware/auth';
+import { authenticateToken, checkAccess } from '../middleware/auth.middleware';
 import {
   getFamilies,
   getFamilyById,
@@ -10,18 +10,18 @@ import {
 
 const router = express.Router();
 
-// Tüm routelar korumalı
-router.use(protect);
+// Tüm rotalar için token kontrolü
+router.use(authenticateToken);
 
 router
   .route('/')
-  .get(checkPermission('families:read'), getFamilies)
-  .post(checkPermission('families:create'), createFamily);
+  .get(checkAccess(['FAMILIES_VIEW']), getFamilies)
+  .post(checkAccess(['FAMILIES_CREATE']), createFamily);
 
 router
   .route('/:id')
-  .get(checkPermission('families:read'), getFamilyById)
-  .put(checkPermission('families:update'), updateFamily)
-  .delete(checkPermission('families:delete'), deleteFamily);
+  .get(checkAccess(['FAMILIES_VIEW']), getFamilyById)
+  .put(checkAccess(['FAMILIES_UPDATE']), updateFamily)
+  .delete(checkAccess(['FAMILIES_DELETE']), deleteFamily);
 
 export default router; 

@@ -1,4 +1,5 @@
 import express from 'express';
+import { authenticateToken, checkAccess } from '../middleware/auth.middleware';
 import {
   getPermissions,
   createPermission,
@@ -6,22 +7,21 @@ import {
   updatePermission,
   deletePermission
 } from '../controllers/permissionController';
-import { protect, authorize, checkPermission } from '../middleware/auth';
 
 const router = express.Router();
 
-// Tüm routelar korumalı
-router.use(protect);
+// Tüm rotalar için token kontrolü
+router.use(authenticateToken);
 
 router
   .route('/')
-  .get(checkPermission('permissions:read'), getPermissions)
-  .post(authorize('admin'), checkPermission('permissions:create'), createPermission);
+  .get(checkAccess(['PERMISSIONS_VIEW']), getPermissions)
+  .post(checkAccess(['PERMISSIONS_CREATE']), createPermission);
 
 router
   .route('/:id')
-  .get(checkPermission('permissions:read'), getPermissionById)
-  .put(authorize('admin'), checkPermission('permissions:update'), updatePermission)
-  .delete(authorize('admin'), checkPermission('permissions:delete'), deletePermission);
+  .get(checkAccess(['PERMISSIONS_VIEW']), getPermissionById)
+  .put(checkAccess(['PERMISSIONS_UPDATE']), updatePermission)
+  .delete(checkAccess(['PERMISSIONS_DELETE']), deletePermission);
 
 export default router; 

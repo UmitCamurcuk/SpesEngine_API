@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, authorize, checkPermission } from '../middleware/auth';
+import { authenticateToken, checkAccess } from '../middleware/auth.middleware';
 import {
   getAttributeGroups,
   getAttributeGroupById,
@@ -10,18 +10,18 @@ import {
 
 const router = express.Router();
 
-// Tüm routelar korumalı
-router.use(protect);
+// Tüm rotalar için token kontrolü
+router.use(authenticateToken);
 
 router
   .route('/')
-  .get(checkPermission('attributeGroups:read'), getAttributeGroups)
-  .post(checkPermission('attributeGroups:create'), createAttributeGroup);
+  .get(checkAccess(['ATTRIBUTE_GROUPS_VIEW']), getAttributeGroups)
+  .post(checkAccess(['ATTRIBUTE_GROUPS_CREATE']), createAttributeGroup);
 
 router
   .route('/:id')
-  .get(checkPermission('attributeGroups:read'), getAttributeGroupById)
-  .put(checkPermission('attributeGroups:update'), updateAttributeGroup)
-  .delete(checkPermission('attributeGroups:delete'), deleteAttributeGroup);
+  .get(checkAccess(['ATTRIBUTE_GROUPS_VIEW']), getAttributeGroupById)
+  .put(checkAccess(['ATTRIBUTE_GROUPS_UPDATE']), updateAttributeGroup)
+  .delete(checkAccess(['ATTRIBUTE_GROUPS_DELETE']), deleteAttributeGroup);
 
 export default router; 

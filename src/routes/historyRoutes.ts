@@ -1,16 +1,14 @@
 import express from 'express';
+import { authenticateToken, checkAccess } from '../middleware/auth.middleware';
 import { getEntityHistory, getHistory } from '../controllers/historyController';
-import { protect, checkPermission } from '../middleware/auth';
 
 const router = express.Router();
 
-// Tüm route'lar korumalı olmalı
-router.use(protect);
+// Tüm rotalar için token kontrolü
+router.use(authenticateToken);
 
-// Tüm geçmiş kayıtlarını getir - history:read izni gerekli
-router.get('/', checkPermission('history:read'), getHistory);
-
-// Belirli bir varlığın geçmiş kayıtlarını getir - history:read izni gerekli
-router.get('/:entityId', checkPermission('history:read'), getEntityHistory);
+// Geçmiş kayıtları
+router.get('/', checkAccess(['HISTORY_VIEW']), getHistory);
+router.get('/:entityType/:entityId', checkAccess(['HISTORY_VIEW']), getEntityHistory);
 
 export default router; 

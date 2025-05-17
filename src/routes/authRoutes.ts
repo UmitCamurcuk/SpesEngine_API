@@ -1,13 +1,15 @@
 import express from 'express';
+import { authenticateToken } from '../middleware/auth.middleware';
 import { register, login, getMe, logout } from '../controllers/authController';
-import { protect } from '../middleware/auth';
 
 const router = express.Router();
 
-// Rota tanımlamaları
+// Açık rotalar
 router.post('/register', register);
 router.post('/login', login);
-router.get('/me', protect, getMe);
-router.get('/logout', logout);
+
+// Korumalı rotalar
+router.get('/me', authenticateToken, getMe);
+router.post('/logout', authenticateToken, logout);
 
 export default router; 

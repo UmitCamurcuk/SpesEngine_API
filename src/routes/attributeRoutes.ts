@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, authorize, checkPermission } from '../middleware/auth';
+import { authenticateToken, checkAccess } from '../middleware/auth.middleware';
 import {
   getAttributes,
   getAttributeById,
@@ -10,18 +10,18 @@ import {
 
 const router = express.Router();
 
-// Tüm routelar korumalı
-router.use(protect);
+// Tüm rotalar için token kontrolü
+router.use(authenticateToken);
 
 router
   .route('/')
-  .get(checkPermission('attributes:read'), getAttributes)
-  .post(checkPermission('attributes:create'), createAttribute);
+  .get(checkAccess(['ATTRIBUTES_VIEW']), getAttributes)
+  .post(checkAccess(['ATTRIBUTES_CREATE']), createAttribute);
 
 router
   .route('/:id')
-  .get(checkPermission('attributes:read'), getAttributeById)
-  .put(checkPermission('attributes:update'), updateAttribute)
-  .delete(checkPermission('attributes:delete'), deleteAttribute);
+  .get(checkAccess(['ATTRIBUTES_VIEW']), getAttributeById)
+  .put(checkAccess(['ATTRIBUTES_UPDATE']), updateAttribute)
+  .delete(checkAccess(['ATTRIBUTES_DELETE']), deleteAttribute);
 
 export default router; 

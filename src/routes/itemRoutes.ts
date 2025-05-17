@@ -1,4 +1,5 @@
 import express from 'express';
+import { authenticateToken, checkAccess } from '../middleware/auth.middleware';
 import {
   getItems,
   getItemById,
@@ -9,18 +10,18 @@ import {
 
 const router = express.Router();
 
-// Not: Geliştirme aşamasında olduğu için koruma mekanizmaları geçici olarak kaldırıldı
-// Üretim aşamasında router.use(protect) ve ilgili izin kontrolleri eklenmelidir
+// Tüm rotalar için token kontrolü
+router.use(authenticateToken);
 
 router
   .route('/')
-  .get(getItems)
-  .post(createItem);
+  .get(checkAccess(['ITEMS_VIEW']), getItems)
+  .post(checkAccess(['ITEMS_CREATE']), createItem);
 
 router
   .route('/:id')
-  .get(getItemById)
-  .put(updateItem)
-  .delete(deleteItem);
+  .get(checkAccess(['ITEMS_VIEW']), getItemById)
+  .put(checkAccess(['ITEMS_UPDATE']), updateItem)
+  .delete(checkAccess(['ITEMS_DELETE']), deleteItem);
 
 export default router; 
