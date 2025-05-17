@@ -37,17 +37,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const auth_middleware_1 = require("../middleware/auth.middleware");
 const relationshipController = __importStar(require("../controllers/relationshipController"));
-const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
+// Tüm rotalar için token kontrolü
+router.use(auth_middleware_1.authenticateToken);
 // İlişki rotaları
-router.post('/', authMiddleware_1.protect, relationshipController.createRelationship);
-router.get('/:id', relationshipController.getRelationshipById);
-router.put('/:id', authMiddleware_1.protect, relationshipController.updateRelationship);
-router.delete('/:id', authMiddleware_1.protect, relationshipController.deleteRelationship);
-router.patch('/:id/status', authMiddleware_1.protect, relationshipController.changeRelationshipStatus);
+router.post('/', (0, auth_middleware_1.checkAccess)(['RELATIONSHIPS_CREATE']), relationshipController.createRelationship);
+router.get('/:id', (0, auth_middleware_1.checkAccess)(['RELATIONSHIPS_VIEW']), relationshipController.getRelationshipById);
+router.put('/:id', (0, auth_middleware_1.checkAccess)(['RELATIONSHIPS_UPDATE']), relationshipController.updateRelationship);
+router.delete('/:id', (0, auth_middleware_1.checkAccess)(['RELATIONSHIPS_DELETE']), relationshipController.deleteRelationship);
+router.patch('/:id/status', (0, auth_middleware_1.checkAccess)(['RELATIONSHIPS_UPDATE']), relationshipController.changeRelationshipStatus);
 // Varlık bazlı ilişki rotaları
-router.get('/entities/:entityType/:entityId', relationshipController.getRelationshipsByEntity);
+router.get('/entities/:entityType/:entityId', (0, auth_middleware_1.checkAccess)(['RELATIONSHIPS_VIEW']), relationshipController.getRelationshipsByEntity);
 // İlişki tipi bazlı ilişki rotaları
-router.get('/by-type/:typeId', relationshipController.getRelationshipsByType);
+router.get('/by-type/:typeId', (0, auth_middleware_1.checkAccess)(['RELATIONSHIPS_VIEW']), relationshipController.getRelationshipsByType);
 exports.default = router;

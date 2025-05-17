@@ -4,18 +4,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const auth_1 = require("../middleware/auth");
+const auth_middleware_1 = require("../middleware/auth.middleware");
 const familyController_1 = require("../controllers/familyController");
 const router = express_1.default.Router();
-// Tüm routelar korumalı
-router.use(auth_1.protect);
+// Tüm rotalar için token kontrolü
+router.use(auth_middleware_1.authenticateToken);
 router
     .route('/')
-    .get((0, auth_1.checkPermission)('families:read'), familyController_1.getFamilies)
-    .post((0, auth_1.checkPermission)('families:create'), familyController_1.createFamily);
+    .get((0, auth_middleware_1.checkAccess)(['FAMILIES_VIEW']), familyController_1.getFamilies)
+    .post((0, auth_middleware_1.checkAccess)(['FAMILIES_CREATE']), familyController_1.createFamily);
 router
     .route('/:id')
-    .get((0, auth_1.checkPermission)('families:read'), familyController_1.getFamilyById)
-    .put((0, auth_1.checkPermission)('families:update'), familyController_1.updateFamily)
-    .delete((0, auth_1.checkPermission)('families:delete'), familyController_1.deleteFamily);
+    .get((0, auth_middleware_1.checkAccess)(['FAMILIES_VIEW']), familyController_1.getFamilyById)
+    .put((0, auth_middleware_1.checkAccess)(['FAMILIES_UPDATE']), familyController_1.updateFamily)
+    .delete((0, auth_middleware_1.checkAccess)(['FAMILIES_DELETE']), familyController_1.deleteFamily);
 exports.default = router;

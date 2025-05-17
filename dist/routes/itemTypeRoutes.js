@@ -4,18 +4,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const auth_1 = require("../middleware/auth");
+const auth_middleware_1 = require("../middleware/auth.middleware");
 const itemTypeController_1 = require("../controllers/itemTypeController");
 const router = express_1.default.Router();
-// Tüm routelar korumalı
-router.use(auth_1.protect);
+// Tüm rotalar için token kontrolü
+router.use(auth_middleware_1.authenticateToken);
 router
     .route('/')
-    .get((0, auth_1.checkPermission)('itemTypes:read'), itemTypeController_1.getItemTypes)
-    .post((0, auth_1.checkPermission)('itemTypes:create'), itemTypeController_1.createItemType);
+    .get((0, auth_middleware_1.checkAccess)(['ITEM_TYPES_VIEW']), itemTypeController_1.getItemTypes)
+    .post((0, auth_middleware_1.checkAccess)(['ITEM_TYPES_CREATE']), itemTypeController_1.createItemType);
 router
     .route('/:id')
-    .get((0, auth_1.checkPermission)('itemTypes:read'), itemTypeController_1.getItemTypeById)
-    .put((0, auth_1.checkPermission)('itemTypes:update'), itemTypeController_1.updateItemType)
-    .delete((0, auth_1.checkPermission)('itemTypes:delete'), itemTypeController_1.deleteItemType);
+    .get((0, auth_middleware_1.checkAccess)(['ITEM_TYPES_VIEW']), itemTypeController_1.getItemTypeById)
+    .put((0, auth_middleware_1.checkAccess)(['ITEM_TYPES_UPDATE']), itemTypeController_1.updateItemType)
+    .delete((0, auth_middleware_1.checkAccess)(['ITEM_TYPES_DELETE']), itemTypeController_1.deleteItemType);
 exports.default = router;

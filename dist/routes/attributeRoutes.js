@@ -4,18 +4,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const auth_1 = require("../middleware/auth");
+const auth_middleware_1 = require("../middleware/auth.middleware");
 const attributeController_1 = require("../controllers/attributeController");
 const router = express_1.default.Router();
-// Tüm routelar korumalı
-router.use(auth_1.protect);
+// Tüm rotalar için token kontrolü
+router.use(auth_middleware_1.authenticateToken);
 router
     .route('/')
-    .get((0, auth_1.checkPermission)('attributes:read'), attributeController_1.getAttributes)
-    .post((0, auth_1.checkPermission)('attributes:create'), attributeController_1.createAttribute);
+    .get((0, auth_middleware_1.checkAccess)(['ATTRIBUTES_VIEW']), attributeController_1.getAttributes)
+    .post((0, auth_middleware_1.checkAccess)(['ATTRIBUTES_CREATE']), attributeController_1.createAttribute);
 router
     .route('/:id')
-    .get((0, auth_1.checkPermission)('attributes:read'), attributeController_1.getAttributeById)
-    .put((0, auth_1.checkPermission)('attributes:update'), attributeController_1.updateAttribute)
-    .delete((0, auth_1.checkPermission)('attributes:delete'), attributeController_1.deleteAttribute);
+    .get((0, auth_middleware_1.checkAccess)(['ATTRIBUTES_VIEW']), attributeController_1.getAttributeById)
+    .put((0, auth_middleware_1.checkAccess)(['ATTRIBUTES_UPDATE']), attributeController_1.updateAttribute)
+    .delete((0, auth_middleware_1.checkAccess)(['ATTRIBUTES_DELETE']), attributeController_1.deleteAttribute);
 exports.default = router;

@@ -4,12 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const auth_middleware_1 = require("../middleware/auth.middleware");
 const localizationController_1 = require("../controllers/localizationController");
-const auth_1 = require("../middleware/auth");
 const router = express_1.default.Router();
-// Çevirileri getirme endpoint'leri herkes için erişilebilir olmalı
+// Dil listesi herkese açık
 router.get('/languages', localizationController_1.getSupportedLanguages);
-router.get('/:lang', localizationController_1.getTranslations);
-// Çeviri ekle/güncelle - sadece admin veya localization:write izni olanlar
-router.post('/', auth_1.protect, (0, auth_1.checkPermission)('localization:write'), localizationController_1.upsertTranslation);
+// Çeviri işlemleri için yetkilendirme gerekli
+router.get('/', auth_middleware_1.authenticateToken, (0, auth_middleware_1.checkAccess)(['TRANSLATIONS_VIEW']), localizationController_1.getTranslations);
+router.post('/', auth_middleware_1.authenticateToken, (0, auth_middleware_1.checkAccess)(['TRANSLATIONS_MANAGE']), localizationController_1.upsertTranslation);
 exports.default = router;

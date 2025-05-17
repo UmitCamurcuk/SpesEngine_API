@@ -37,13 +37,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const auth_middleware_1 = require("../middleware/auth.middleware");
 const relationshipTypeController = __importStar(require("../controllers/relationshipTypeController"));
-const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
+// Tüm rotalar için token kontrolü
+router.use(auth_middleware_1.authenticateToken);
 // İlişki Tipi rotaları
-router.post('/', authMiddleware_1.protect, relationshipTypeController.createRelationshipType);
-router.get('/', relationshipTypeController.getAllRelationshipTypes);
-router.get('/:id', relationshipTypeController.getRelationshipTypeById);
-router.put('/:id', authMiddleware_1.protect, relationshipTypeController.updateRelationshipType);
-router.delete('/:id', authMiddleware_1.protect, relationshipTypeController.deleteRelationshipType);
+router.post('/', (0, auth_middleware_1.checkAccess)(['RELATIONSHIP_TYPES_CREATE']), relationshipTypeController.createRelationshipType);
+router.get('/', (0, auth_middleware_1.checkAccess)(['RELATIONSHIP_TYPES_VIEW']), relationshipTypeController.getAllRelationshipTypes);
+router.get('/:id', (0, auth_middleware_1.checkAccess)(['RELATIONSHIP_TYPES_VIEW']), relationshipTypeController.getRelationshipTypeById);
+router.put('/:id', (0, auth_middleware_1.checkAccess)(['RELATIONSHIP_TYPES_UPDATE']), relationshipTypeController.updateRelationshipType);
+router.delete('/:id', (0, auth_middleware_1.checkAccess)(['RELATIONSHIP_TYPES_DELETE']), relationshipTypeController.deleteRelationshipType);
 exports.default = router;
