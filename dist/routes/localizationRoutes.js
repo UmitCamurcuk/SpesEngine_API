@@ -9,7 +9,8 @@ const localizationController_1 = require("../controllers/localizationController"
 const router = express_1.default.Router();
 // Dil listesi herkese açık
 router.get('/languages', localizationController_1.getSupportedLanguages);
+// Belirli bir dil için çevirileri getir (public endpoint)
+router.get('/:lang', localizationController_1.getTranslations);
 // Çeviri işlemleri için yetkilendirme gerekli
-router.get('/', auth_middleware_1.authenticateToken, (0, auth_middleware_1.checkAccess)(['TRANSLATIONS_VIEW']), localizationController_1.getTranslations);
 router.post('/', auth_middleware_1.authenticateToken, (0, auth_middleware_1.checkAccess)(['TRANSLATIONS_MANAGE']), localizationController_1.upsertTranslation);
 exports.default = router;

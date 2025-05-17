@@ -7,8 +7,10 @@ const router = express.Router();
 // Dil listesi herkese açık
 router.get('/languages', getSupportedLanguages);
 
+// Belirli bir dil için çevirileri getir (public endpoint)
+router.get('/:lang', getTranslations);
+
 // Çeviri işlemleri için yetkilendirme gerekli
-router.get('/', authenticateToken, checkAccess(['TRANSLATIONS_VIEW']), getTranslations);
 router.post('/', authenticateToken, checkAccess(['TRANSLATIONS_MANAGE']), upsertTranslation);
 
 export default router; 
