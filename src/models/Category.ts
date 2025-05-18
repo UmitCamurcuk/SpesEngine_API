@@ -6,7 +6,8 @@ export interface ICategory extends Document {
   description: string;
   family?: mongoose.Types.ObjectId;
   parent?: mongoose.Types.ObjectId;
-  attributeGroup?: mongoose.Types.ObjectId;
+  attributeGroups?: mongoose.Types.ObjectId[];
+  attributes?: mongoose.Types.ObjectId[];
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -39,11 +40,16 @@ const CategorySchema: Schema = new Schema(
       ref: 'Category',
       default: null
     },
-    attributeGroup: {
+    attributeGroups: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'AttributeGroup',
-      default: null
-    },
+      default: []
+    }],
+    attributes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Attribute',
+      default: []
+    }],
     isActive: {
       type: Boolean,
       default: true

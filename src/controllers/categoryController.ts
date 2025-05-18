@@ -27,12 +27,14 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
       filterParams.family = req.query.family;
     }
     
-    if (req.query.parent) {
-      filterParams.parent = req.query.parent;
+    if (req.query.parentCategory) {
+      filterParams.parent = req.query.parentCategory;
     }
     
-    if (req.query.attributeGroup) {
-      filterParams.attributeGroup = req.query.attributeGroup;  
+    if (req.query.attributeGroups) {
+      filterParams.attributeGroups = { $in: Array.isArray(req.query.attributeGroups) 
+        ? req.query.attributeGroups 
+        : [req.query.attributeGroups] };  
     }
     
     // Toplam kayıt sayısını al
@@ -57,7 +59,7 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
         select: 'name code description'
       })
       .populate({
-        path: 'attributeGroup',
+        path: 'attributeGroups',
         select: 'name code description'
       })
       .sort(sortOption)
@@ -99,8 +101,12 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
         select: 'name code description'
       })
       .populate({
-        path: 'attributeGroup',
+        path: 'attributeGroups',
         select: 'name code description'
+      })
+      .populate({
+        path: 'attributes',
+        select: 'name code type description'
       });
     
     if (!category) {
@@ -132,12 +138,29 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
   try {
     console.log('Create category request received:', req.body);
     
+    // Field isimleri dönüşümü
+    const categoryData = { ...req.body };
+    
     // Eğer family alanı boş string ise bu alanı kaldır
-    if (req.body.family === '') {
-      delete req.body.family;
+    if (categoryData.family === '') {
+      delete categoryData.family;
     }
     
-    const category = await Category.create(req.body);
+    // parentCategory -> parent dönüşümü
+    if (categoryData.parentCategory) {
+      categoryData.parent = categoryData.parentCategory;
+      delete categoryData.parentCategory;
+    }
+    
+    // attributeGroup -> attributeGroups dönüşümü
+    if (categoryData.attributeGroup) {
+      categoryData.attributeGroups = Array.isArray(categoryData.attributeGroup) 
+        ? categoryData.attributeGroup 
+        : [categoryData.attributeGroup];
+      delete categoryData.attributeGroup;
+    }
+    
+    const category = await Category.create(categoryData);
     
     console.log(`Created category: ${category.name} with ID: ${category._id}`);
     
@@ -160,9 +183,26 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
     const { id } = req.params;
     console.log(`Update category request received for ID: ${id}`, req.body);
     
+    // Field isimleri dönüşümü
+    const updateData = { ...req.body };
+    
+    // parentCategory -> parent dönüşümü
+    if (updateData.parentCategory) {
+      updateData.parent = updateData.parentCategory;
+      delete updateData.parentCategory;
+    }
+    
+    // attributeGroup -> attributeGroups dönüşümü
+    if (updateData.attributeGroup) {
+      updateData.attributeGroups = Array.isArray(updateData.attributeGroup) 
+        ? updateData.attributeGroup 
+        : [updateData.attributeGroup];
+      delete updateData.attributeGroup;
+    }
+    
     const category = await Category.findByIdAndUpdate(
       id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     )
     .populate({
@@ -174,8 +214,12 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
       select: 'name code description'
     })
     .populate({
-      path: 'attributeGroup',
+      path: 'attributeGroups',
       select: 'name code description'
+    })
+    .populate({
+      path: 'attributes',
+      select: 'name code type description'
     });
     
     if (!category) {
