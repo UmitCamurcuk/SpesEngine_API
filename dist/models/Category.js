@@ -60,11 +60,16 @@ const CategorySchema = new mongoose_1.Schema({
         ref: 'Category',
         default: null
     },
-    attributeGroup: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'AttributeGroup',
-        default: null
-    },
+    attributeGroups: [{
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: 'AttributeGroup',
+            default: []
+        }],
+    attributes: [{
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: 'Attribute',
+            default: []
+        }],
     isActive: {
         type: Boolean,
         default: true

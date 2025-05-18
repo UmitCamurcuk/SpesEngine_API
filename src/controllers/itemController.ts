@@ -119,13 +119,18 @@ async function getRequiredAttributes(itemTypeId: string, categoryId: string) {
   }
   if (categoryId) {
     const category = await Category.findById(categoryId).populate({
-      path: 'attributeGroup',
+      path: 'attributeGroups',
       populate: { path: 'attributes' }
     });
-    if (category && category.attributeGroup && (category.attributeGroup as any).attributes) {
-      requiredAttributes = requiredAttributes.concat(
-        ((category.attributeGroup as any).attributes as any[]).filter(attr => attr.isRequired)
-      );
+    if (category && category.attributeGroups && (category.attributeGroups as any).length > 0) {
+      // Her bir attributeGroup için
+      for (const group of (category.attributeGroups as any)) {
+        if (group.attributes) {
+          requiredAttributes = requiredAttributes.concat(
+            (group.attributes as any[]).filter(attr => attr.isRequired)
+          );
+        }
+      }
     }
   }
   // Aynı attribute birden fazla gelirse uniq yap

@@ -152,13 +152,21 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
       delete categoryData.parentCategory;
     }
     
-    // attributeGroup -> attributeGroups dönüşümü
-    if (categoryData.attributeGroup) {
+    // attributeGroups kontrolü
+    if (categoryData.attributeGroups) {
+      categoryData.attributeGroups = Array.isArray(categoryData.attributeGroups) 
+        ? categoryData.attributeGroups 
+        : [categoryData.attributeGroups];
+    }
+    // Eski attributeGroup -> attributeGroups dönüşümü
+    else if (categoryData.attributeGroup) {
       categoryData.attributeGroups = Array.isArray(categoryData.attributeGroup) 
         ? categoryData.attributeGroup 
         : [categoryData.attributeGroup];
       delete categoryData.attributeGroup;
     }
+
+    console.log('Processed category data:', categoryData);
     
     const category = await Category.create(categoryData);
     
@@ -192,13 +200,21 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
       delete updateData.parentCategory;
     }
     
-    // attributeGroup -> attributeGroups dönüşümü
-    if (updateData.attributeGroup) {
+    // attributeGroups kontrolü
+    if (updateData.attributeGroups) {
+      updateData.attributeGroups = Array.isArray(updateData.attributeGroups) 
+        ? updateData.attributeGroups 
+        : [updateData.attributeGroups];
+    }
+    // Eski attributeGroup -> attributeGroups dönüşümü
+    else if (updateData.attributeGroup) {
       updateData.attributeGroups = Array.isArray(updateData.attributeGroup) 
         ? updateData.attributeGroup 
         : [updateData.attributeGroup];
       delete updateData.attributeGroup;
     }
+
+    console.log('Processed update data:', updateData);
     
     const category = await Category.findByIdAndUpdate(
       id,

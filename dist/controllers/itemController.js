@@ -119,11 +119,16 @@ function getRequiredAttributes(itemTypeId, categoryId) {
         }
         if (categoryId) {
             const category = yield Category_1.default.findById(categoryId).populate({
-                path: 'attributeGroup',
+                path: 'attributeGroups',
                 populate: { path: 'attributes' }
             });
-            if (category && category.attributeGroup && category.attributeGroup.attributes) {
-                requiredAttributes = requiredAttributes.concat(category.attributeGroup.attributes.filter(attr => attr.isRequired));
+            if (category && category.attributeGroups && category.attributeGroups.length > 0) {
+                // Her bir attributeGroup için
+                for (const group of category.attributeGroups) {
+                    if (group.attributes) {
+                        requiredAttributes = requiredAttributes.concat(group.attributes.filter(attr => attr.isRequired));
+                    }
+                }
             }
         }
         // Aynı attribute birden fazla gelirse uniq yap

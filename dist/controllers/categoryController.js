@@ -35,11 +35,13 @@ const getCategories = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         if (req.query.family) {
             filterParams.family = req.query.family;
         }
-        if (req.query.parent) {
-            filterParams.parent = req.query.parent;
+        if (req.query.parentCategory) {
+            filterParams.parent = req.query.parentCategory;
         }
-        if (req.query.attributeGroup) {
-            filterParams.attributeGroup = req.query.attributeGroup;
+        if (req.query.attributeGroups) {
+            filterParams.attributeGroups = { $in: Array.isArray(req.query.attributeGroups)
+                    ? req.query.attributeGroups
+                    : [req.query.attributeGroups] };
         }
         // Toplam kayıt sayısını al
         const total = yield Category_1.default.countDocuments(filterParams);
@@ -62,7 +64,7 @@ const getCategories = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             select: 'name code description'
         })
             .populate({
-            path: 'attributeGroup',
+            path: 'attributeGroups',
             select: 'name code description'
         })
             .sort(sortOption)
@@ -102,8 +104,12 @@ const getCategoryById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             select: 'name code description'
         })
             .populate({
-            path: 'attributeGroup',
+            path: 'attributeGroups',
             select: 'name code description'
+        })
+            .populate({
+            path: 'attributes',
+            select: 'name code type description'
         });
         if (!category) {
             console.log(`Category not found with ID: ${id}`);
@@ -132,11 +138,32 @@ exports.getCategoryById = getCategoryById;
 const createCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log('Create category request received:', req.body);
+        // Field isimleri dönüşümü
+        const categoryData = Object.assign({}, req.body);
         // Eğer family alanı boş string ise bu alanı kaldır
-        if (req.body.family === '') {
-            delete req.body.family;
+        if (categoryData.family === '') {
+            delete categoryData.family;
         }
-        const category = yield Category_1.default.create(req.body);
+        // parentCategory -> parent dönüşümü
+        if (categoryData.parentCategory) {
+            categoryData.parent = categoryData.parentCategory;
+            delete categoryData.parentCategory;
+        }
+        // attributeGroups kontrolü
+        if (categoryData.attributeGroups) {
+            categoryData.attributeGroups = Array.isArray(categoryData.attributeGroups)
+                ? categoryData.attributeGroups
+                : [categoryData.attributeGroups];
+        }
+        // Eski attributeGroup -> attributeGroups dönüşümü
+        else if (categoryData.attributeGroup) {
+            categoryData.attributeGroups = Array.isArray(categoryData.attributeGroup)
+                ? categoryData.attributeGroup
+                : [categoryData.attributeGroup];
+            delete categoryData.attributeGroup;
+        }
+        console.log('Processed category data:', categoryData);
+        const category = yield Category_1.default.create(categoryData);
         console.log(`Created category: ${category.name} with ID: ${category._id}`);
         res.status(201).json({
             success: true,
@@ -157,7 +184,28 @@ const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     try {
         const { id } = req.params;
         console.log(`Update category request received for ID: ${id}`, req.body);
-        const category = yield Category_1.default.findByIdAndUpdate(id, req.body, { new: true, runValidators: true })
+        // Field isimleri dönüşümü
+        const updateData = Object.assign({}, req.body);
+        // parentCategory -> parent dönüşümü
+        if (updateData.parentCategory) {
+            updateData.parent = updateData.parentCategory;
+            delete updateData.parentCategory;
+        }
+        // attributeGroups kontrolü
+        if (updateData.attributeGroups) {
+            updateData.attributeGroups = Array.isArray(updateData.attributeGroups)
+                ? updateData.attributeGroups
+                : [updateData.attributeGroups];
+        }
+        // Eski attributeGroup -> attributeGroups dönüşümü
+        else if (updateData.attributeGroup) {
+            updateData.attributeGroups = Array.isArray(updateData.attributeGroup)
+                ? updateData.attributeGroup
+                : [updateData.attributeGroup];
+            delete updateData.attributeGroup;
+        }
+        console.log('Processed update data:', updateData);
+        const category = yield Category_1.default.findByIdAndUpdate(id, updateData, { new: true, runValidators: true })
             .populate({
             path: 'family',
             select: 'name code description'
@@ -167,8 +215,12 @@ const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             select: 'name code description'
         })
             .populate({
-            path: 'attributeGroup',
+            path: 'attributeGroups',
             select: 'name code description'
+        })
+            .populate({
+            path: 'attributes',
+            select: 'name code type description'
         });
         if (!category) {
             console.log(`Category not found with ID: ${id}`);
