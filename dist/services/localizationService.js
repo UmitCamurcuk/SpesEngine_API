@@ -25,10 +25,8 @@ class LocalizationService {
     // Tüm çevirileri belirli bir dil için getir
     getAllTranslationsForLanguage(lang) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(`[LocalizationService] getAllTranslationsForLanguage çağrıldı. Dil: ${lang}`);
             // Ham dokümanlar olarak çevirileri al
             const allTranslations = yield Localization_1.default.find({}).lean();
-            console.log(`[LocalizationService] Veritabanında ${allTranslations.length} çeviri bulundu.`);
             // Namespace'lere göre grupla
             const result = {};
             // Önce namespace'leri oluştur
@@ -44,7 +42,6 @@ class LocalizationService {
                     result[item.namespace][item.key] = item.translations[lang];
                 }
             }
-            console.log(`[LocalizationService] Dönüş yapılıyor. Namespace sayısı: ${Object.keys(result).length}`);
             return result;
         });
     }

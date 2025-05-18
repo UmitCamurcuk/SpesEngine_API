@@ -25,6 +25,7 @@ const permissionGroupRoutes_1 = __importDefault(require("./routes/permissionGrou
 const localizationRoutes_1 = __importDefault(require("./routes/localizationRoutes"));
 const relationshipRoutes_1 = __importDefault(require("./routes/relationshipRoutes"));
 const relationshipTypeRoutes_1 = __importDefault(require("./routes/relationshipTypeRoutes"));
+const systemSettingsRoutes_1 = __importDefault(require("./routes/systemSettingsRoutes"));
 // Env değişkenlerini yükle
 dotenv_1.default.config();
 // JWT gizli anahtarını kontrol et
@@ -65,6 +66,7 @@ app.use('/api/localizations', localizationRoutes_1.default);
 app.use('/api/history', historyRoutes_1.default);
 app.use('/api/relationships', relationshipRoutes_1.default);
 app.use('/api/relationship-types', relationshipTypeRoutes_1.default);
+app.use('/api/system', systemSettingsRoutes_1.default);
 // Ana route
 app.get('/', (req, res) => {
     res.send('SpesEngine API çalışıyor');

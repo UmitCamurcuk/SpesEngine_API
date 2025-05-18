@@ -2336,19 +2336,35 @@ const seedLocalizations = async () => {
       
       // Auth çevirileri
       {
-        key: 'login_to_account',
+        key: 'welcome_back',
         namespace: 'auth',
         translations: {
-          tr: 'Hesabınıza giriş yapın',
-          en: 'Log in to your account'
+          tr: 'Tekrar Hoşgeldiniz',
+          en: 'Welcome Back'
         }
       },
       {
-        key: 'email_address',
+        key: 'login_subtitle',
         namespace: 'auth',
         translations: {
-          tr: 'E-posta Adresi',
-          en: 'Email Address'
+          tr: 'SpesEngine\'e giriş yapmak için bilgilerinizi girin',
+          en: 'Enter your credentials to access SpesEngine'
+        }
+      },
+      {
+        key: 'email',
+        namespace: 'auth',
+        translations: {
+          tr: 'E-posta',
+          en: 'Email'
+        }
+      },
+      {
+        key: 'email_placeholder',
+        namespace: 'auth',
+        translations: {
+          tr: 'E-posta adresinizi girin',
+          en: 'Enter your email address'
         }
       },
       {
@@ -2360,11 +2376,51 @@ const seedLocalizations = async () => {
         }
       },
       {
-        key: 'login',
+        key: 'password_placeholder',
+        namespace: 'auth',
+        translations: {
+          tr: 'Şifrenizi girin',
+          en: 'Enter your password'
+        }
+      },
+      {
+        key: 'remember_me',
+        namespace: 'auth',
+        translations: {
+          tr: 'Beni Hatırla',
+          en: 'Remember Me'
+        }
+      },
+      {
+        key: 'forgot_password',
+        namespace: 'auth',
+        translations: {
+          tr: 'Şifremi Unuttum',
+          en: 'Forgot Password'
+        }
+      },
+      {
+        key: 'login_button',
         namespace: 'auth',
         translations: {
           tr: 'Giriş Yap',
-          en: 'Log in'
+          en: 'Sign In'
+        }
+      },
+      {
+        key: 'dont_have_account',
+        namespace: 'auth',
+        translations: {
+          tr: 'Hesabınız yok mu?',
+          en: 'Don\'t have an account?'
+        }
+      },
+      {
+        key: 'register_now',
+        namespace: 'auth',
+        translations: {
+          tr: 'Hemen Kaydolun',
+          en: 'Register Now'
         }
       },
       

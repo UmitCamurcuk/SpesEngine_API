@@ -32,11 +32,9 @@ class LocalizationService {
   
   // Tüm çevirileri belirli bir dil için getir
   async getAllTranslationsForLanguage(lang: string): Promise<Record<string, Record<string, string>>> {
-    console.log(`[LocalizationService] getAllTranslationsForLanguage çağrıldı. Dil: ${lang}`);
     
     // Ham dokümanlar olarak çevirileri al
     const allTranslations = await Localization.find({}).lean();
-    console.log(`[LocalizationService] Veritabanında ${allTranslations.length} çeviri bulundu.`);
     
     // Namespace'lere göre grupla
     const result: Record<string, Record<string, string>> = {};
@@ -56,7 +54,6 @@ class LocalizationService {
       }
     }
     
-    console.log(`[LocalizationService] Dönüş yapılıyor. Namespace sayısı: ${Object.keys(result).length}`);
     return result;
   }
   
