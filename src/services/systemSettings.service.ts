@@ -26,23 +26,35 @@ class SystemSettingsService {
     }
   }
 
-  // Belirli bir bölümü güncelle (örn: 'security', 'notifications', vb.)
+  // Belirli bir bölümü güncelle
   async updateSection(section: string, data: any, userId: Types.ObjectId): Promise<ISystemSettings> {
-    const settings = await SystemSettings.findOne();
-    
-    if (!settings) {
-      // Ayarlar yoksa yeni bir kayıt oluştur
+    const existingSettings = await SystemSettings.findOne();
+    console.log(existingSettings);  
+    if (existingSettings) {
+      // Genel ayarlar için özel işlem
+      if (section === 'general') {
+        Object.assign(existingSettings, data);
+      } else {
+        // Diğer bölümler için alt obje güncelleme
+        existingSettings[section] = {
+          ...existingSettings[section],
+          ...data
+        };
+      }
+      
+      existingSettings.updatedBy = userId;
+      existingSettings.updatedAt = new Date();
+      
+      return existingSettings.save();
+    } else {
+      // Yeni ayar kaydı oluştur
       const newSettings = new SystemSettings({
         [section]: data,
-        updatedBy: userId
+        updatedBy: userId,
+        updatedAt: new Date()
       });
       return newSettings.save();
     }
-
-    // Belirli bölümü güncelle
-    settings.set(section, data);
-    settings.updatedBy = userId;
-    return settings.save();
   }
 
   // Logo URL'sini güncelle

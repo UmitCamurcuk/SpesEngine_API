@@ -19,4 +19,27 @@ router.put('/:section', checkAccess(['SETTINGS_MANAGE']), updateSection);
 // Logo güncelle
 router.put('/logo', checkAccess(['SETTINGS_MANAGE']), updateLogo);
 
+// Tema ayarlarını güncelle
+router.put('/theme', checkAccess(['SETTINGS_MANAGE']), async (req, res) => {
+  try {
+    const { mode, primaryColor, accentColor, enableDarkMode, defaultDarkMode, ...rest } = req.body;
+    const themeSettings = {
+      theme: {
+        mode,
+        primaryColor,
+        accentColor,
+        enableDarkMode,
+        defaultDarkMode
+      }
+    };
+    const result = await updateSettings(req, res);
+    return result;
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Tema ayarları güncellenirken bir hata oluştu'
+    });
+  }
+});
+
 export default router; 

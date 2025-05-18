@@ -82,6 +82,9 @@ export interface ISystemSettings extends Document {
   // Metadata
   updatedBy: mongoose.Types.ObjectId;
   updatedAt: Date;
+
+  // Dinamik alan erişimi için indeks imzası
+  [key: string]: any;
 }
 
 const SystemSettingsSchema: Schema = new Schema({
