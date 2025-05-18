@@ -10,6 +10,8 @@
     "build": "tsc",
     "seed": "tsc && node dist/scripts/seedPermissionsAndRoles.js",
     "seed:localizations": "tsc && node dist/scripts/seedLocalizations.js",
+    "seed:detailed": "tsc && node dist/scripts/seedUltraDetailedDemoData.js",
+    "list:users": "tsc && node dist/scripts/listUsers.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

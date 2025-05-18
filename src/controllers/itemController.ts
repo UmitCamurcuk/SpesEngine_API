@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import Item from '../models/Item';
 import mongoose from 'mongoose';
+import ItemType from '../models/ItemType';
+import Category from '../models/Category';
+import AttributeGroup from '../models/AttributeGroup';
 
 // GET tüm öğeleri getir
 export const getItems = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -105,16 +108,60 @@ export const getItemById = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
+// Yardımcı fonksiyon: itemType ve category'den zorunlu attribute'ları getir
+async function getRequiredAttributes(itemTypeId: string, categoryId: string) {
+  const itemType = await ItemType.findById(itemTypeId).populate('attributes');
+  let requiredAttributes: any[] = [];
+  if (itemType && itemType.attributes) {
+    requiredAttributes = requiredAttributes.concat(
+      (itemType.attributes as any[]).filter(attr => attr.isRequired)
+    );
+  }
+  if (categoryId) {
+    const category = await Category.findById(categoryId).populate({
+      path: 'attributeGroup',
+      populate: { path: 'attributes' }
+    });
+    if (category && category.attributeGroup && (category.attributeGroup as any).attributes) {
+      requiredAttributes = requiredAttributes.concat(
+        ((category.attributeGroup as any).attributes as any[]).filter(attr => attr.isRequired)
+      );
+    }
+  }
+  // Aynı attribute birden fazla gelirse uniq yap
+  const uniq = (arr: any[]) => Array.from(new Map(arr.map(a => [a._id.toString(), a])).values());
+  return uniq(requiredAttributes);
+}
+
 // POST yeni öğe oluştur
 export const createItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { name, code, itemType, family, category, attributes, isActive } = req.body;
+    const { name, code, itemType, family, category, attributeValues, isActive } = req.body;
+
+    // Zorunlu attribute kontrolü
+    const requiredAttributes = await getRequiredAttributes(itemType, category);
     
-    // Attributes kontrolü
-    const processedAttributes = attributes && typeof attributes === 'object' 
-      ? attributes 
-      : {};
+    // AttributeValues array'i varsa bir nesneye çevirelim
+    let attributes: Record<string, any> = {};
+    if (attributeValues && Array.isArray(attributeValues)) {
+      attributeValues.forEach(attr => {
+        if (attr.attributeId && attr.value !== undefined) {
+          attributes[attr.attributeId] = attr.value;
+        }
+      });
+    }
     
+    // Zorunlu attributelar için kontrol
+    const missing = requiredAttributes.filter(attr => !attributes || attributes[attr._id.toString()] == null || attributes[attr._id.toString()] === '');
+    if (missing.length > 0) {
+      res.status(400).json({
+        success: false,
+        message: 'Zorunlu öznitelikler eksik',
+        missing: missing.map(a => a.name)
+      });
+      return;
+    }
+
     // Öğe oluştur
     const item = await Item.create({
       name,
@@ -122,10 +169,9 @@ export const createItem = async (req: Request, res: Response, next: NextFunction
       itemType,
       family,
       category,
-      attributes: processedAttributes,
+      attributes: attributes,
       isActive: isActive !== undefined ? isActive : true
     });
-    
     res.status(201).json({
       success: true,
       data: item
@@ -139,7 +185,6 @@ export const createItem = async (req: Request, res: Response, next: NextFunction
       });
       return;
     }
-    
     res.status(500).json({
       success: false,
       message: error.message || 'Öğe oluşturulurken bir hata oluştu'
@@ -152,7 +197,18 @@ export const updateItem = async (req: Request, res: Response, next: NextFunction
   try {
     // Güncellenecek alanları al
     const updates = { ...req.body };
-    
+    // Zorunlu attribute kontrolü
+    const requiredAttributes = await getRequiredAttributes(updates.itemType, updates.category);
+    const attrs = updates.attributes || {};
+    const missing = requiredAttributes.filter(attr => !attrs || attrs[attr._id.toString()] == null || attrs[attr._id.toString()] === '');
+    if (missing.length > 0) {
+      res.status(400).json({
+        success: false,
+        message: 'Zorunlu öznitelikler eksik',
+        missing: missing.map(a => a.name)
+      });
+      return;
+    }
     // Attributes kontrolü
     if (updates.attributes && typeof updates.attributes === 'object') {
       // Attributes alanı zaten bir nesne, işleme gerek yok
@@ -160,14 +216,12 @@ export const updateItem = async (req: Request, res: Response, next: NextFunction
       // Geçersiz bir attributes değeri, boş bir nesne ile değiştir
       updates.attributes = {};
     }
-    
     // Öğeyi bul ve güncelle
     const item = await Item.findByIdAndUpdate(
       req.params.id,
       updates,
       { new: true, runValidators: true }
     ).populate('itemType family category');
-    
     if (!item) {
       res.status(404).json({
         success: false,
@@ -175,7 +229,6 @@ export const updateItem = async (req: Request, res: Response, next: NextFunction
       });
       return;
     }
-    
     res.status(200).json({
       success: true,
       data: item
@@ -189,7 +242,6 @@ export const updateItem = async (req: Request, res: Response, next: NextFunction
       });
       return;
     }
-    
     res.status(500).json({
       success: false,
       message: error.message || 'Öğe güncellenirken bir hata oluştu'

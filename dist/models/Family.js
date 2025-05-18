@@ -53,8 +53,32 @@ const FamilySchema = new mongoose_1.Schema({
     itemType: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: 'ItemType',
-        required: true
+        required: false
     },
+    category: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: [true, 'Kategori seçimi zorunludur']
+    },
+    parent: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Family',
+        required: false
+    },
+    attributeGroups: [
+        {
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: 'AttributeGroup',
+            required: false
+        }
+    ],
+    attributes: [
+        {
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: 'Attribute',
+            required: false
+        }
+    ],
     isActive: {
         type: Boolean,
         default: true

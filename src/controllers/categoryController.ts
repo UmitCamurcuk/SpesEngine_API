@@ -132,6 +132,11 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
   try {
     console.log('Create category request received:', req.body);
     
+    // Eğer family alanı boş string ise bu alanı kaldır
+    if (req.body.family === '') {
+      delete req.body.family;
+    }
+    
     const category = await Category.create(req.body);
     
     console.log(`Created category: ${category.name} with ID: ${category._id}`);

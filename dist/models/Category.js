@@ -53,7 +53,7 @@ const CategorySchema = new mongoose_1.Schema({
     family: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: 'Family',
-        required: true
+        required: false
     },
     parent: {
         type: mongoose_1.default.Schema.Types.ObjectId,

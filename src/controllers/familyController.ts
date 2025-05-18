@@ -38,6 +38,9 @@ export const getFamilies = async (req: Request, res: Response, next: NextFunctio
     // Verileri getir
     const families = await Family.find(filterParams)
       .populate('itemType')
+      .populate('parent')
+      .populate('attributeGroups')
+      .populate('attributes')
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
@@ -64,8 +67,31 @@ export const getFamilies = async (req: Request, res: Response, next: NextFunctio
 // GET tek bir aileyi getir
 export const getFamilyById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const family = await Family.findById(req.params.id)
-      .populate('itemType');
+    // Query parametrelerini al
+    const includeAttributes = req.query.includeAttributes === 'true';
+    const includeAttributeGroups = req.query.includeAttributeGroups === 'true';
+    
+    // Query oluştur
+    let query = Family.findById(req.params.id)
+      .populate('itemType')
+      .populate('parent')
+      .populate('attributes');
+    
+    // AttributeGroups'ları include et ve içindeki attributes'ları da getir
+    if (includeAttributeGroups) {
+      query = query.populate({
+        path: 'attributeGroups',
+        populate: {
+          path: 'attributes',
+          model: 'Attribute'
+        }
+      });
+    } else {
+      query = query.populate('attributeGroups');
+    }
+    
+    // Sorguyu çalıştır
+    const family = await query.exec();
     
     if (!family) {
       res.status(404).json({
@@ -90,11 +116,40 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
 // POST yeni aile oluştur
 export const createFamily = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Eğer itemType alanı boş string ise bu alanı kaldır
+    if (req.body.itemType === '') {
+      delete req.body.itemType;
+    }
+    
+    // Eğer parent alanı boş string ise bu alanı kaldır
+    if (req.body.parent === '') {
+      delete req.body.parent;
+    }
+    
+    // AttributeGroups belirlenmişse, içindeki attribute'ları da ekle
+    if (req.body.attributeGroups && req.body.attributeGroups.length > 0) {
+      const attributeGroupIds = req.body.attributeGroups;
+      
+      // AttributeGroup'lara ait tüm attribute'ları getir
+      const allAttributes = await (await import('../models/AttributeGroup')).default
+        .find({ _id: { $in: attributeGroupIds } })
+        .distinct('attributes');
+      
+      // Body'ye attributes dizisini ekle veya güncelle
+      req.body.attributes = Array.from(new Set([
+        ...(req.body.attributes || []),
+        ...allAttributes
+      ]));
+    }
+    
     const family = await Family.create(req.body);
     
-    // Oluşturulan aileyi itemType alanıyla birlikte getir
+    // Oluşturulan aileyi itemType ve parent alanlarıyla birlikte getir
     const newFamily = await Family.findById(family._id)
-      .populate('itemType');
+      .populate('itemType')
+      .populate('parent')
+      .populate('attributeGroups')
+      .populate('attributes');
     
     res.status(201).json({
       success: true,
@@ -111,11 +166,44 @@ export const createFamily = async (req: Request, res: Response, next: NextFuncti
 // PUT aileyi güncelle
 export const updateFamily = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Eğer itemType alanı boş string ise bu alanı kaldır
+    if (req.body.itemType === '') {
+      delete req.body.itemType;
+    }
+    
+    // Eğer parent alanı boş string ise bu alanı kaldır
+    if (req.body.parent === '') {
+      delete req.body.parent;
+    }
+    
+    // AttributeGroups belirlenmişse, içindeki attribute'ları da ekle
+    if (req.body.attributeGroups && req.body.attributeGroups.length > 0) {
+      const attributeGroupIds = req.body.attributeGroups;
+      
+      // AttributeGroup'lara ait tüm attribute'ları getir
+      const allAttributes = await (await import('../models/AttributeGroup')).default
+        .find({ _id: { $in: attributeGroupIds } })
+        .distinct('attributes');
+      
+      // Body'ye attributes dizisini ekle veya güncelle
+      req.body.attributes = Array.from(new Set([
+        ...(req.body.attributes || []),
+        ...allAttributes
+      ]));
+    } else {
+      // AttributeGroups boşsa, attributes da boş olmalı
+      req.body.attributes = [];
+    }
+    
     const family = await Family.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('itemType');
+    )
+    .populate('itemType')
+    .populate('parent')
+    .populate('attributeGroups')
+    .populate('attributes');
     
     if (!family) {
       res.status(404).json({

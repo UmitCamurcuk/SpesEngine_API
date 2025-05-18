@@ -4,7 +4,11 @@ export interface IFamily extends Document {
   name: string;
   code: string;
   description: string;
-  itemType: mongoose.Types.ObjectId;
+  itemType?: mongoose.Types.ObjectId;
+  category: mongoose.Types.ObjectId;
+  parent?: mongoose.Types.ObjectId;
+  attributeGroups?: mongoose.Types.ObjectId[];
+  attributes?: mongoose.Types.ObjectId[];
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -30,8 +34,32 @@ const FamilySchema: Schema = new Schema(
     itemType: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ItemType',
-      required: true
+      required: false
     },
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      required: [true, 'Kategori seçimi zorunludur']
+    },
+    parent: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Family',
+      required: false
+    },
+    attributeGroups: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AttributeGroup',
+        required: false
+      }
+    ],
+    attributes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Attribute',
+        required: false
+      }
+    ],
     isActive: {
       type: Boolean,
       default: true

@@ -86,7 +86,7 @@ const AttributeSchema: Schema = new Schema(
     attributeGroup: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'AttributeGroup',
-      required: false
+      required: [true, 'Öznitelik grubu seçimi zorunludur']
     },
     validations: ValidationSchema,
     isActive: {

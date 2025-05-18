@@ -132,6 +132,10 @@ exports.getCategoryById = getCategoryById;
 const createCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log('Create category request received:', req.body);
+        // Eğer family alanı boş string ise bu alanı kaldır
+        if (req.body.family === '') {
+            delete req.body.family;
+        }
         const category = yield Category_1.default.create(req.body);
         console.log(`Created category: ${category.name} with ID: ${category._id}`);
         res.status(201).json({

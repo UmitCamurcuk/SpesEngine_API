@@ -64,8 +64,12 @@ export const getItemTypes = async (req: Request, res: Response, next: NextFuncti
 // GET tek bir öğe tipini getir
 export const getItemTypeById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const itemType = await ItemType.findById(req.params.id)
-      .populate('attributes');
+    // Query parametrelerini al
+    const includeAttributes = req.query.includeAttributes === 'true';
+    const includeAttributeGroups = req.query.includeAttributeGroups === 'true';
+    
+    // Temel ItemType sorgusu
+    const itemType = await ItemType.findById(req.params.id).lean();
     
     if (!itemType) {
       res.status(404).json({
@@ -73,6 +77,47 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
         message: 'Öğe tipi bulunamadı'
       });
       return;
+    }
+    
+    // Attributes'ları include et
+    if (includeAttributes) {
+      const attributes = await ItemType.findById(req.params.id)
+        .populate('attributes')
+        .lean()
+        .then(result => result?.attributes || []);
+        
+      itemType.attributes = attributes;
+    }
+    
+    // AttributeGroups'ları include et
+    if (includeAttributeGroups) {
+      // AttributeGroups'ları getir
+      const attributeGroups = await ItemType.findById(req.params.id)
+        .populate('attributeGroups')
+        .lean()
+        .then(result => result?.attributeGroups || []);
+      
+      // Her bir AttributeGroup için, ilgili attribute'ları bulup ata
+      if (attributeGroups.length > 0) {
+        // Tüm ilgili attribute'ları tek bir sorguda getir
+        const allAttributes = await ItemType.findById(req.params.id)
+          .populate('attributes')
+          .lean()
+          .then(result => result?.attributes || []);
+          
+        // Her AttributeGroup için, ona ait attribute'ları filtrele ve ata
+        for (const group of attributeGroups) {
+          // Bu gruba ait attribute'ları filtrele
+          const groupAttributes = allAttributes.filter((attr: any) => 
+            attr.attributeGroup && attr.attributeGroup.toString() === group._id.toString()
+          );
+          
+          // AttributeGroup'a ait attribute'ları ata
+          (group as any).attributes = groupAttributes;
+        }
+      }
+      
+      itemType.attributeGroups = attributeGroups;
     }
     
     res.status(200).json({

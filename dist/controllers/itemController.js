@@ -15,6 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteItem = exports.updateItem = exports.createItem = exports.getItemById = exports.getItems = void 0;
 const Item_1 = __importDefault(require("../models/Item"));
 const mongoose_1 = __importDefault(require("mongoose"));
+const ItemType_1 = __importDefault(require("../models/ItemType"));
+const Category_1 = __importDefault(require("../models/Category"));
 // GET tüm öğeleri getir
 const getItems = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -107,14 +109,53 @@ const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getItemById = getItemById;
+// Yardımcı fonksiyon: itemType ve category'den zorunlu attribute'ları getir
+function getRequiredAttributes(itemTypeId, categoryId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const itemType = yield ItemType_1.default.findById(itemTypeId).populate('attributes');
+        let requiredAttributes = [];
+        if (itemType && itemType.attributes) {
+            requiredAttributes = requiredAttributes.concat(itemType.attributes.filter(attr => attr.isRequired));
+        }
+        if (categoryId) {
+            const category = yield Category_1.default.findById(categoryId).populate({
+                path: 'attributeGroup',
+                populate: { path: 'attributes' }
+            });
+            if (category && category.attributeGroup && category.attributeGroup.attributes) {
+                requiredAttributes = requiredAttributes.concat(category.attributeGroup.attributes.filter(attr => attr.isRequired));
+            }
+        }
+        // Aynı attribute birden fazla gelirse uniq yap
+        const uniq = (arr) => Array.from(new Map(arr.map(a => [a._id.toString(), a])).values());
+        return uniq(requiredAttributes);
+    });
+}
 // POST yeni öğe oluştur
 const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, code, itemType, family, category, attributes, isActive } = req.body;
-        // Attributes kontrolü
-        const processedAttributes = attributes && typeof attributes === 'object'
-            ? attributes
-            : {};
+        const { name, code, itemType, family, category, attributeValues, isActive } = req.body;
+        // Zorunlu attribute kontrolü
+        const requiredAttributes = yield getRequiredAttributes(itemType, category);
+        // AttributeValues array'i varsa bir nesneye çevirelim
+        let attributes = {};
+        if (attributeValues && Array.isArray(attributeValues)) {
+            attributeValues.forEach(attr => {
+                if (attr.attributeId && attr.value !== undefined) {
+                    attributes[attr.attributeId] = attr.value;
+                }
+            });
+        }
+        // Zorunlu attributelar için kontrol
+        const missing = requiredAttributes.filter(attr => !attributes || attributes[attr._id.toString()] == null || attributes[attr._id.toString()] === '');
+        if (missing.length > 0) {
+            res.status(400).json({
+                success: false,
+                message: 'Zorunlu öznitelikler eksik',
+                missing: missing.map(a => a.name)
+            });
+            return;
+        }
         // Öğe oluştur
         const item = yield Item_1.default.create({
             name,
@@ -122,7 +163,7 @@ const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             itemType,
             family,
             category,
-            attributes: processedAttributes,
+            attributes: attributes,
             isActive: isActive !== undefined ? isActive : true
         });
         res.status(201).json({
@@ -151,6 +192,18 @@ const updateItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     try {
         // Güncellenecek alanları al
         const updates = Object.assign({}, req.body);
+        // Zorunlu attribute kontrolü
+        const requiredAttributes = yield getRequiredAttributes(updates.itemType, updates.category);
+        const attrs = updates.attributes || {};
+        const missing = requiredAttributes.filter(attr => !attrs || attrs[attr._id.toString()] == null || attrs[attr._id.toString()] === '');
+        if (missing.length > 0) {
+            res.status(400).json({
+                success: false,
+                message: 'Zorunlu öznitelikler eksik',
+                missing: missing.map(a => a.name)
+            });
+            return;
+        }
         // Attributes kontrolü
         if (updates.attributes && typeof updates.attributes === 'object') {
             // Attributes alanı zaten bir nesne, işleme gerek yok
