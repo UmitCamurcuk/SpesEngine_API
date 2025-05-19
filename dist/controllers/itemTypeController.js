@@ -73,6 +73,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         // Query parametrelerini al
         const includeAttributes = req.query.includeAttributes === 'true';
         const includeAttributeGroups = req.query.includeAttributeGroups === 'true';
+        const populateAttributeGroupsAttributes = req.query.populateAttributeGroupsAttributes === 'true';
         // Temel ItemType sorgusu
         const itemType = yield ItemType_1.default.findById(req.params.id).lean();
         if (!itemType) {
@@ -92,27 +93,41 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         }
         // AttributeGroups'ları include et
         if (includeAttributeGroups) {
-            // AttributeGroups'ları getir
-            const attributeGroups = yield ItemType_1.default.findById(req.params.id)
-                .populate('attributeGroups')
-                .lean()
-                .then(result => (result === null || result === void 0 ? void 0 : result.attributeGroups) || []);
-            // Her bir AttributeGroup için, ilgili attribute'ları bulup ata
-            if (attributeGroups.length > 0) {
-                // Tüm ilgili attribute'ları tek bir sorguda getir
-                const allAttributes = yield ItemType_1.default.findById(req.params.id)
-                    .populate('attributes')
-                    .lean()
-                    .then(result => (result === null || result === void 0 ? void 0 : result.attributes) || []);
-                // Her AttributeGroup için, ona ait attribute'ları filtrele ve ata
-                for (const group of attributeGroups) {
-                    // Bu gruba ait attribute'ları filtrele
-                    const groupAttributes = allAttributes.filter((attr) => attr.attributeGroup && attr.attributeGroup.toString() === group._id.toString());
-                    // AttributeGroup'a ait attribute'ları ata
-                    group.attributes = groupAttributes;
-                }
+            // populateAttributeGroupsAttributes=true ise attribute'ları da içeren sorgu kullan
+            if (populateAttributeGroupsAttributes) {
+                const itemTypeWithGroups = yield ItemType_1.default.findById(req.params.id)
+                    .populate({
+                    path: 'attributeGroups',
+                    populate: {
+                        path: 'attributes'
+                    }
+                })
+                    .lean();
+                itemType.attributeGroups = (itemTypeWithGroups === null || itemTypeWithGroups === void 0 ? void 0 : itemTypeWithGroups.attributeGroups) || [];
             }
-            itemType.attributeGroups = attributeGroups;
+            else {
+                // AttributeGroups'ları getir
+                const attributeGroups = yield ItemType_1.default.findById(req.params.id)
+                    .populate('attributeGroups')
+                    .lean()
+                    .then(result => (result === null || result === void 0 ? void 0 : result.attributeGroups) || []);
+                // Her bir AttributeGroup için, ilgili attribute'ları bulup ata
+                if (attributeGroups.length > 0 && includeAttributes) {
+                    // Tüm ilgili attribute'ları tek bir sorguda getir
+                    const allAttributes = yield ItemType_1.default.findById(req.params.id)
+                        .populate('attributes')
+                        .lean()
+                        .then(result => (result === null || result === void 0 ? void 0 : result.attributes) || []);
+                    // Her AttributeGroup için, ona ait attribute'ları filtrele ve ata
+                    for (const group of attributeGroups) {
+                        // Bu gruba ait attribute'ları filtrele
+                        const groupAttributes = allAttributes.filter((attr) => attr.attributeGroup && attr.attributeGroup.toString() === group._id.toString());
+                        // AttributeGroup'a ait attribute'ları ata
+                        group.attributes = groupAttributes;
+                    }
+                }
+                itemType.attributeGroups = attributeGroups;
+            }
         }
         res.status(200).json({
             success: true,

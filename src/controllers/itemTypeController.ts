@@ -67,6 +67,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
     // Query parametrelerini al
     const includeAttributes = req.query.includeAttributes === 'true';
     const includeAttributeGroups = req.query.includeAttributeGroups === 'true';
+    const populateAttributeGroupsAttributes = req.query.populateAttributeGroupsAttributes === 'true';
     
     // Temel ItemType sorgusu
     const itemType = await ItemType.findById(req.params.id).lean();
@@ -91,33 +92,47 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
     
     // AttributeGroups'ları include et
     if (includeAttributeGroups) {
-      // AttributeGroups'ları getir
-      const attributeGroups = await ItemType.findById(req.params.id)
-        .populate('attributeGroups')
-        .lean()
-        .then(result => result?.attributeGroups || []);
-      
-      // Her bir AttributeGroup için, ilgili attribute'ları bulup ata
-      if (attributeGroups.length > 0) {
-        // Tüm ilgili attribute'ları tek bir sorguda getir
-        const allAttributes = await ItemType.findById(req.params.id)
-          .populate('attributes')
+      // populateAttributeGroupsAttributes=true ise attribute'ları da içeren sorgu kullan
+      if (populateAttributeGroupsAttributes) {
+        const itemTypeWithGroups = await ItemType.findById(req.params.id)
+          .populate({
+            path: 'attributeGroups',
+            populate: {
+              path: 'attributes'
+            }
+          })
+          .lean();
+        
+        itemType.attributeGroups = itemTypeWithGroups?.attributeGroups || [];
+      } else {
+        // AttributeGroups'ları getir
+        const attributeGroups = await ItemType.findById(req.params.id)
+          .populate('attributeGroups')
           .lean()
-          .then(result => result?.attributes || []);
-          
-        // Her AttributeGroup için, ona ait attribute'ları filtrele ve ata
-        for (const group of attributeGroups) {
-          // Bu gruba ait attribute'ları filtrele
-          const groupAttributes = allAttributes.filter((attr: any) => 
-            attr.attributeGroup && attr.attributeGroup.toString() === group._id.toString()
-          );
-          
-          // AttributeGroup'a ait attribute'ları ata
-          (group as any).attributes = groupAttributes;
-        }
-      }
+          .then(result => result?.attributeGroups || []);
       
-      itemType.attributeGroups = attributeGroups;
+        // Her bir AttributeGroup için, ilgili attribute'ları bulup ata
+        if (attributeGroups.length > 0 && includeAttributes) {
+          // Tüm ilgili attribute'ları tek bir sorguda getir
+          const allAttributes = await ItemType.findById(req.params.id)
+            .populate('attributes')
+            .lean()
+            .then(result => result?.attributes || []);
+            
+          // Her AttributeGroup için, ona ait attribute'ları filtrele ve ata
+          for (const group of attributeGroups) {
+            // Bu gruba ait attribute'ları filtrele
+            const groupAttributes = allAttributes.filter((attr: any) => 
+              attr.attributeGroup && attr.attributeGroup.toString() === group._id.toString()
+            );
+            
+            // AttributeGroup'a ait attribute'ları ata
+            (group as any).attributes = groupAttributes;
+          }
+        }
+        
+        itemType.attributeGroups = attributeGroups;
+      }
     }
     
     res.status(200).json({

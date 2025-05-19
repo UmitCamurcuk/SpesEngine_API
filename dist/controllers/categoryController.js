@@ -94,7 +94,12 @@ const getCategoryById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     try {
         const { id } = req.params;
         console.log(`Category fetch by ID request received: ${id}`);
-        const category = yield Category_1.default.findById(id)
+        // Query parametrelerini al
+        const includeAttributes = req.query.includeAttributes === 'true';
+        const includeAttributeGroups = req.query.includeAttributeGroups === 'true';
+        const populateAttributeGroupsAttributes = req.query.populateAttributeGroupsAttributes === 'true';
+        // Query oluştur
+        let query = Category_1.default.findById(id)
             .populate({
             path: 'family',
             select: 'name code description'
@@ -102,15 +107,35 @@ const getCategoryById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             .populate({
             path: 'parent',
             select: 'name code description'
-        })
-            .populate({
-            path: 'attributeGroups',
-            select: 'name code description'
-        })
-            .populate({
-            path: 'attributes',
-            select: 'name code type description'
         });
+        // Attributes'ları include et
+        if (includeAttributes) {
+            query = query.populate({
+                path: 'attributes',
+                select: 'name code type description'
+            });
+        }
+        // AttributeGroups'ları include et
+        if (includeAttributeGroups) {
+            if (populateAttributeGroupsAttributes) {
+                query = query.populate({
+                    path: 'attributeGroups',
+                    populate: {
+                        path: 'attributes',
+                        model: 'Attribute',
+                        select: 'name code type description isRequired options attributeGroup validations'
+                    }
+                });
+            }
+            else {
+                query = query.populate({
+                    path: 'attributeGroups',
+                    select: 'name code description'
+                });
+            }
+        }
+        // Sorguyu çalıştır
+        const category = yield query.exec();
         if (!category) {
             console.log(`Category not found with ID: ${id}`);
             res.status(404).json({

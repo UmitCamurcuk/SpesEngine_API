@@ -91,7 +91,13 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
     const { id } = req.params;
     console.log(`Category fetch by ID request received: ${id}`);
     
-    const category = await Category.findById(id)
+    // Query parametrelerini al
+    const includeAttributes = req.query.includeAttributes === 'true';
+    const includeAttributeGroups = req.query.includeAttributeGroups === 'true';
+    const populateAttributeGroupsAttributes = req.query.populateAttributeGroupsAttributes === 'true';
+    
+    // Query oluştur
+    let query = Category.findById(id)
       .populate({
         path: 'family',
         select: 'name code description'
@@ -99,15 +105,37 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
       .populate({
         path: 'parent',
         select: 'name code description'
-      })
-      .populate({
-        path: 'attributeGroups',
-        select: 'name code description'
-      })
-      .populate({
+      });
+    
+    // Attributes'ları include et
+    if (includeAttributes) {
+      query = query.populate({
         path: 'attributes',
         select: 'name code type description'
       });
+    }
+    
+    // AttributeGroups'ları include et
+    if (includeAttributeGroups) {
+      if (populateAttributeGroupsAttributes) {
+        query = query.populate({
+          path: 'attributeGroups',
+          populate: {
+            path: 'attributes',
+            model: 'Attribute',
+            select: 'name code type description isRequired options attributeGroup validations'
+          }
+        });
+      } else {
+        query = query.populate({
+          path: 'attributeGroups',
+          select: 'name code description'
+        });
+      }
+    }
+    
+    // Sorguyu çalıştır
+    const category = await query.exec();
     
     if (!category) {
       console.log(`Category not found with ID: ${id}`);

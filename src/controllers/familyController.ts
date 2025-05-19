@@ -70,24 +70,72 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
     // Query parametrelerini al
     const includeAttributes = req.query.includeAttributes === 'true';
     const includeAttributeGroups = req.query.includeAttributeGroups === 'true';
+    const populateAttributeGroupsAttributes = req.query.populateAttributeGroupsAttributes === 'true';
+    
+    console.log(`[getFamilyById] ID: ${req.params.id}, Parametreler:`, {
+      includeAttributes,
+      includeAttributeGroups,
+      populateAttributeGroupsAttributes
+    });
     
     // Query oluştur
     let query = Family.findById(req.params.id)
       .populate('itemType')
-      .populate('parent')
-      .populate('attributes');
+      .populate('parent');
+      
+    // Category'i her zaman populate et (bu alanın zorunlu olduğu gözüküyor)
+    query = query.populate('category');
+      
+    // Attributes'ları include et
+    if (includeAttributes) {
+      query = query.populate('attributes');
+      
+      // Category içindeki attributes'ları da populate et
+      query = query.populate({
+        path: 'category',
+        populate: {
+          path: 'attributes'
+        }
+      });
+    }
     
     // AttributeGroups'ları include et ve içindeki attributes'ları da getir
     if (includeAttributeGroups) {
-      query = query.populate({
-        path: 'attributeGroups',
-        populate: {
-          path: 'attributes',
-          model: 'Attribute'
-        }
-      });
-    } else {
-      query = query.populate('attributeGroups');
+      if (populateAttributeGroupsAttributes) {
+        // Family'nin attributeGroups'larını ve içindeki attributes'ları populate et
+        query = query.populate({
+          path: 'attributeGroups',
+          model: 'AttributeGroup',
+          populate: {
+            path: 'attributes',
+            model: 'Attribute'
+          }
+        });
+        
+        // Category'nin attributeGroups'larını ve içindeki attributes'ları populate et
+        query = query.populate({
+          path: 'category',
+          populate: {
+            path: 'attributeGroups',
+            model: 'AttributeGroup',
+            populate: {
+              path: 'attributes',
+              model: 'Attribute'
+            }
+          }
+        });
+      } else {
+        // Sadece attributeGroups'ları populate et
+        query = query.populate('attributeGroups');
+        
+        // Category'nin attributeGroups'larını da populate et
+        query = query.populate({
+          path: 'category',
+          populate: {
+            path: 'attributeGroups'
+          }
+        });
+      }
     }
     
     // Sorguyu çalıştır
@@ -100,6 +148,8 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
       });
       return;
     }
+    
+    console.log(`[getFamilyById] Aile bulundu. Attributes: ${family.attributes?.length || 'yok'}, AttributeGroups: ${family.attributeGroups?.length || 'yok'}`);
     
     res.status(200).json({
       success: true,
