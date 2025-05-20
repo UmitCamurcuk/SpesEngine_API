@@ -105,7 +105,7 @@ const getFamilies = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
 exports.getFamilies = getFamilies;
 // GET tek bir aileyi getir
 const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a;
     try {
         // Query parametrelerini al
         const includeAttributes = req.query.includeAttributes === 'true';
@@ -116,62 +116,14 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             includeAttributeGroups,
             populateAttributeGroupsAttributes
         });
-        // Query oluştur
-        let query = Family_1.default.findById(req.params.id)
+        // AttributeGroup modelini içe aktar
+        const AttributeGroup = yield Promise.resolve().then(() => __importStar(require('../models/AttributeGroup')));
+        // Önce temel Family verisini getir
+        const family = yield Family_1.default.findById(req.params.id)
             .populate('itemType')
-            .populate('parent');
-        // Category'i her zaman populate et (bu alanın zorunlu olduğu gözüküyor)
-        query = query.populate('category');
-        // Attributes'ları include et
-        if (includeAttributes) {
-            query = query.populate('attributes');
-            // Category içindeki attributes'ları da populate et
-            query = query.populate({
-                path: 'category',
-                populate: {
-                    path: 'attributes'
-                }
-            });
-        }
-        // AttributeGroups'ları include et ve içindeki attributes'ları da getir
-        if (includeAttributeGroups) {
-            if (populateAttributeGroupsAttributes) {
-                // Family'nin attributeGroups'larını ve içindeki attributes'ları populate et
-                query = query.populate({
-                    path: 'attributeGroups',
-                    model: 'AttributeGroup',
-                    populate: {
-                        path: 'attributes',
-                        model: 'Attribute'
-                    }
-                });
-                // Category'nin attributeGroups'larını ve içindeki attributes'ları populate et
-                query = query.populate({
-                    path: 'category',
-                    populate: {
-                        path: 'attributeGroups',
-                        model: 'AttributeGroup',
-                        populate: {
-                            path: 'attributes',
-                            model: 'Attribute'
-                        }
-                    }
-                });
-            }
-            else {
-                // Sadece attributeGroups'ları populate et
-                query = query.populate('attributeGroups');
-                // Category'nin attributeGroups'larını da populate et
-                query = query.populate({
-                    path: 'category',
-                    populate: {
-                        path: 'attributeGroups'
-                    }
-                });
-            }
-        }
-        // Sorguyu çalıştır
-        const family = yield query.exec();
+            .populate('parent')
+            .populate('category')
+            .populate(includeAttributes ? 'attributes' : []);
         if (!family) {
             res.status(404).json({
                 success: false,
@@ -179,10 +131,53 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             });
             return;
         }
-        console.log(`[getFamilyById] Aile bulundu. Attributes: ${((_a = family.attributes) === null || _a === void 0 ? void 0 : _a.length) || 'yok'}, AttributeGroups: ${((_b = family.attributeGroups) === null || _b === void 0 ? void 0 : _b.length) || 'yok'}`);
+        // JSON formatına dönüştür (daha sonra manipüle edebilmek için)
+        const response = family.toJSON();
+        // AttributeGroups için özel işlem
+        if (includeAttributeGroups) {
+            // Grupları manuel olarak doldur
+            if (family.attributeGroups && family.attributeGroups.length > 0) {
+                const groupIds = family.attributeGroups.map((g) => g.toString());
+                console.log(`[getFamilyById] AttributeGroup IDs:`, groupIds);
+                // AttributeGroup'ları ve içindeki öznitelikleri getir
+                const groups = yield AttributeGroup.default.find({ _id: { $in: groupIds } })
+                    .populate(populateAttributeGroupsAttributes ? 'attributes' : []);
+                console.log(`[getFamilyById] ${groups.length} AttributeGroup bulundu`);
+                // Yanıta ekle
+                response.attributeGroups = groups.map(g => g.toJSON());
+            }
+        }
+        // Category işleme 
+        if (response.category) {
+            // Category'nin attributes'larını getir
+            if (includeAttributes && response.category) {
+                const Category = yield Promise.resolve().then(() => __importStar(require('../models/Category')));
+                const category = yield Category.default.findById(response.category._id)
+                    .populate('attributes');
+                if (category && category.attributes) {
+                    response.category.attributes = category.attributes;
+                }
+            }
+            // Category'nin attributeGroups'larını getir
+            if (includeAttributeGroups && response.category) {
+                const Category = yield Promise.resolve().then(() => __importStar(require('../models/Category')));
+                const category = yield Category.default.findById(response.category._id)
+                    .populate({
+                    path: 'attributeGroups',
+                    populate: populateAttributeGroupsAttributes ? {
+                        path: 'attributes'
+                    } : undefined
+                });
+                if (category && category.attributeGroups) {
+                    response.category.attributeGroups = category.attributeGroups;
+                }
+            }
+        }
+        console.log(`[getFamilyById] Yanıt hazırlandı. AttributeGroups: ${((_a = response.attributeGroups) === null || _a === void 0 ? void 0 : _a.length) || 'yok'}`);
+        // Sonucu gönder
         res.status(200).json({
             success: true,
-            data: family
+            data: response
         });
     }
     catch (error) {
