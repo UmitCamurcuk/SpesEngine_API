@@ -29,23 +29,48 @@ class SystemSettingsService {
   // Belirli bir bölümü güncelle
   async updateSection(section: string, data: any, userId: Types.ObjectId): Promise<ISystemSettings> {
     const existingSettings = await SystemSettings.findOne();
-    console.log(existingSettings);  
+    console.log(`${section} bölümü için gelen veri:`, data);  
+    
     if (existingSettings) {
       // Genel ayarlar için özel işlem
       if (section === 'general') {
         Object.assign(existingSettings, data);
       } else {
         // Diğer bölümler için alt obje güncelleme
-        existingSettings[section] = {
-          ...existingSettings[section],
-          ...data
-        };
+        if (section === 'theme') {
+          // Tema ayarları için özel işlem
+          console.log('Önceki tema ayarları:', existingSettings.theme);
+          
+          // Veriyi güvenli şekilde işle
+          const sanitizedData = { ...data };
+          Object.keys(sanitizedData).forEach(key => {
+            if (sanitizedData[key] === undefined || sanitizedData[key] === null) {
+              delete sanitizedData[key];
+            }
+          });
+          
+          existingSettings.theme = {
+            ...existingSettings.theme,
+            ...sanitizedData
+          };
+          
+          console.log('Güncellenen tema ayarları:', existingSettings.theme);
+        } else {
+          // Diğer bölümler için alt obje güncelleme
+          existingSettings[section] = {
+            ...existingSettings[section],
+            ...data
+          };
+        }
       }
       
       existingSettings.updatedBy = userId;
       existingSettings.updatedAt = new Date();
       
-      return existingSettings.save();
+      // Kaydet
+      const savedSettings = await existingSettings.save();
+      console.log(`${section} bölümü güncellendi. Yeni durum:`, savedSettings[section]);
+      return savedSettings;
     } else {
       // Yeni ayar kaydı oluştur
       const newSettings = new SystemSettings({
@@ -53,7 +78,9 @@ class SystemSettingsService {
         updatedBy: userId,
         updatedAt: new Date()
       });
-      return newSettings.save();
+      const savedSettings = await newSettings.save();
+      console.log(`Yeni ${section} bölümü oluşturuldu:`, savedSettings[section]);
+      return savedSettings;
     }
   }
 

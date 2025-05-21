@@ -13,11 +13,20 @@ export interface ISystemSettings extends Document {
 
   // Tema Ayarları
   theme: {
-    mode: 'light' | 'dark' | 'system';
+    mode: 'light' | 'dark' | 'system' | 'custom';
     enableDarkMode: boolean;
     defaultDarkMode: boolean;
     primaryColor: string;
     accentColor: string;
+    backgroundColor: string;
+    enableCustomFonts: boolean;
+    customFont: string;
+    customLogoUrl: string;
+    enableCustomStyles: boolean;
+    customCSS: string;
+    showLogo: boolean;
+    showUserAvatar: boolean;
+    menuStyle: 'side' | 'top';
   };
 
   // Güvenlik Ayarları
@@ -128,7 +137,7 @@ const SystemSettingsSchema: Schema = new Schema({
   theme: {
     mode: {
       type: String,
-      enum: ['light', 'dark', 'system'],
+      enum: ['light', 'dark', 'system', 'custom'],
       default: 'system'
     },
     enableDarkMode: {
@@ -141,11 +150,48 @@ const SystemSettingsSchema: Schema = new Schema({
     },
     primaryColor: {
       type: String,
-      default: '#0066CC'
+      default: '#1f6feb'
     },
     accentColor: {
       type: String,
-      default: '#00CC66'
+      default: '#f97316'
+    },
+    backgroundColor: {
+      type: String,
+      default: '#ffffff'
+    },
+    enableCustomFonts: {
+      type: Boolean,
+      default: false
+    },
+    customFont: {
+      type: String,
+      default: 'Inter'
+    },
+    customLogoUrl: {
+      type: String,
+      default: ''
+    },
+    enableCustomStyles: {
+      type: Boolean,
+      default: false
+    },
+    customCSS: {
+      type: String,
+      default: ''
+    },
+    showLogo: {
+      type: Boolean,
+      default: true
+    },
+    showUserAvatar: {
+      type: Boolean,
+      default: true
+    },
+    menuStyle: {
+      type: String,
+      enum: ['side', 'top'],
+      default: 'side'
     }
   },
 
