@@ -34,7 +34,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       error: 'Yetkilendirme token\'ı bulunamadı'
     });
   }
-
+  
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret-key') as DecodedToken;
     const user = await User.findById(decoded.id)
