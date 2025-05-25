@@ -62,6 +62,8 @@ const getAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         // Verileri getir
         const attributes = yield Attribute_1.default.find(filterParams)
             .populate('attributeGroup', 'name code')
+            .populate('name', 'key namespace translations.tr translations.en')
+            .populate('description', 'key namespace translations.tr translations.en')
             .sort(sortOptions)
             .skip(skip)
             .limit(limit);
@@ -91,7 +93,9 @@ const getAttributeById = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     try {
         const { id } = req.params;
         const attribute = yield Attribute_1.default.findById(id)
-            .populate('attributeGroup', 'name code description');
+            .populate('attributeGroup', 'name code description')
+            .populate('name', 'key namespace translations.tr translations.en')
+            .populate('description', 'key namespace translations.tr translations.en');
         if (!attribute) {
             res.status(404).json({
                 success: false,
@@ -195,7 +199,7 @@ const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             yield historyService_1.default.recordHistory({
                 entityId: String(newAttribute._id),
                 entityType: 'attribute',
-                entityName: newAttribute.name,
+                entityName: String(newAttribute.name),
                 action: History_1.ActionType.CREATE,
                 userId: userId,
                 newData: newAttribute.toObject()
@@ -237,7 +241,7 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             yield historyService_1.default.recordHistory({
                 entityId: id,
                 entityType: 'attribute',
-                entityName: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.name) || previousAttribute.name,
+                entityName: String((updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.name) || previousAttribute.name),
                 action: History_1.ActionType.UPDATE,
                 userId: userId,
                 previousData: previousAttribute.toObject(),
@@ -278,7 +282,7 @@ const deleteAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             yield historyService_1.default.recordHistory({
                 entityId: id,
                 entityType: 'attribute',
-                entityName: attribute.name,
+                entityName: String(attribute.name),
                 action: History_1.ActionType.DELETE,
                 userId: userId,
                 previousData: attribute.toObject()

@@ -35,10 +35,10 @@ export interface IValidation {
 
 // Attribute interface'i
 export interface IAttribute extends Document {
-  name: string;
+  name: mongoose.Types.ObjectId; // Translation ID
   code: string;
   type: AttributeType;
-  description: string;
+  description: mongoose.Types.ObjectId; // Translation ID
   isRequired: boolean;
   options: string[];
   attributeGroup?: mongoose.Types.ObjectId;
@@ -54,10 +54,9 @@ const ValidationSchema = Schema.Types.Mixed;
 const AttributeSchema: Schema = new Schema(
   {
     name: {
-      type: String,
-      required: [true, 'Öznitelik adı zorunludur'],
-      unique: true,
-      trim: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Localization',
+      required: [true, 'Öznitelik adı zorunludur']
     },
     code: {
       type: String,
@@ -72,7 +71,8 @@ const AttributeSchema: Schema = new Schema(
       default: AttributeType.TEXT
     },
     description: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Localization',
       required: false
     },
     isRequired: {
@@ -86,7 +86,7 @@ const AttributeSchema: Schema = new Schema(
     attributeGroup: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'AttributeGroup',
-      required: [true, 'Öznitelik grubu seçimi zorunludur']
+      required: false
     },
     validations: ValidationSchema,
     isActive: {

@@ -1190,6 +1190,751 @@ const attributeTranslations: Translation[] = [
       tr: 'Yeni Grup',
       en: 'New Group'
     }
+  },
+  // Attribute Details Page Translations
+  {
+    key: 'error_title',
+    namespace: 'common',
+    translations: {
+      tr: 'Hata',
+      en: 'Error'
+    }
+  },
+  {
+    key: 'not_found_title',
+    namespace: 'common',
+    translations: {
+      tr: 'Bulunamadı',
+      en: 'Not Found'
+    }
+  },
+  {
+    key: 'back_button',
+    namespace: 'common',
+    translations: {
+      tr: 'Geri',
+      en: 'Back'
+    }
+  },
+  {
+    key: 'edit_button',
+    namespace: 'common',
+    translations: {
+      tr: 'Düzenle',
+      en: 'Edit'
+    }
+  },
+  {
+    key: 'copy_button',
+    namespace: 'common',
+    translations: {
+      tr: 'Kopyala',
+      en: 'Copy'
+    }
+  },
+  {
+    key: 'view_button',
+    namespace: 'common',
+    translations: {
+      tr: 'Görüntüle',
+      en: 'View'
+    }
+  },
+  {
+    key: 'description_label',
+    namespace: 'common',
+    translations: {
+      tr: 'Açıklama',
+      en: 'Description'
+    }
+  },
+  {
+    key: 'no_description',
+    namespace: 'common',
+    translations: {
+      tr: 'Açıklama mevcut değil',
+      en: 'No description available'
+    }
+  },
+  {
+    key: 'status_label',
+    namespace: 'common',
+    translations: {
+      tr: 'Durum',
+      en: 'Status'
+    }
+  },
+  {
+    key: 'active_status',
+    namespace: 'common',
+    translations: {
+      tr: 'Aktif',
+      en: 'Active'
+    }
+  },
+  {
+    key: 'inactive_status',
+    namespace: 'common',
+    translations: {
+      tr: 'Pasif',
+      en: 'Inactive'
+    }
+  },
+  {
+    key: 'created_at_label',
+    namespace: 'common',
+    translations: {
+      tr: 'Oluşturulma Tarihi',
+      en: 'Created At'
+    }
+  },
+  {
+    key: 'updated_at_label',
+    namespace: 'common',
+    translations: {
+      tr: 'Güncellenme Tarihi',
+      en: 'Updated At'
+    }
+  },
+  {
+    key: 'yes_label',
+    namespace: 'common',
+    translations: {
+      tr: 'Evet',
+      en: 'Yes'
+    }
+  },
+  {
+    key: 'no_label',
+    namespace: 'common',
+    translations: {
+      tr: 'Hayır',
+      en: 'No'
+    }
+  },
+  {
+    key: 'attribute_not_found',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Öznitelik bulunamadı',
+      en: 'Attribute not found'
+    }
+  },
+  {
+    key: 'no_group',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Grup Yok',
+      en: 'No Group'
+    }
+  },
+  {
+    key: 'view_json',
+    namespace: 'attributes',
+    translations: {
+      tr: 'JSON Görüntüle',
+      en: 'View JSON'
+    }
+  },
+  {
+    key: 'details_tab',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Detaylar',
+      en: 'Details'
+    }
+  },
+  {
+    key: 'documentation_tab',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Dokümantasyon',
+      en: 'Documentation'
+    }
+  },
+  {
+    key: 'relationships_tab',
+    namespace: 'attributes',
+    translations: {
+      tr: 'İlişkiler',
+      en: 'Relationships'
+    }
+  },
+  {
+    key: 'history_tab',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Geçmiş',
+      en: 'History'
+    }
+  },
+  {
+    key: 'json_preview_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'JSON Önizleme',
+      en: 'JSON Preview'
+    }
+  },
+  {
+    key: 'overview_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Genel Bakış',
+      en: 'Overview'
+    }
+  },
+  {
+    key: 'data_type_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Veri Tipi',
+      en: 'Data Type'
+    }
+  },
+  {
+    key: 'properties_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Özellikler',
+      en: 'Properties'
+    }
+  },
+  {
+    key: 'required_property',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Zorunlu',
+      en: 'Required'
+    }
+  },
+  {
+    key: 'optional_property',
+    namespace: 'attributes',
+    translations: {
+      tr: 'İsteğe Bağlı',
+      en: 'Optional'
+    }
+  },
+  {
+    key: 'unique_property',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Benzersiz',
+      en: 'Unique'
+    }
+  },
+  {
+    key: 'searchable_property',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Aranabilir',
+      en: 'Searchable'
+    }
+  },
+  {
+    key: 'filterable_property',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Filtrelenebilir',
+      en: 'Filterable'
+    }
+  },
+  {
+    key: 'validation_rules_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Doğrulama Kuralları',
+      en: 'Validation Rules'
+    }
+  },
+  {
+    key: 'minimum_value_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Minimum Değer',
+      en: 'Minimum Value'
+    }
+  },
+  {
+    key: 'maximum_value_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Maksimum Değer',
+      en: 'Maximum Value'
+    }
+  },
+  {
+    key: 'minimum_length_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Minimum Uzunluk',
+      en: 'Minimum Length'
+    }
+  },
+  {
+    key: 'maximum_length_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Maksimum Uzunluk',
+      en: 'Maximum Length'
+    }
+  },
+  {
+    key: 'integer_only_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Sadece Tam Sayı',
+      en: 'Integer Only'
+    }
+  },
+  {
+    key: 'pattern_regex_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Desen (RegEx)',
+      en: 'Pattern (RegEx)'
+    }
+  },
+  {
+    key: 'examples_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Örnekler',
+      en: 'Examples'
+    }
+  },
+  {
+    key: 'options_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Seçenekler',
+      en: 'Options'
+    }
+  },
+  {
+    key: 'usage_statistics_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Kullanım İstatistikleri',
+      en: 'Usage Statistics'
+    }
+  },
+  {
+    key: 'used_in_entities_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Varlıklarda Kullanım',
+      en: 'Used in Entities'
+    }
+  },
+  {
+    key: 'referenced_by_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Referans Veren',
+      en: 'Referenced By'
+    }
+  },
+  {
+    key: 'api_reference_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'API Referansı',
+      en: 'API Reference'
+    }
+  },
+  {
+    key: 'attribute_id_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Öznitelik ID',
+      en: 'Attribute ID'
+    }
+  },
+  {
+    key: 'json_schema_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'JSON Şeması',
+      en: 'JSON Schema'
+    }
+  },
+  {
+    key: 'view_api_documentation',
+    namespace: 'attributes',
+    translations: {
+      tr: 'API Dokümantasyonunu Görüntüle',
+      en: 'View API Documentation'
+    }
+  },
+  {
+    key: 'important_note_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Önemli Not',
+      en: 'Important Note'
+    }
+  },
+  {
+    key: 'important_note_description',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Bu öznitelikte yapılan değişiklikler birden fazla varlığı ve entegrasyonu etkileyebilir. Herhangi bir değişiklik yapmadan önce lütfen ilişkileri gözden geçirin.',
+      en: 'Changes to this attribute may affect multiple entities and integrations. Please review the relationships before making any modifications.'
+    }
+  },
+  {
+    key: 'documentation_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Dokümantasyon',
+      en: 'Documentation'
+    }
+  },
+  {
+    key: 'documentation_description',
+    namespace: 'attributes',
+    translations: {
+      tr: '{{attributeName}} özniteliği, sistemde kullanılan önemli bir veri alanını temsil eder. Bu öznitelik birden fazla görünüm, rapor ve entegrasyonda kullanılır.',
+      en: 'The {{attributeName}} attribute represents a key data field used in the system. This attribute is used in multiple views, reports, and integrations.'
+    }
+  },
+  {
+    key: 'usage_guidelines_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Kullanım Kılavuzu',
+      en: 'Usage Guidelines'
+    }
+  },
+  {
+    key: 'usage_guideline_1',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Tutarlı adlandırma kuralları kullanın',
+      en: 'Use consistent naming conventions'
+    }
+  },
+  {
+    key: 'usage_guideline_2',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Bu öznitelik için tanımlanan doğrulama kurallarını takip edin',
+      en: 'Follow the validation rules defined for this attribute'
+    }
+  },
+  {
+    key: 'usage_guideline_3',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Değişiklik yaparken ilgili varlıklar üzerindeki etkiyi göz önünde bulundurun',
+      en: 'Consider the impact on related entities when modifying'
+    }
+  },
+  {
+    key: 'usage_guideline_4',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Belirtilen formatı takip ederek veri kalitesini sağlayın',
+      en: 'Ensure data quality by following the specified format'
+    }
+  },
+  {
+    key: 'integration_notes_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Entegrasyon Notları',
+      en: 'Integration Notes'
+    }
+  },
+  {
+    key: 'integration_notes_description',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Bu öznitelik harici sistemlerle senkronize edilebilir ve şunlarda kullanılabilir:',
+      en: 'This attribute may be synchronized with external systems and used in:'
+    }
+  },
+  {
+    key: 'integration_note_1',
+    namespace: 'attributes',
+    translations: {
+      tr: 'API uç noktaları',
+      en: 'API endpoints'
+    }
+  },
+  {
+    key: 'integration_note_2',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Veri dışa aktarımları',
+      en: 'Data exports'
+    }
+  },
+  {
+    key: 'integration_note_3',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Raporlama panoları',
+      en: 'Reporting dashboards'
+    }
+  },
+  {
+    key: 'integration_note_4',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Üçüncü taraf entegrasyonları',
+      en: 'Third-party integrations'
+    }
+  },
+  {
+    key: 'view_full_documentation',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Tam Dokümantasyonu Görüntüle',
+      en: 'View Full Documentation'
+    }
+  },
+  {
+    key: 'entity_relationships_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Varlık İlişkileri',
+      en: 'Entity Relationships'
+    }
+  },
+  {
+    key: 'entity_type_column',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Varlık Tipi',
+      en: 'Entity Type'
+    }
+  },
+  {
+    key: 'relationship_column',
+    namespace: 'attributes',
+    translations: {
+      tr: 'İlişki',
+      en: 'Relationship'
+    }
+  },
+  {
+    key: 'count_column',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Sayı',
+      en: 'Count'
+    }
+  },
+  {
+    key: 'actions_column',
+    namespace: 'attributes',
+    translations: {
+      tr: 'İşlemler',
+      en: 'Actions'
+    }
+  },
+  {
+    key: 'product_entity',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Ürün',
+      en: 'Product'
+    }
+  },
+  {
+    key: 'core_entity_description',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Ana varlık',
+      en: 'Core entity'
+    }
+  },
+  {
+    key: 'core_attribute_relationship',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Ana öznitelik',
+      en: 'Core attribute'
+    }
+  },
+  {
+    key: 'instances_label',
+    namespace: 'attributes',
+    translations: {
+      tr: 'örnek',
+      en: 'instances'
+    }
+  },
+  {
+    key: 'catalog_entity',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Katalog',
+      en: 'Catalog'
+    }
+  },
+  {
+    key: 'display_entity_description',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Görüntüleme varlığı',
+      en: 'Display entity'
+    }
+  },
+  {
+    key: 'display_attribute_relationship',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Görüntüleme özniteliği',
+      en: 'Display attribute'
+    }
+  },
+  {
+    key: 'access_control_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Erişim Kontrolü',
+      en: 'Access Control'
+    }
+  },
+  {
+    key: 'administrators_role',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Yöneticiler',
+      en: 'Administrators'
+    }
+  },
+  {
+    key: 'administrators_description',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Görüntüleme ve değiştirme için tam erişim',
+      en: 'Full access to view and modify'
+    }
+  },
+  {
+    key: 'full_access_permission',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Tam Erişim',
+      en: 'Full Access'
+    }
+  },
+  {
+    key: 'content_editors_role',
+    namespace: 'attributes',
+    translations: {
+      tr: 'İçerik Editörleri',
+      en: 'Content Editors'
+    }
+  },
+  {
+    key: 'content_editors_description',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Değerleri görüntüleyebilir ve güncelleyebilir',
+      en: 'Can view and update values'
+    }
+  },
+  {
+    key: 'read_write_permission',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Okuma ve Yazma',
+      en: 'Read & Write'
+    }
+  },
+  {
+    key: 'viewers_role',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Görüntüleyenler',
+      en: 'Viewers'
+    }
+  },
+  {
+    key: 'viewers_description',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Sadece değerleri görüntüleyebilir',
+      en: 'Can only view values'
+    }
+  },
+  {
+    key: 'read_only_permission',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Sadece Okuma',
+      en: 'Read Only'
+    }
+  },
+  {
+    key: 'change_history_title',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Değişiklik Geçmişi',
+      en: 'Change History'
+    }
+  },
+  {
+    key: 'no_history_available',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Geçmiş mevcut değil',
+      en: 'No history available'
+    }
+  },
+  {
+    key: 'attribute_type_text',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Metin',
+      en: 'Text'
+    }
+  },
+  {
+    key: 'attribute_type_number',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Sayı',
+      en: 'Number'
+    }
+  },
+  {
+    key: 'attribute_type_boolean',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Mantıksal',
+      en: 'Boolean'
+    }
+  },
+  {
+    key: 'attribute_type_date',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Tarih',
+      en: 'Date'
+    }
+  },
+  {
+    key: 'attribute_type_select',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Seçim',
+      en: 'Select'
+    }
+  },
+  {
+    key: 'attribute_type_multiselect',
+    namespace: 'attributes',
+    translations: {
+      tr: 'Çoklu Seçim',
+      en: 'Multi Select'
+    }
   }
 ];
 
@@ -3011,6 +3756,371 @@ const seedLocalizations = async () => {
         }
       },
       
+      // AttributeGroup çevirileri
+      {
+        key: 'attribute_groups_fetch_error',
+        namespace: 'attribute_groups',
+        translations: {
+          tr: 'Öznitelik grupları getirilirken bir hata oluştu',
+          en: 'An error occurred while fetching attribute groups'
+        }
+      },
+      {
+        key: 'attribute_group_delete_error',
+        namespace: 'attribute_groups',
+        translations: {
+          tr: 'Öznitelik grubu silinirken bir hata oluştu',
+          en: 'An error occurred while deleting the attribute group'
+        }
+      },
+      {
+        key: 'confirm_delete_attribute_group',
+        namespace: 'attribute_groups',
+        translations: {
+          tr: '"{{name}}" öznitelik grubunu silmek istediğinize emin misiniz?',
+          en: 'Are you sure you want to delete the attribute group "{{name}}"?'
+        }
+      },
+      {
+        key: 'attribute_count',
+        namespace: 'attribute_groups',
+        translations: {
+          tr: 'Öznitelik Sayısı',
+          en: 'Attribute Count'
+        }
+      },
+      {
+        key: 'no_attribute_groups_found',
+        namespace: 'attribute_groups',
+        translations: {
+          tr: 'Öznitelik grubu bulunamadı',
+          en: 'No attribute groups found'
+        }
+      },
+      
+      // Attribute types namespace çevirileri
+      {
+        key: 'text',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Metin',
+          en: 'Text'
+        }
+      },
+      {
+        key: 'number',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Sayı',
+          en: 'Number'
+        }
+      },
+      {
+        key: 'date',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Tarih',
+          en: 'Date'
+        }
+      },
+      {
+        key: 'boolean',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Evet/Hayır',
+          en: 'Yes/No'
+        }
+      },
+      {
+        key: 'select',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Seçim',
+          en: 'Select'
+        }
+      },
+      {
+        key: 'multiselect',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Çoklu Seçim',
+          en: 'Multiselect'
+        }
+      },
+      {
+        key: 'text_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Tek satır veya çok satırlı metin girilebilir.',
+          en: 'Enter single-line or multi-line text.'
+        }
+      },
+      {
+        key: 'number_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Tam sayı veya ondalıklı sayı girilebilir.',
+          en: 'Enter an integer or decimal number.'
+        }
+      },
+      {
+        key: 'date_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Tarih bilgisi seçilebilir.',
+          en: 'Select a date.'
+        }
+      },
+      {
+        key: 'boolean_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Evet veya hayır değeri seçilebilir.',
+          en: 'Select yes or no value.'
+        }
+      },
+      {
+        key: 'select_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Önceden tanımlanmış seçeneklerden birisi seçilebilir.',
+          en: 'Select one from predefined options.'
+        }
+      },
+      {
+        key: 'multiselect_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Önceden tanımlanmış seçeneklerden birden fazlası seçilebilir.',
+          en: 'Select multiple from predefined options.'
+        }
+      },
+      // Ekstra öznitelik tipleri
+      {
+        key: 'category_id',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Kategori',
+          en: 'Category'
+        }
+      },
+      {
+        key: 'brand_id',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Marka',
+          en: 'Brand'
+        }
+      },
+      {
+        key: 'product_id',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Ürün',
+          en: 'Product'
+        }
+      },
+      // Yeni eklenen sistem ayarları sayfaları çevirileri
+      {
+        key: 'backup_settings',
+        namespace: 'system',
+        translations: {
+          tr: 'Yedekleme Ayarları',
+          en: 'Backup Settings'
+        }
+      },
+      {
+        key: 'backup_now',
+        namespace: 'system',
+        translations: {
+          tr: 'Şimdi Yedekle',
+          en: 'Backup Now'
+        }
+      },
+      {
+        key: 'backup_in_progress',
+        namespace: 'system',
+        translations: {
+          tr: 'Yedekleniyor...',
+          en: 'Backup in Progress...'
+        }
+      },
+      {
+        key: 'low',
+        namespace: 'system',
+        translations: {
+          tr: 'Düşük',
+          en: 'Low'
+        }
+      },
+      {
+        key: 'medium',
+        namespace: 'system',
+        translations: {
+          tr: 'Orta',
+          en: 'Medium'
+        }
+      },
+      {
+        key: 'high',
+        namespace: 'system',
+        translations: {
+          tr: 'Yüksek',
+          en: 'High'
+        }
+      },
+      {
+        key: 'logo_settings',
+        namespace: 'system',
+        translations: {
+          tr: 'Logo Ayarları',
+          en: 'Logo Settings'
+        }
+      },
+      {
+        key: 'upload_logo',
+        namespace: 'system',
+        translations: {
+          tr: 'Logo Yükle',
+          en: 'Upload Logo'
+        }
+      },
+      {
+        key: 'logo_url',
+        namespace: 'system',
+        translations: {
+          tr: 'Logo URL',
+          en: 'Logo URL'
+        }
+      },
+      {
+        key: 'logo_help',
+        namespace: 'system',
+        translations: {
+          tr: 'Uzak bir sunucudan logo URL\'si kullanabilir veya kendi logonuzu yükleyebilirsiniz.',
+          en: 'You can use a logo URL from a remote server or upload your own logo.'
+        }
+      },
+      {
+        key: 'logo_requirements',
+        namespace: 'system',
+        translations: {
+          tr: 'Logo Gereksinimleri',
+          en: 'Logo Requirements'
+        }
+      },
+      {
+        key: 'logo_size_recommendation',
+        namespace: 'system',
+        translations: {
+          tr: 'Önerilen boyutlar: 200x60 piksel',
+          en: 'Recommended dimensions: 200x60 pixels'
+        }
+      },
+      {
+        key: 'logo_format_support',
+        namespace: 'system',
+        translations: {
+          tr: 'PNG, JPG, SVG formatları desteklenir',
+          en: 'PNG, JPG, SVG formats are supported'
+        }
+      },
+      {
+        key: 'logo_transparent_recommendation',
+        namespace: 'system',
+        translations: {
+          tr: 'Şeffaf arka planlı bir PNG tavsiye edilir',
+          en: 'A PNG with transparent background is recommended'
+        }
+      },
+      {
+        key: 'company_name_help',
+        namespace: 'system',
+        translations: {
+          tr: 'Şirketinizin tam adı. Yasal dokümanlarda ve başlıklarda kullanılacaktır.',
+          en: 'Your company\'s full name. This will be used in legal documents and headings.'
+        }
+      },
+      {
+        key: 'system_title_help',
+        namespace: 'system',
+        translations: {
+          tr: 'Tarayıcı sekmesinde ve başlıkta görünecek isim.',
+          en: 'The name that will appear in the browser tab and header.'
+        }
+      },
+      {
+        key: 'language_selection_help',
+        namespace: 'system',
+        translations: {
+          tr: 'Bu, sistemin varsayılan dilidir. Kullanıcılar kendi tercihlerini ayarlayabilir.',
+          en: 'This is the default language of the system. Users can set their own preferences.'
+        }
+      },
+      {
+        key: 'error_occurred',
+        namespace: 'system',
+        translations: {
+          tr: 'Bir Hata Oluştu',
+          en: 'An Error Occurred'
+        }
+      },
+      {
+        key: 'try_again',
+        namespace: 'system',
+        translations: {
+          tr: 'Tekrar Dene',
+          en: 'Try Again'
+        }
+      },
+      {
+        key: 'saving',
+        namespace: 'common',
+        translations: {
+          tr: 'Kaydediliyor',
+          en: 'Saving'
+        }
+      },
+      {
+        key: 'settings_saved',
+        namespace: 'system',
+        translations: {
+          tr: 'Ayarlar kaydedildi',
+          en: 'Settings saved'
+        }
+      },
+      {
+        key: 'settings_save_error',
+        namespace: 'system',
+        translations: {
+          tr: 'Ayarlar kaydedilirken hata oluştu',
+          en: 'Error saving settings'
+        }
+      },
+      {
+        key: 'logout',
+        namespace: 'common',
+        translations: {
+          tr: 'Çıkış Yap',
+          en: 'Logout'
+        }
+      },
+      {
+        key: 'my_profile',
+        namespace: 'nav',
+        translations: {
+          tr: 'Profilim',
+          en: 'My Profile'
+        }
+      },
+      {
+        key: 'open_user_menu',
+        namespace: 'nav',
+        translations: {
+          tr: 'Kullanıcı Menüsünü Aç',
+          en: 'Open User Menu'
+        }
+      },
       // AttributeGroup çevirileri
       {
         key: 'attribute_groups_fetch_error',

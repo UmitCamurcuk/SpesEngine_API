@@ -61,6 +61,8 @@ export const getAttributes = async (req: Request, res: Response, next: NextFunct
     // Verileri getir
     const attributes = await Attribute.find(filterParams)
       .populate('attributeGroup', 'name code')
+      .populate('name','key namespace translations.tr translations.en')
+      .populate('description','key namespace translations.tr translations.en')   
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
@@ -92,7 +94,9 @@ export const getAttributeById = async (req: Request, res: Response, next: NextFu
     const { id } = req.params;
     
     const attribute = await Attribute.findById(id)
-      .populate('attributeGroup', 'name code description');
+      .populate('attributeGroup', 'name code description')
+      .populate('name','key namespace translations.tr translations.en')
+      .populate('description','key namespace translations.tr translations.en')
     
     if (!attribute) {
       res.status(404).json({
@@ -208,7 +212,7 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
       await historyService.recordHistory({
         entityId: String(newAttribute._id),
         entityType: 'attribute',
-        entityName: newAttribute.name,
+        entityName: String(newAttribute.name),
         action: ActionType.CREATE,
         userId: userId,
         newData: newAttribute.toObject()
@@ -259,7 +263,7 @@ export const updateAttribute = async (req: Request, res: Response, next: NextFun
       await historyService.recordHistory({
         entityId: id,
         entityType: 'attribute',
-        entityName: updatedAttribute?.name || previousAttribute.name,
+        entityName: String(updatedAttribute?.name || previousAttribute.name),
         action: ActionType.UPDATE,
         userId: userId,
         previousData: previousAttribute.toObject(),
@@ -305,7 +309,7 @@ export const deleteAttribute = async (req: Request, res: Response, next: NextFun
       await historyService.recordHistory({
         entityId: id,
         entityType: 'attribute',
-        entityName: attribute.name,
+        entityName: String(attribute.name),
         action: ActionType.DELETE,
         userId: userId,
         previousData: attribute.toObject()

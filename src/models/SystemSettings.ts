@@ -113,6 +113,10 @@ const SystemSettingsSchema: Schema = new Schema({
     required: true,
     default: 'tr'
   },
+  supportedLanguages: {
+    type: [String],
+    default: ['tr', 'en']
+  },
   timezone: {
     type: String,
     required: true,

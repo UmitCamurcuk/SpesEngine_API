@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Localization_1 = __importDefault(require("../models/Localization"));
+const SystemSettings_1 = __importDefault(require("../models/SystemSettings"));
 class LocalizationService {
     // Çeviri ekleme/güncelleme
     upsertTranslation(data) {
@@ -61,19 +62,34 @@ class LocalizationService {
             return result.deletedCount > 0;
         });
     }
-    // Desteklenen dilleri getir (unique dil kodlarını bul)
+    // Desteklenen dilleri getir (sistem ayarlarından)
     getSupportedLanguages() {
         return __awaiter(this, void 0, void 0, function* () {
-            const translations = yield Localization_1.default.find({}).lean();
-            const langSet = new Set();
-            translations.forEach(item => {
-                if (item.translations) {
-                    // Obje anahtarlarını al
-                    const langs = Object.keys(item.translations);
-                    langs.forEach(lang => langSet.add(lang));
+            try {
+                // Önce sistem ayarlarından desteklenen dilleri al
+                const systemSettings = yield SystemSettings_1.default.findOne().lean();
+                if (systemSettings && systemSettings.supportedLanguages && systemSettings.supportedLanguages.length > 0) {
+                    return systemSettings.supportedLanguages;
                 }
-            });
-            return Array.from(langSet);
+                // Eğer sistem ayarlarında yoksa, fallback olarak çevirilerden al
+                const translations = yield Localization_1.default.find({}).lean();
+                const langSet = new Set();
+                translations.forEach(item => {
+                    if (item.translations) {
+                        // Obje anahtarlarını al
+                        const langs = Object.keys(item.translations);
+                        langs.forEach(lang => langSet.add(lang));
+                    }
+                });
+                const languagesFromTranslations = Array.from(langSet);
+                // Eğer hiç dil bulunamazsa varsayılan dilleri döndür
+                return languagesFromTranslations.length > 0 ? languagesFromTranslations : ['tr', 'en'];
+            }
+            catch (error) {
+                console.error('Desteklenen diller alınırken hata oluştu:', error);
+                // Hata durumunda varsayılan dilleri döndür
+                return ['tr', 'en'];
+            }
         });
     }
 }

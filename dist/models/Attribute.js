@@ -48,10 +48,9 @@ var AttributeType;
 const ValidationSchema = mongoose_1.Schema.Types.Mixed;
 const AttributeSchema = new mongoose_1.Schema({
     name: {
-        type: String,
-        required: [true, 'Öznitelik adı zorunludur'],
-        unique: true,
-        trim: true
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Localization',
+        required: [true, 'Öznitelik adı zorunludur']
     },
     code: {
         type: String,
@@ -66,7 +65,8 @@ const AttributeSchema = new mongoose_1.Schema({
         default: AttributeType.TEXT
     },
     description: {
-        type: String,
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Localization',
         required: false
     },
     isRequired: {
@@ -80,7 +80,7 @@ const AttributeSchema = new mongoose_1.Schema({
     attributeGroup: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: 'AttributeGroup',
-        required: [true, 'Öznitelik grubu seçimi zorunludur']
+        required: false
     },
     validations: ValidationSchema,
     isActive: {

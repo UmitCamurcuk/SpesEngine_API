@@ -1,4 +1,5 @@
 import Localization, { ILocalization } from '../models/Localization';
+import SystemSettings from '../models/SystemSettings';
 
 interface TranslationCreateData {
   key: string;
@@ -72,21 +73,38 @@ class LocalizationService {
     return result.deletedCount > 0;
   }
   
-  // Desteklenen dilleri getir (unique dil kodlarını bul)
+  // Desteklenen dilleri getir (sistem ayarlarından)
   async getSupportedLanguages(): Promise<string[]> {
-    const translations = await Localization.find({}).lean();
-    
-    const langSet = new Set<string>();
-    
-    translations.forEach(item => {
-      if (item.translations) {
-        // Obje anahtarlarını al
-        const langs = Object.keys(item.translations);
-        langs.forEach(lang => langSet.add(lang));
+    try {
+      // Önce sistem ayarlarından desteklenen dilleri al
+      const systemSettings = await SystemSettings.findOne().lean();
+      
+      if (systemSettings && systemSettings.supportedLanguages && systemSettings.supportedLanguages.length > 0) {
+        return systemSettings.supportedLanguages;
       }
-    });
-    
-    return Array.from(langSet);
+      
+      // Eğer sistem ayarlarında yoksa, fallback olarak çevirilerden al
+      const translations = await Localization.find({}).lean();
+      
+      const langSet = new Set<string>();
+      
+      translations.forEach(item => {
+        if (item.translations) {
+          // Obje anahtarlarını al
+          const langs = Object.keys(item.translations);
+          langs.forEach(lang => langSet.add(lang));
+        }
+      });
+      
+      const languagesFromTranslations = Array.from(langSet);
+      
+      // Eğer hiç dil bulunamazsa varsayılan dilleri döndür
+      return languagesFromTranslations.length > 0 ? languagesFromTranslations : ['tr', 'en'];
+    } catch (error) {
+      console.error('Desteklenen diller alınırken hata oluştu:', error);
+      // Hata durumunda varsayılan dilleri döndür
+      return ['tr', 'en'];
+    }
   }
 }
 
