@@ -13,9 +13,9 @@ export interface IAttributeGroup extends Document {
 const AttributeGroupSchema: Schema = new Schema(
   {
     name: {
-      type: String,
-      required: [true, 'Öznitelik grup adı zorunludur'],
-      trim: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Localization',
+      required: [true, 'Öznitelik adı zorunludur']
     },
     code: {
       type: String,
@@ -24,8 +24,9 @@ const AttributeGroupSchema: Schema = new Schema(
       trim: true
     },
     description: {
-      type: String,
-      required: [true, 'Öznitelik grup açıklaması zorunludur']
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Localization',
+      required: false
     },
     attributes: [
       {

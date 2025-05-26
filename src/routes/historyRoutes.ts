@@ -9,6 +9,6 @@ router.use(authenticateToken);
 
 // Geçmiş kayıtları
 router.get('/', checkAccess(['HISTORY_VIEW']), getHistory);
-router.get('/:entityType/:entityId', checkAccess(['HISTORY_VIEW']), getEntityHistory);
+router.get('/:entityId', checkAccess(['HISTORY_VIEW']), getEntityHistory);
 
 export default router; 

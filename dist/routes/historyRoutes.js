@@ -11,5 +11,5 @@ const router = express_1.default.Router();
 router.use(auth_middleware_1.authenticateToken);
 // Geçmiş kayıtları
 router.get('/', (0, auth_middleware_1.checkAccess)(['HISTORY_VIEW']), historyController_1.getHistory);
-router.get('/:entityType/:entityId', (0, auth_middleware_1.checkAccess)(['HISTORY_VIEW']), historyController_1.getEntityHistory);
+router.get('/:entityId', (0, auth_middleware_1.checkAccess)(['HISTORY_VIEW']), historyController_1.getEntityHistory);
 exports.default = router;

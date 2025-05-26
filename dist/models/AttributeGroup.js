@@ -36,9 +36,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const AttributeGroupSchema = new mongoose_1.Schema({
     name: {
-        type: String,
-        required: [true, 'Öznitelik grup adı zorunludur'],
-        trim: true
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Localization',
+        required: [true, 'Öznitelik adı zorunludur']
     },
     code: {
         type: String,
@@ -47,8 +47,9 @@ const AttributeGroupSchema = new mongoose_1.Schema({
         trim: true
     },
     description: {
-        type: String,
-        required: [true, 'Öznitelik grup açıklaması zorunludur']
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Localization',
+        required: false
     },
     attributes: [
         {
