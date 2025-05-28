@@ -51,7 +51,7 @@ const HistorySchema = new mongoose_1.Schema({
     entityType: {
         type: String,
         required: true,
-        enum: ['attribute', 'attributeGroup', 'category', 'item', 'itemType', 'family', 'user'],
+        enum: ['attribute', 'attributeGroup', 'category', 'item', 'itemType', 'family', 'user', 'translation'],
         index: true
     },
     entityName: {
@@ -72,6 +72,10 @@ const HistorySchema = new mongoose_1.Schema({
         default: {}
     },
     newData: {
+        type: mongoose_1.Schema.Types.Mixed,
+        default: {}
+    },
+    additionalInfo: {
         type: mongoose_1.Schema.Types.Mixed,
         default: {}
     },

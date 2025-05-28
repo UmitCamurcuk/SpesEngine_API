@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import Category from '../models/Category';
+import historyService from '../services/historyService';
+import { ActionType } from '../models/History';
 
 // GET tüm kategorileri getir (filtreleme ve sayfalama ile)
 export const getCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -197,6 +199,31 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
     console.log('Processed category data:', categoryData);
     
     const category = await Category.create(categoryData);
+    
+    // History kaydı oluştur
+    if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+      const userId = String(req.user._id);
+      
+      try {
+        await historyService.recordHistory({
+          entityType: 'category',
+          entityId: String(category._id),
+          entityName: category.name,
+          action: ActionType.CREATE,
+          userId: userId,
+          newData: {
+            name: category.name,
+            code: category.code,
+            description: category.description || '',
+            isActive: category.isActive
+          }
+        });
+        console.log('Category creation history saved successfully');
+      } catch (historyError) {
+        console.error('History creation failed for category:', historyError);
+        // History hatası kategori oluşturmayı engellemesin
+      }
+    }
     
     console.log(`Created category: ${category.name} with ID: ${category._id}`);
     

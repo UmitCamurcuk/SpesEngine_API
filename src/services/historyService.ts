@@ -9,6 +9,7 @@ interface RecordHistoryParams {
   userId: mongoose.Types.ObjectId | string;
   previousData?: any;
   newData?: any;
+  additionalInfo?: any;
 }
 
 class HistoryService {
@@ -22,7 +23,8 @@ class HistoryService {
     action,
     userId,
     previousData = {},
-    newData = {}
+    newData = {},
+    additionalInfo
   }: RecordHistoryParams): Promise<IHistory> {
     
     // Değişiklikleri hesapla
@@ -37,6 +39,7 @@ class HistoryService {
       changes,
       previousData,
       newData,
+      additionalInfo,
       createdBy: typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId,
       createdAt: new Date()
     });

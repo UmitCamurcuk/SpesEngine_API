@@ -15,6 +15,7 @@ export interface IHistory extends Document {
   changes: any;
   previousData: any;
   newData: any;
+  additionalInfo?: any;
   createdBy: mongoose.Types.ObjectId;
   createdAt: Date;
 }
@@ -28,7 +29,7 @@ const HistorySchema: Schema = new Schema({
   entityType: {
     type: String,
     required: true,
-    enum: ['attribute', 'attributeGroup', 'category', 'item', 'itemType', 'family', 'user'],
+    enum: ['attribute', 'attributeGroup', 'category', 'item', 'itemType', 'family', 'user', 'translation'],
     index: true
   },
   entityName: {
@@ -49,6 +50,10 @@ const HistorySchema: Schema = new Schema({
     default: {}
   },
   newData: {
+    type: Schema.Types.Mixed,
+    default: {}
+  },
+  additionalInfo: {
     type: Schema.Types.Mixed,
     default: {}
   },

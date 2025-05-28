@@ -14,6 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteCategory = exports.updateCategory = exports.createCategory = exports.getCategoryById = exports.getCategories = void 0;
 const Category_1 = __importDefault(require("../models/Category"));
+const historyService_1 = __importDefault(require("../services/historyService"));
+const History_1 = require("../models/History");
 // GET tüm kategorileri getir (filtreleme ve sayfalama ile)
 const getCategories = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -189,6 +191,30 @@ const createCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         }
         console.log('Processed category data:', categoryData);
         const category = yield Category_1.default.create(categoryData);
+        // History kaydı oluştur
+        if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+            const userId = String(req.user._id);
+            try {
+                yield historyService_1.default.recordHistory({
+                    entityType: 'category',
+                    entityId: String(category._id),
+                    entityName: category.name,
+                    action: History_1.ActionType.CREATE,
+                    userId: userId,
+                    newData: {
+                        name: category.name,
+                        code: category.code,
+                        description: category.description || '',
+                        isActive: category.isActive
+                    }
+                });
+                console.log('Category creation history saved successfully');
+            }
+            catch (historyError) {
+                console.error('History creation failed for category:', historyError);
+                // History hatası kategori oluşturmayı engellemesin
+            }
+        }
         console.log(`Created category: ${category.name} with ID: ${category._id}`);
         res.status(201).json({
             success: true,

@@ -8,6 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -101,9 +112,14 @@ const createAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
 exports.createAttributeGroup = createAttributeGroup;
 // PUT öznitelik grubunu güncelle
 const updateAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
     try {
+        const { id } = req.params;
+        const _e = req.body, { nameTranslations, descriptionTranslations } = _e, otherData = __rest(_e, ["nameTranslations", "descriptionTranslations"]);
         // Güncelleme öncesi mevcut veriyi al (geçmiş için)
-        const previousAttributeGroup = yield AttributeGroup_1.default.findById(req.params.id);
+        const previousAttributeGroup = yield AttributeGroup_1.default.findById(id)
+            .populate('name', 'key namespace translations.tr translations.en')
+            .populate('description', 'key namespace translations.tr translations.en');
         if (!previousAttributeGroup) {
             res.status(404).json({
                 success: false,
@@ -111,7 +127,47 @@ const updateAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
             });
             return;
         }
-        const attributeGroup = yield AttributeGroup_1.default.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate('attributes');
+        let updateData = Object.assign({}, otherData);
+        const changedTranslations = [];
+        // Name translations'ını güncelle
+        if (nameTranslations && typeof nameTranslations === 'object') {
+            const nameTranslationKey = (_a = previousAttributeGroup.name) === null || _a === void 0 ? void 0 : _a.key;
+            if (nameTranslationKey) {
+                const localizationService = require('../services/localizationService').default;
+                yield localizationService.upsertTranslation({
+                    key: nameTranslationKey,
+                    namespace: 'attributes',
+                    translations: nameTranslations
+                });
+                changedTranslations.push({
+                    field: 'name',
+                    translationKey: nameTranslationKey,
+                    oldValues: ((_b = previousAttributeGroup.name) === null || _b === void 0 ? void 0 : _b.translations) || {},
+                    newValues: nameTranslations
+                });
+            }
+        }
+        // Description translations'ını güncelle
+        if (descriptionTranslations && typeof descriptionTranslations === 'object') {
+            const descriptionTranslationKey = (_c = previousAttributeGroup.description) === null || _c === void 0 ? void 0 : _c.key;
+            if (descriptionTranslationKey) {
+                const localizationService = require('../services/localizationService').default;
+                yield localizationService.upsertTranslation({
+                    key: descriptionTranslationKey,
+                    namespace: 'attributes',
+                    translations: descriptionTranslations
+                });
+                changedTranslations.push({
+                    field: 'description',
+                    translationKey: descriptionTranslationKey,
+                    oldValues: ((_d = previousAttributeGroup.description) === null || _d === void 0 ? void 0 : _d.translations) || {},
+                    newValues: descriptionTranslations
+                });
+            }
+        }
+        const attributeGroup = yield AttributeGroup_1.default.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).populate('attributes')
+            .populate('name', 'key namespace translations.tr translations.en')
+            .populate('description', 'key namespace translations.tr translations.en');
         if (!attributeGroup) {
             res.status(404).json({
                 success: false,
@@ -122,8 +178,9 @@ const updateAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
         // History kaydı oluştur
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);
+            // Ana attributeGroup güncelleme history'si
             yield historyService_1.default.recordHistory({
-                entityId: req.params.id,
+                entityId: id,
                 entityType: 'attributeGroup',
                 entityName: String(attributeGroup.name || previousAttributeGroup.name),
                 action: History_1.ActionType.UPDATE,
@@ -131,6 +188,23 @@ const updateAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
                 previousData: previousAttributeGroup.toObject(),
                 newData: attributeGroup.toObject()
             });
+            // Translation değişiklikleri için ayrı history kayıtları
+            for (const translationChange of changedTranslations) {
+                yield historyService_1.default.recordHistory({
+                    entityId: translationChange.translationKey,
+                    entityType: 'translation',
+                    entityName: `${translationChange.field}_translation`,
+                    action: History_1.ActionType.UPDATE,
+                    userId: userId,
+                    previousData: translationChange.oldValues,
+                    newData: translationChange.newValues,
+                    additionalInfo: {
+                        parentEntityId: id,
+                        parentEntityType: 'attributeGroup',
+                        field: translationChange.field
+                    }
+                });
+            }
         }
         res.status(200).json({
             success: true,

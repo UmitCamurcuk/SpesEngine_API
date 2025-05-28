@@ -19,7 +19,7 @@ class HistoryService {
      * Değişiklik geçmişini kaydeder
      */
     recordHistory(_a) {
-        return __awaiter(this, arguments, void 0, function* ({ entityId, entityType, entityName, action, userId, previousData = {}, newData = {} }) {
+        return __awaiter(this, arguments, void 0, function* ({ entityId, entityType, entityName, action, userId, previousData = {}, newData = {}, additionalInfo }) {
             // Değişiklikleri hesapla
             const changes = this.calculateChanges(previousData, newData);
             // Yeni geçmiş kaydı oluştur
@@ -31,6 +31,7 @@ class HistoryService {
                 changes,
                 previousData,
                 newData,
+                additionalInfo,
                 createdBy: typeof userId === 'string' ? new mongoose_1.default.Types.ObjectId(userId) : userId,
                 createdAt: new Date()
             });

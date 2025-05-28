@@ -94,8 +94,13 @@ export const createAttributeGroup = async (req: Request, res: Response, next: Ne
 // PUT öznitelik grubunu güncelle
 export const updateAttributeGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const { id } = req.params;
+    const { nameTranslations, descriptionTranslations, ...otherData } = req.body;
+    
     // Güncelleme öncesi mevcut veriyi al (geçmiş için)
-    const previousAttributeGroup = await AttributeGroup.findById(req.params.id);
+    const previousAttributeGroup = await AttributeGroup.findById(id)
+      .populate('name','key namespace translations.tr translations.en')
+      .populate('description','key namespace translations.tr translations.en');
     
     if (!previousAttributeGroup) {
       res.status(404).json({
@@ -104,12 +109,57 @@ export const updateAttributeGroup = async (req: Request, res: Response, next: Ne
       });
       return;
     }
+
+    let updateData = { ...otherData };
+    const changedTranslations: any[] = [];
+
+    // Name translations'ını güncelle
+    if (nameTranslations && typeof nameTranslations === 'object') {
+      const nameTranslationKey = (previousAttributeGroup.name as any)?.key;
+      if (nameTranslationKey) {
+        const localizationService = require('../services/localizationService').default;
+        await localizationService.upsertTranslation({
+          key: nameTranslationKey,
+          namespace: 'attributes',
+          translations: nameTranslations
+        });
+        
+        changedTranslations.push({
+          field: 'name',
+          translationKey: nameTranslationKey,
+          oldValues: (previousAttributeGroup.name as any)?.translations || {},
+          newValues: nameTranslations
+        });
+      }
+    }
+
+    // Description translations'ını güncelle
+    if (descriptionTranslations && typeof descriptionTranslations === 'object') {
+      const descriptionTranslationKey = (previousAttributeGroup.description as any)?.key;
+      if (descriptionTranslationKey) {
+        const localizationService = require('../services/localizationService').default;
+        await localizationService.upsertTranslation({
+          key: descriptionTranslationKey,
+          namespace: 'attributes',
+          translations: descriptionTranslations
+        });
+        
+        changedTranslations.push({
+          field: 'description',
+          translationKey: descriptionTranslationKey,
+          oldValues: (previousAttributeGroup.description as any)?.translations || {},
+          newValues: descriptionTranslations
+        });
+      }
+    }
     
     const attributeGroup = await AttributeGroup.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+      id,
+      updateData,
       { new: true, runValidators: true }
-    ).populate('attributes');
+    ).populate('attributes')
+     .populate('name','key namespace translations.tr translations.en')
+     .populate('description','key namespace translations.tr translations.en');
     
     if (!attributeGroup) {
       res.status(404).json({
@@ -123,8 +173,9 @@ export const updateAttributeGroup = async (req: Request, res: Response, next: Ne
     if (req.user && typeof req.user === 'object' && '_id' in req.user) {
       const userId = String(req.user._id);
       
+      // Ana attributeGroup güncelleme history'si
       await historyService.recordHistory({
-        entityId: req.params.id,
+        entityId: id,
         entityType: 'attributeGroup',
         entityName: String(attributeGroup.name || previousAttributeGroup.name),
         action: ActionType.UPDATE,
@@ -132,6 +183,24 @@ export const updateAttributeGroup = async (req: Request, res: Response, next: Ne
         previousData: previousAttributeGroup.toObject(),
         newData: attributeGroup.toObject()
       });
+
+      // Translation değişiklikleri için ayrı history kayıtları
+      for (const translationChange of changedTranslations) {
+        await historyService.recordHistory({
+          entityId: translationChange.translationKey,
+          entityType: 'translation',
+          entityName: `${translationChange.field}_translation`,
+          action: ActionType.UPDATE,
+          userId: userId,
+          previousData: translationChange.oldValues,
+          newData: translationChange.newValues,
+          additionalInfo: {
+            parentEntityId: id,
+            parentEntityType: 'attributeGroup',
+            field: translationChange.field
+          }
+        });
+      }
     }
     
     res.status(200).json({

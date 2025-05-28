@@ -15,7 +15,7 @@ export const getAttributes = async (req: Request, res: Response, next: NextFunct
     const skip = (page - 1) * limit;
     
     // Filtreleme parametreleri
-    const filterParams: any = { isActive: true };
+    const filterParams: any = {};
     
     // isActive parametresi özellikle belirtilmişse
     if (req.query.isActive !== undefined) {
@@ -237,9 +237,12 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
 export const updateAttribute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
+    const { nameTranslations, descriptionTranslations, ...otherData } = req.body;
     
     // Güncelleme öncesi mevcut veriyi al (geçmiş için)
-    const previousAttribute = await Attribute.findById(id);
+    const previousAttribute = await Attribute.findById(id)
+      .populate('name','key namespace translations.tr translations.en')
+      .populate('description','key namespace translations.tr translations.en');
     
     if (!previousAttribute) {
       res.status(404).json({
@@ -248,18 +251,63 @@ export const updateAttribute = async (req: Request, res: Response, next: NextFun
       });
       return;
     }
+
+    let updateData = { ...otherData };
+    const changedTranslations: any[] = [];
+
+    // Name translations'ını güncelle
+    if (nameTranslations && typeof nameTranslations === 'object') {
+      const nameTranslationKey = (previousAttribute.name as any)?.key;
+      if (nameTranslationKey) {
+        const localizationService = require('../services/localizationService').default;
+        await localizationService.upsertTranslation({
+          key: nameTranslationKey,
+          namespace: 'attributes',
+          translations: nameTranslations
+        });
+        
+        changedTranslations.push({
+          field: 'name',
+          translationKey: nameTranslationKey,
+          oldValues: (previousAttribute.name as any)?.translations || {},
+          newValues: nameTranslations
+        });
+      }
+    }
+
+    // Description translations'ını güncelle
+    if (descriptionTranslations && typeof descriptionTranslations === 'object') {
+      const descriptionTranslationKey = (previousAttribute.description as any)?.key;
+      if (descriptionTranslationKey) {
+        const localizationService = require('../services/localizationService').default;
+        await localizationService.upsertTranslation({
+          key: descriptionTranslationKey,
+          namespace: 'attributes',
+          translations: descriptionTranslations
+        });
+        
+        changedTranslations.push({
+          field: 'description',
+          translationKey: descriptionTranslationKey,
+          oldValues: (previousAttribute.description as any)?.translations || {},
+          newValues: descriptionTranslations
+        });
+      }
+    }
     
     // Güncelleme işlemi
     const updatedAttribute = await Attribute.findByIdAndUpdate(
       id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
-    );
+    ).populate('name','key namespace translations.tr translations.en')
+     .populate('description','key namespace translations.tr translations.en');
     
     // History kaydı oluştur
     if (req.user && typeof req.user === 'object' && '_id' in req.user) {
       const userId = String(req.user._id);
       
+      // Ana attribute güncelleme history'si
       await historyService.recordHistory({
         entityId: id,
         entityType: 'attribute',
@@ -269,6 +317,24 @@ export const updateAttribute = async (req: Request, res: Response, next: NextFun
         previousData: previousAttribute.toObject(),
         newData: updatedAttribute?.toObject()
       });
+
+      // Translation değişiklikleri için ayrı history kayıtları
+      for (const translationChange of changedTranslations) {
+        await historyService.recordHistory({
+          entityId: translationChange.translationKey,
+          entityType: 'translation',
+          entityName: `${translationChange.field}_translation`,
+          action: ActionType.UPDATE,
+          userId: userId,
+          previousData: translationChange.oldValues,
+          newData: translationChange.newValues,
+          additionalInfo: {
+            parentEntityId: id,
+            parentEntityType: 'attribute',
+            field: translationChange.field
+          }
+        });
+      }
     }
     
     res.status(200).json({
