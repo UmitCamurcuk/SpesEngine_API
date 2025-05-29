@@ -47,6 +47,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteFamily = exports.updateFamily = exports.createFamily = exports.getFamilyById = exports.getFamilies = void 0;
 const Family_1 = __importDefault(require("../models/Family"));
+const historyService_1 = __importDefault(require("../services/historyService"));
+const History_1 = require("../models/History");
 // GET tüm aileleri getir
 const getFamilies = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -213,6 +215,30 @@ const createFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             ]));
         }
         const family = yield Family_1.default.create(req.body);
+        // History kaydı oluştur
+        if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+            const userId = String(req.user._id);
+            try {
+                yield historyService_1.default.recordHistory({
+                    entityType: 'family',
+                    entityId: String(family._id),
+                    entityName: family.name,
+                    action: History_1.ActionType.CREATE,
+                    userId: userId,
+                    newData: {
+                        name: family.name,
+                        code: family.code,
+                        description: family.description || '',
+                        isActive: family.isActive
+                    }
+                });
+                console.log('Family creation history saved successfully');
+            }
+            catch (historyError) {
+                console.error('History creation failed for family:', historyError);
+                // History hatası aile oluşturmayı engellemesin
+            }
+        }
         // Oluşturulan aileyi itemType ve parent alanlarıyla birlikte getir
         const newFamily = yield Family_1.default.findById(family._id)
             .populate('itemType')
@@ -235,6 +261,15 @@ exports.createFamily = createFamily;
 // PUT aileyi güncelle
 const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        // Güncellemeden önce mevcut veriyi al
+        const oldFamily = yield Family_1.default.findById(req.params.id);
+        if (!oldFamily) {
+            res.status(404).json({
+                success: false,
+                message: 'Aile bulunamadı'
+            });
+            return;
+        }
         // Eğer itemType alanı boş string ise bu alanı kaldır
         if (req.body.itemType === '') {
             delete req.body.itemType;
@@ -272,6 +307,36 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             });
             return;
         }
+        // History kaydı oluştur
+        if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+            const userId = String(req.user._id);
+            try {
+                yield historyService_1.default.recordHistory({
+                    entityType: 'family',
+                    entityId: String(family._id),
+                    entityName: family.name,
+                    action: History_1.ActionType.UPDATE,
+                    userId: userId,
+                    previousData: {
+                        name: oldFamily.name,
+                        code: oldFamily.code,
+                        description: oldFamily.description || '',
+                        isActive: oldFamily.isActive
+                    },
+                    newData: {
+                        name: family.name,
+                        code: family.code,
+                        description: family.description || '',
+                        isActive: family.isActive
+                    }
+                });
+                console.log('Family update history saved successfully');
+            }
+            catch (historyError) {
+                console.error('History update failed for family:', historyError);
+                // History hatası güncellemeyi engellemesin
+            }
+        }
         res.status(200).json({
             success: true,
             data: family
@@ -288,13 +353,40 @@ exports.updateFamily = updateFamily;
 // DELETE aileyi sil
 const deleteFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const family = yield Family_1.default.findByIdAndDelete(req.params.id);
+        // Silinmeden önce veriyi al
+        const family = yield Family_1.default.findById(req.params.id);
         if (!family) {
             res.status(404).json({
                 success: false,
                 message: 'Aile bulunamadı'
             });
             return;
+        }
+        // Veriyi sil
+        yield Family_1.default.findByIdAndDelete(req.params.id);
+        // History kaydı oluştur
+        if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+            const userId = String(req.user._id);
+            try {
+                yield historyService_1.default.recordHistory({
+                    entityType: 'family',
+                    entityId: String(family._id),
+                    entityName: family.name,
+                    action: History_1.ActionType.DELETE,
+                    userId: userId,
+                    previousData: {
+                        name: family.name,
+                        code: family.code,
+                        description: family.description || '',
+                        isActive: family.isActive
+                    }
+                });
+                console.log('Family deletion history saved successfully');
+            }
+            catch (historyError) {
+                console.error('History deletion failed for family:', historyError);
+                // History hatası silme işlemini engellemesin
+            }
         }
         res.status(200).json({
             success: true,

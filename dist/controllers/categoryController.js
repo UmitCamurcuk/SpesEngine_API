@@ -235,6 +235,16 @@ const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     try {
         const { id } = req.params;
         console.log(`Update category request received for ID: ${id}`, req.body);
+        // Güncellemeden önce mevcut veriyi al
+        const oldCategory = yield Category_1.default.findById(id);
+        if (!oldCategory) {
+            console.log(`Category not found with ID: ${id}`);
+            res.status(404).json({
+                success: false,
+                message: 'Kategori bulunamadı'
+            });
+            return;
+        }
         // Field isimleri dönüşümü
         const updateData = Object.assign({}, req.body);
         // parentCategory -> parent dönüşümü
@@ -281,6 +291,36 @@ const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             });
             return;
         }
+        // History kaydı oluştur
+        if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+            const userId = String(req.user._id);
+            try {
+                yield historyService_1.default.recordHistory({
+                    entityType: 'category',
+                    entityId: String(category._id),
+                    entityName: category.name,
+                    action: History_1.ActionType.UPDATE,
+                    userId: userId,
+                    previousData: {
+                        name: oldCategory.name,
+                        code: oldCategory.code,
+                        description: oldCategory.description || '',
+                        isActive: oldCategory.isActive
+                    },
+                    newData: {
+                        name: category.name,
+                        code: category.code,
+                        description: category.description || '',
+                        isActive: category.isActive
+                    }
+                });
+                console.log('Category update history saved successfully');
+            }
+            catch (historyError) {
+                console.error('History update failed for category:', historyError);
+                // History hatası güncellemeyi engellemesin
+            }
+        }
         console.log(`Updated category: ${category.name}`);
         res.status(200).json({
             success: true,
@@ -301,7 +341,8 @@ const deleteCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     try {
         const { id } = req.params;
         console.log(`Delete category request received for ID: ${id}`);
-        const category = yield Category_1.default.findByIdAndDelete(id);
+        // Silinmeden önce veriyi al
+        const category = yield Category_1.default.findById(id);
         if (!category) {
             console.log(`Category not found with ID: ${id}`);
             res.status(404).json({
@@ -309,6 +350,32 @@ const deleteCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 message: 'Kategori bulunamadı'
             });
             return;
+        }
+        // Veriyi sil
+        yield Category_1.default.findByIdAndDelete(id);
+        // History kaydı oluştur
+        if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+            const userId = String(req.user._id);
+            try {
+                yield historyService_1.default.recordHistory({
+                    entityType: 'category',
+                    entityId: String(category._id),
+                    entityName: category.name,
+                    action: History_1.ActionType.DELETE,
+                    userId: userId,
+                    previousData: {
+                        name: category.name,
+                        code: category.code,
+                        description: category.description || '',
+                        isActive: category.isActive
+                    }
+                });
+                console.log('Category deletion history saved successfully');
+            }
+            catch (historyError) {
+                console.error('History deletion failed for category:', historyError);
+                // History hatası silme işlemini engellemesin
+            }
         }
         console.log(`Deleted category with ID: ${id}`);
         res.status(200).json({

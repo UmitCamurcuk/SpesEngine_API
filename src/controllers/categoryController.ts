@@ -246,6 +246,18 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
     const { id } = req.params;
     console.log(`Update category request received for ID: ${id}`, req.body);
     
+    // Güncellemeden önce mevcut veriyi al
+    const oldCategory = await Category.findById(id);
+    
+    if (!oldCategory) {
+      console.log(`Category not found with ID: ${id}`);
+      res.status(404).json({
+        success: false,
+        message: 'Kategori bulunamadı'
+      });
+      return;
+    }
+    
     // Field isimleri dönüşümü
     const updateData = { ...req.body };
     
@@ -302,6 +314,37 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
       return;
     }
     
+    // History kaydı oluştur
+    if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+      const userId = String(req.user._id);
+      
+      try {
+        await historyService.recordHistory({
+          entityType: 'category',
+          entityId: String(category._id),
+          entityName: category.name,
+          action: ActionType.UPDATE,
+          userId: userId,
+          previousData: {
+            name: oldCategory.name,
+            code: oldCategory.code,
+            description: oldCategory.description || '',
+            isActive: oldCategory.isActive
+          },
+          newData: {
+            name: category.name,
+            code: category.code,
+            description: category.description || '',
+            isActive: category.isActive
+          }
+        });
+        console.log('Category update history saved successfully');
+      } catch (historyError) {
+        console.error('History update failed for category:', historyError);
+        // History hatası güncellemeyi engellemesin
+      }
+    }
+    
     console.log(`Updated category: ${category.name}`);
     
     res.status(200).json({
@@ -323,7 +366,8 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
     const { id } = req.params;
     console.log(`Delete category request received for ID: ${id}`);
     
-    const category = await Category.findByIdAndDelete(id);
+    // Silinmeden önce veriyi al
+    const category = await Category.findById(id);
     
     if (!category) {
       console.log(`Category not found with ID: ${id}`);
@@ -332,6 +376,34 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
         message: 'Kategori bulunamadı'
       });
       return;
+    }
+    
+    // Veriyi sil
+    await Category.findByIdAndDelete(id);
+    
+    // History kaydı oluştur
+    if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+      const userId = String(req.user._id);
+      
+      try {
+        await historyService.recordHistory({
+          entityType: 'category',
+          entityId: String(category._id),
+          entityName: category.name,
+          action: ActionType.DELETE,
+          userId: userId,
+          previousData: {
+            name: category.name,
+            code: category.code,
+            description: category.description || '',
+            isActive: category.isActive
+          }
+        });
+        console.log('Category deletion history saved successfully');
+      } catch (historyError) {
+        console.error('History deletion failed for category:', historyError);
+        // History hatası silme işlemini engellemesin
+      }
     }
     
     console.log(`Deleted category with ID: ${id}`);
