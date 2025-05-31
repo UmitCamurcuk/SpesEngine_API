@@ -77,11 +77,6 @@ const AttributeSchema = new mongoose_1.Schema({
         type: [String],
         default: []
     },
-    attributeGroup: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'AttributeGroup',
-        required: false
-    },
     validations: ValidationSchema,
     isActive: {
         type: Boolean,

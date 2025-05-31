@@ -1,8 +1,44 @@
 import { Request, Response, NextFunction } from 'express';
-import History from '../models/History';
-import mongoose from 'mongoose';
+import historyService from '../services/historyService';
+import { EntityType } from '../models/Entity';
 
-// Bir varlığın geçmişini getir
+// GET tüm history kayıtlarını getir
+export const getHistory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    // Sayfalama parametreleri
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+    
+    // Filtreleme parametreleri
+    const entityType = req.query.entityType as EntityType;
+    const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
+    const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
+    
+    // History service'den genel history'yi getir
+    const result = await historyService.getAllHistory(entityType, limit, skip, startDate, endDate);
+    
+    const pages = Math.ceil(result.total / limit);
+    
+    res.status(200).json({
+      success: true,
+      count: result.histories.length,
+      total: result.total,
+      page,
+      limit,
+      pages,
+      data: result.histories
+    });
+  } catch (error: any) {
+    console.error('Error fetching history:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'History kayıtları getirilirken bir hata oluştu'
+    });
+  }
+};
+
+// GET belirli entity'nin history kayıtlarını getir
 export const getEntityHistory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { entityId } = req.params;
@@ -12,114 +48,27 @@ export const getEntityHistory = async (req: Request, res: Response, next: NextFu
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
     
-    // Sıralama seçeneği
-    const sortOption: any = {};
-    if (req.query.sortBy) {
-      sortOption[req.query.sortBy as string] = req.query.sortOrder === 'desc' ? -1 : 1;
-    } else {
-      sortOption.createdAt = -1; // Varsayılan olarak en yeni kayıtları başta göster
-    }
+    // Filtreleme parametreleri
+    const entityType = req.query.entityType as EntityType;
     
-    // History kayıtlarını getir
-    const history = await History.find({ 
-      entityId: new mongoose.Types.ObjectId(entityId) 
-    })
-    .populate('createdBy', 'name email')
-    .sort(sortOption)
-    .skip(skip)
-    .limit(limit);
+    const result = await historyService.getEntityHistory(entityId, entityType, limit, skip);
     
-    // Toplam kayıt sayısını al
-    const total = await History.countDocuments({ 
-      entityId: new mongoose.Types.ObjectId(entityId) 
-    });
+    const pages = Math.ceil(result.total / limit);
     
     res.status(200).json({
       success: true,
-      data: history,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit)
-      }
+      count: result.histories.length,
+      total: result.total,
+      page,
+      limit,
+      pages,
+      data: result.histories
     });
   } catch (error: any) {
+    console.error('Error fetching entity history:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Geçmiş kayıtları getirilirken bir hata oluştu'
-    });
-  }
-};
-
-// Genel geçmişi getir (entityType'a göre filtrelenebilir)
-export const getHistory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    // Sayfalama parametreleri
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const skip = (page - 1) * limit;
-    
-    // Filtreleme
-    const query: any = {};
-    
-    if (req.query.entityType) {
-      query.entityType = req.query.entityType;
-    }
-    
-    if (req.query.action) {
-      query.action = req.query.action;
-    }
-    
-    if (req.query.createdBy) {
-      query.createdBy = new mongoose.Types.ObjectId(req.query.createdBy as string);
-    }
-    
-    // Tarih aralığı filtreleme
-    if (req.query.startDate || req.query.endDate) {
-      query.createdAt = {};
-      
-      if (req.query.startDate) {
-        query.createdAt.$gte = new Date(req.query.startDate as string);
-      }
-      
-      if (req.query.endDate) {
-        query.createdAt.$lte = new Date(req.query.endDate as string);
-      }
-    }
-    
-    // Sıralama seçeneği
-    const sortOption: any = {};
-    if (req.query.sortBy) {
-      sortOption[req.query.sortBy as string] = req.query.sortOrder === 'desc' ? -1 : 1;
-    } else {
-      sortOption.createdAt = -1; // Varsayılan olarak en yeni kayıtları başta göster
-    }
-    
-    // History kayıtlarını getir
-    const history = await History.find(query)
-      .populate('createdBy', 'name email')
-      .sort(sortOption)
-      .skip(skip)
-      .limit(limit);
-    
-    // Toplam kayıt sayısını al
-    const total = await History.countDocuments(query);
-    
-    res.status(200).json({
-      success: true,
-      data: history,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit)
-      }
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Geçmiş kayıtları getirilirken bir hata oluştu'
+      message: error.message || 'Entity history kayıtları getirilirken bir hata oluştu'
     });
   }
 }; 

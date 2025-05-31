@@ -18,4 +18,9 @@ router
     .get((0, auth_middleware_1.checkAccess)(['ATTRIBUTES_VIEW']), attributeController_1.getAttributeById)
     .put((0, auth_middleware_1.checkAccess)(['ATTRIBUTES_UPDATE']), attributeController_1.updateAttribute)
     .delete((0, auth_middleware_1.checkAccess)(['ATTRIBUTES_DELETE']), attributeController_1.deleteAttribute);
+// Attribute Groups ilişkileri
+router
+    .route('/:id/groups')
+    .get((0, auth_middleware_1.checkAccess)(['ATTRIBUTES_VIEW']), attributeController_1.getAttributeGroups)
+    .put((0, auth_middleware_1.checkAccess)(['ATTRIBUTES_UPDATE']), attributeController_1.updateAttributeGroups);
 exports.default = router;

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import Category from '../models/Category';
 import historyService from '../services/historyService';
 import { ActionType } from '../models/History';
+import { EntityType } from '../models/Entity';
 
 // GET tüm kategorileri getir (filtreleme ve sayfalama ile)
 export const getCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -206,7 +207,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
       
       try {
         await historyService.recordHistory({
-          entityType: 'category',
+          entityType: EntityType.CATEGORY,
           entityId: String(category._id),
           entityName: category.name,
           action: ActionType.CREATE,
@@ -320,7 +321,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
       
       try {
         await historyService.recordHistory({
-          entityType: 'category',
+          entityType: EntityType.CATEGORY,
           entityId: String(category._id),
           entityName: category.name,
           action: ActionType.UPDATE,
@@ -387,7 +388,7 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
       
       try {
         await historyService.recordHistory({
-          entityType: 'category',
+          entityType: EntityType.CATEGORY,
           entityId: String(category._id),
           entityName: category.name,
           action: ActionType.DELETE,
@@ -404,6 +405,15 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
         console.error('History deletion failed for category:', historyError);
         // History hatası silme işlemini engellemesin
       }
+    }
+    
+    // Entity'nin tüm history kayıtlarını sil
+    try {
+      const deletedHistoryCount = await historyService.deleteEntityHistory(id);
+      console.log(`Deleted ${deletedHistoryCount} history records for category ${id}`);
+    } catch (historyError) {
+      console.error('Error deleting category history:', historyError);
+      // History silme hatası ana işlemi engellemesin
     }
     
     console.log(`Deleted category with ID: ${id}`);

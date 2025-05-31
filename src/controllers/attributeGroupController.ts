@@ -2,6 +2,41 @@ import { Request, Response, NextFunction } from 'express';
 import AttributeGroup from '../models/AttributeGroup';
 import historyService from '../services/historyService';
 import { ActionType } from '../models/History';
+import { EntityType } from '../models/Entity';
+
+// Translation object'inden metin çıkarmak için utility fonksiyon
+const getEntityNameFromTranslation = (translationObject: any, fallback: string = 'Unknown'): string => {
+  if (!translationObject) return fallback;
+  
+  // Eğer string ise direkt döndür
+  if (typeof translationObject === 'string') {
+    return translationObject;
+  }
+  
+  // Translation object ise
+  if (translationObject.translations) {
+    // Önce Türkçe'yi dene
+    if (translationObject.translations.tr) {
+      return translationObject.translations.tr;
+    }
+    // Sonra İngilizce'yi dene
+    if (translationObject.translations.en) {
+      return translationObject.translations.en;
+    }
+    // Herhangi bir dili dene
+    const firstTranslation = Object.values(translationObject.translations)[0];
+    if (firstTranslation && typeof firstTranslation === 'string') {
+      return firstTranslation;
+    }
+  }
+  
+  // Key varsa onu kullan
+  if (translationObject.key) {
+    return translationObject.key;
+  }
+  
+  return fallback;
+};
 
 // GET tüm öznitelik gruplarını getir
 export const getAttributeGroups = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -71,8 +106,8 @@ export const createAttributeGroup = async (req: Request, res: Response, next: Ne
       
       await historyService.recordHistory({
         entityId: String(attributeGroup._id),
-        entityType: 'attributeGroup',
-        entityName: String(attributeGroup.name),
+        entityType: EntityType.ATTRIBUTE_GROUP,
+        entityName: getEntityNameFromTranslation(attributeGroup.name),
         action: ActionType.CREATE,
         userId: userId,
         newData: attributeGroup.toObject()
@@ -176,8 +211,8 @@ export const updateAttributeGroup = async (req: Request, res: Response, next: Ne
       // Ana attributeGroup güncelleme history'si
       await historyService.recordHistory({
         entityId: id,
-        entityType: 'attributeGroup',
-        entityName: String(attributeGroup.name || previousAttributeGroup.name),
+        entityType: EntityType.ATTRIBUTE_GROUP,
+        entityName: getEntityNameFromTranslation(attributeGroup.name || previousAttributeGroup.name),
         action: ActionType.UPDATE,
         userId: userId,
         previousData: previousAttributeGroup.toObject(),
@@ -186,20 +221,21 @@ export const updateAttributeGroup = async (req: Request, res: Response, next: Ne
 
       // Translation değişiklikleri için ayrı history kayıtları
       for (const translationChange of changedTranslations) {
-        await historyService.recordHistory({
-          entityId: translationChange.translationKey,
-          entityType: 'translation',
-          entityName: `${translationChange.field}_translation`,
-          action: ActionType.UPDATE,
-          userId: userId,
-          previousData: translationChange.oldValues,
-          newData: translationChange.newValues,
-          additionalInfo: {
-            parentEntityId: id,
-            parentEntityType: 'attributeGroup',
-            field: translationChange.field
-          }
-        });
+        // Translation değişikliği için ayrı history kaydı oluştur
+        // await historyService.recordHistory({
+        //   entityId: translationChange.translationKey,
+        //   entityType: EntityType.TRANSLATION,
+        //   entityName: `${translationChange.field}_translation`,
+        //   action: ActionType.UPDATE,
+        //   userId: userId,
+        //   previousData: translationChange.oldValues,
+        //   newData: translationChange.newValues,
+        //   additionalInfo: {
+        //     parentEntityId: id,
+        //     parentEntityType: EntityType.ATTRIBUTE_GROUP,
+        //     field: translationChange.field
+        //   }
+        // });
       }
     }
     
@@ -238,12 +274,21 @@ export const deleteAttributeGroup = async (req: Request, res: Response, next: Ne
       
       await historyService.recordHistory({
         entityId: req.params.id,
-        entityType: 'attributeGroup',
-        entityName: String(attributeGroup.name),
+        entityType: EntityType.ATTRIBUTE_GROUP,
+        entityName: getEntityNameFromTranslation(attributeGroup.name),
         action: ActionType.DELETE,
         userId: userId,
         previousData: attributeGroup.toObject()
       });
+    }
+    
+    // Entity'nin tüm history kayıtlarını sil
+    try {
+      const deletedHistoryCount = await historyService.deleteEntityHistory(req.params.id);
+      console.log(`Deleted ${deletedHistoryCount} history records for attribute group ${req.params.id}`);
+    } catch (historyError) {
+      console.error('Error deleting attribute group history:', historyError);
+      // History silme hatası ana işlemi engellemesin
     }
     
     res.status(200).json({

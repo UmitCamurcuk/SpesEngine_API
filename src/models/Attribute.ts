@@ -41,7 +41,6 @@ export interface IAttribute extends Document {
   description: mongoose.Types.ObjectId; // Translation ID
   isRequired: boolean;
   options: string[];
-  attributeGroup?: mongoose.Types.ObjectId;
   validations?: IValidation;
   isActive: boolean;
   createdAt: Date;
@@ -82,11 +81,6 @@ const AttributeSchema: Schema = new Schema(
     options: {
       type: [String],
       default: []
-    },
-    attributeGroup: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'AttributeGroup',
-      required: false
     },
     validations: ValidationSchema,
     isActive: {

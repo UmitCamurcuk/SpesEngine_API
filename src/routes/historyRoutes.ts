@@ -1,14 +1,16 @@
 import express from 'express';
+import * as historyController from '../controllers/historyController';
 import { authenticateToken, checkAccess } from '../middleware/auth.middleware';
-import { getEntityHistory, getHistory } from '../controllers/historyController';
 
 const router = express.Router();
 
-// Tüm rotalar için token kontrolü
+// Tüm route'lar authentication gerektirir
 router.use(authenticateToken);
 
-// Geçmiş kayıtları
-router.get('/', checkAccess(['HISTORY_VIEW']), getHistory);
-router.get('/:entityId', checkAccess(['HISTORY_VIEW']), getEntityHistory);
+// GET /api/history - Tüm history kayıtlarını getir
+router.get('/', checkAccess(['HISTORY_VIEW']), historyController.getHistory);
+
+// GET /api/history/:entityId - Belirli entity'nin history kayıtlarını getir
+router.get('/:entityId', checkAccess(['HISTORY_VIEW']), historyController.getEntityHistory);
 
 export default router; 

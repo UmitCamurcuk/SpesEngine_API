@@ -1,211 +1,405 @@
-import History, { ActionType, IHistory } from '../models/History';
+import History, { IHistory, ActionType, IAffectedEntity } from '../models/History';
+import entityService from './entityService';
+import { EntityType } from '../models/Entity';
 import mongoose from 'mongoose';
 
+// Translation object'inden metin çıkarmak için utility fonksiyon
+const getEntityNameFromTranslation = (translationObject: any, fallback: string = 'Unknown'): string => {
+  if (!translationObject) return fallback;
+  
+  // Eğer string ise direkt döndür
+  if (typeof translationObject === 'string') {
+    return translationObject;
+  }
+  
+  // Translation object ise
+  if (translationObject.translations) {
+    // Önce Türkçe'yi dene
+    if (translationObject.translations.tr) {
+      return translationObject.translations.tr;
+    }
+    // Sonra İngilizce'yi dene
+    if (translationObject.translations.en) {
+      return translationObject.translations.en;
+    }
+    // Herhangi bir dili dene
+    const firstTranslation = Object.values(translationObject.translations)[0];
+    if (firstTranslation && typeof firstTranslation === 'string') {
+      return firstTranslation;
+    }
+  }
+  
+  // Key varsa onu kullan
+  if (translationObject.key) {
+    return translationObject.key;
+  }
+  
+  return fallback;
+};
+
 interface RecordHistoryParams {
-  entityId: mongoose.Types.ObjectId | string;
-  entityType: string;
-  entityName: string;
+  // Ana entity bilgisi
+  entityId: string | mongoose.Types.ObjectId;
+  entityType: EntityType;
+  entityName?: string; // Verilmezse otomatik çekilir
+  entityCode?: string;
+  
+  // İşlem bilgisi
   action: ActionType;
-  userId: mongoose.Types.ObjectId | string;
+  userId: string | mongoose.Types.ObjectId;
+  
+  // Veri bilgisi
   previousData?: any;
   newData?: any;
+  changes?: any;
   additionalInfo?: any;
+  
+  // İlişkili entity'ler (opsiyonel)
+  affectedEntities?: Array<{
+    entityId: string | mongoose.Types.ObjectId;
+    entityType: EntityType;
+    entityName?: string;
+    entityCode?: string;
+    role?: 'primary' | 'secondary';
+  }>;
 }
 
 class HistoryService {
   /**
-   * Değişiklik geçmişini kaydeder
+   * Genel history kayıt fonksiyonu
    */
-  async recordHistory({
-    entityId,
-    entityType,
-    entityName,
-    action,
-    userId,
-    previousData = {},
-    newData = {},
-    additionalInfo
-  }: RecordHistoryParams): Promise<IHistory> {
-    
-    // Değişiklikleri hesapla
-    const changes = this.calculateChanges(previousData, newData);
-    
-    // Yeni geçmiş kaydı oluştur
-    const history = new History({
-      entityId: typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId,
-      entityType,
-      entityName,
-      action,
-      changes,
-      previousData,
-      newData,
-      additionalInfo,
-      createdBy: typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId,
-      createdAt: new Date()
-    });
-    
-    // Kaydet ve dön
-    return await history.save();
-  }
-  
-  /**
-   * Belirli bir entity için geçmiş kayıtlarını getirir
-   */
-  async getHistoryByEntity(
-    entityId: mongoose.Types.ObjectId | string,
-    options: {
-      limit?: number;
-      page?: number;
-      sort?: string;
-      direction?: 'asc' | 'desc';
-    } = {}
-  ): Promise<{ history: IHistory[]; total: number; page: number; limit: number }> {
-    const { limit = 10, page = 1, sort = 'createdAt', direction = 'desc' } = options;
-    
-    const skip = (page - 1) * limit;
-    const sortOptions: any = {};
-    sortOptions[sort] = direction === 'desc' ? -1 : 1;
-    
-    const query = { 
-      entityId: typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId 
-    };
-    
-    const [history, total] = await Promise.all([
-      History.find(query)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(limit)
-        .populate('createdBy', 'name email'),
-      
-      History.countDocuments(query)
-    ]);
-    
-    return {
-      history,
-      total,
-      page,
-      limit
-    };
-  }
-  
-  /**
-   * İki obje arasındaki değişiklikleri hesaplar
-   * @private
-   */
-  private calculateChanges(oldData: any, newData: any): Record<string, { old: any; new: any }> {
-    const changes: Record<string, { old: any; new: any }> = {};
-    
-    // Yeni objede bulunan ve eski objeden farklı olan tüm alanları bul
-    if (newData && typeof newData === 'object') {
-      Object.keys(newData).forEach(key => {
-        // Eski objede alan yoksa veya değer farklıysa
-        if (
-          !oldData || 
-          typeof oldData !== 'object' || 
-          !Object.prototype.hasOwnProperty.call(oldData, key) || 
-          !this.isEqual(oldData[key], newData[key])
-        ) {
-          changes[key] = {
-            old: oldData?.[key],
-            new: newData[key]
-          };
+  async recordHistory(params: RecordHistoryParams): Promise<IHistory> {
+    try {
+      const {
+        entityId,
+        entityType,
+        entityName,
+        entityCode,
+        action,
+        userId,
+        previousData,
+        newData,
+        changes,
+        additionalInfo,
+        affectedEntities = []
+      } = params;
+
+      // Ana entity adını belirle
+      let finalEntityName = entityName;
+      if (!finalEntityName) {
+        // Translation object'i varsa çevir
+        if (newData?.name) {
+          finalEntityName = getEntityNameFromTranslation(newData.name);
+        } else if (previousData?.name) {
+          finalEntityName = getEntityNameFromTranslation(previousData.name);
+        } else {
+          // Entity service'den getir
+          finalEntityName = await entityService.getEntityName(entityId, entityType);
         }
+      }
+
+      // Ana entity'yi Entity tablosuna kaydet/güncelle
+      await entityService.upsertEntity(entityId, entityType, finalEntityName, entityCode);
+
+      // Etkilenen entity'leri hazırla
+      const processedAffectedEntities: IAffectedEntity[] = [];
+      
+      // Ana entity'yi ekle
+      processedAffectedEntities.push({
+        entityId: typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId,
+        entityType,
+        entityName: finalEntityName,
+        role: 'primary'
       });
-    }
-    
-    // Eski objede olup yeni objede olmayan alanları bul
-    if (oldData && typeof oldData === 'object') {
-      Object.keys(oldData).forEach(key => {
-        if (
-          !newData || 
-          typeof newData !== 'object' || 
-          !Object.prototype.hasOwnProperty.call(newData, key)
-        ) {
-          changes[key] = {
-            old: oldData[key],
-            new: undefined
-          };
+
+      // İlişkili entity'leri işle
+      for (const affected of affectedEntities) {
+        let affectedEntityName = affected.entityName;
+        if (!affectedEntityName) {
+          affectedEntityName = await entityService.getEntityName(affected.entityId, affected.entityType);
         }
+
+        // İlişkili entity'yi de Entity tablosuna kaydet
+        await entityService.upsertEntity(
+          affected.entityId,
+          affected.entityType,
+          affectedEntityName,
+          affected.entityCode
+        );
+
+        processedAffectedEntities.push({
+          entityId: typeof affected.entityId === 'string' ? new mongoose.Types.ObjectId(affected.entityId) : affected.entityId,
+          entityType: affected.entityType,
+          entityName: affectedEntityName,
+          role: affected.role || 'secondary'
+        });
+      }
+
+      // History kaydını oluştur
+      const historyRecord = new History({
+        // Ana entity bilgisi (geriye uyumluluk)
+        entityId: typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId,
+        entityType,
+        entityName: finalEntityName,
+        
+        // Etkilenen entity'ler
+        affectedEntities: processedAffectedEntities,
+        
+        // İşlem bilgisi
+        action,
+        changes: changes || {},
+        previousData: previousData || {},
+        newData: newData || {},
+        additionalInfo: additionalInfo || {},
+        createdBy: typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId
       });
+
+      const savedHistory = await historyRecord.save();
+      
+      console.log(`[HistoryService] History recorded: ${action} on ${entityType}:${entityId}`);
+      if (affectedEntities.length > 0) {
+        console.log(`[HistoryService] Affected entities: ${affectedEntities.length}`);
+      }
+      
+      return savedHistory;
+    } catch (error) {
+      console.error('[HistoryService] Record history error:', error);
+      throw error;
     }
-    
-    return changes;
   }
-  
+
   /**
-   * İki değerin eşit olup olmadığını kontrol eder
-   * @private
+   * Genel history kayıtlarını getir (tüm entity'ler için)
    */
-  private isEqual(val1: any, val2: any): boolean {
-    // İki değer de null veya undefined ise eşittir
-    if (val1 == null && val2 == null) {
-      return true;
-    }
-    
-    // Değerlerden sadece biri null veya undefined ise eşit değildir
-    if (val1 == null || val2 == null) {
-      return false;
-    }
-    
-    // İki değer de tarih ise
-    if (val1 instanceof Date && val2 instanceof Date) {
-      return val1.getTime() === val2.getTime();
-    }
-    
-    // İki değer de ObjectId ise
-    if (
-      (val1 instanceof mongoose.Types.ObjectId || typeof val1 === 'string') &&
-      (val2 instanceof mongoose.Types.ObjectId || typeof val2 === 'string')
-    ) {
-      const id1 = val1.toString();
-      const id2 = val2.toString();
-      return id1 === id2;
-    }
-    
-    // İki değer de array ise
-    if (Array.isArray(val1) && Array.isArray(val2)) {
-      // Uzunluklar farklıysa eşit değildir
-      if (val1.length !== val2.length) {
-        return false;
+  async getAllHistory(
+    entityType?: EntityType,
+    limit: number = 50,
+    skip: number = 0,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<{ histories: IHistory[]; total: number }> {
+    try {
+      const query: any = {};
+      
+      if (entityType) {
+        query.entityType = entityType;
       }
       
-      // Her elemanı karşılaştır
-      for (let i = 0; i < val1.length; i++) {
-        if (!this.isEqual(val1[i], val2[i])) {
-          return false;
+      if (startDate || endDate) {
+        query.createdAt = {};
+        if (startDate) {
+          query.createdAt.$gte = startDate;
+        }
+        if (endDate) {
+          query.createdAt.$lte = endDate;
         }
       }
-      
-      return true;
+
+      const [histories, total] = await Promise.all([
+        History.find(query)
+          .populate('createdBy', 'name email')
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
+        History.countDocuments(query)
+      ]);
+
+      return { histories, total };
+    } catch (error) {
+      console.error('[HistoryService] Get all history error:', error);
+      return { histories: [], total: 0 };
     }
-    
-    // İki değer de obje ise
-    if (
-      typeof val1 === 'object' && 
-      typeof val2 === 'object' && 
-      !Array.isArray(val1) && 
-      !Array.isArray(val2)
-    ) {
-      const keys1 = Object.keys(val1);
-      const keys2 = Object.keys(val2);
+  }
+
+  /**
+   * Belirli bir entity için history kayıtlarını getir
+   */
+  async getEntityHistory(
+    entityId: string | mongoose.Types.ObjectId,
+    entityType?: EntityType,
+    limit: number = 50,
+    skip: number = 0
+  ): Promise<{ histories: IHistory[]; total: number }> {
+    try {
+      const objectId = typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId;
       
-      // Anahtar sayıları farklıysa eşit değildir
-      if (keys1.length !== keys2.length) {
-        return false;
+      // Ana entity veya etkilenen entity'ler arasında ara
+      const query: any = {
+        $or: [
+          { entityId: objectId },
+          { 'affectedEntities.entityId': objectId }
+        ]
+      };
+
+      if (entityType) {
+        query.$or = [
+          { entityId: objectId, entityType },
+          { 'affectedEntities.entityId': objectId, 'affectedEntities.entityType': entityType }
+        ];
       }
+
+      const [histories, total] = await Promise.all([
+        History.find(query)
+          .populate('createdBy', 'name email')
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
+        History.countDocuments(query)
+      ]);
+
+      return { histories, total };
+    } catch (error) {
+      console.error('[HistoryService] Get entity history error:', error);
+      return { histories: [], total: 0 };
+    }
+  }
+
+  /**
+   * İlişki değişikliği için özel history kaydı
+   */
+  async recordRelationshipChange(params: {
+    primaryEntityId: string | mongoose.Types.ObjectId;
+    primaryEntityType: EntityType;
+    primaryEntityName?: string;
+    
+    secondaryEntityId: string | mongoose.Types.ObjectId;
+    secondaryEntityType: EntityType;
+    secondaryEntityName?: string;
+    
+    action: 'add' | 'remove';
+    relationshipType: string;
+    userId: string | mongoose.Types.ObjectId;
+    additionalInfo?: any;
+  }): Promise<IHistory[]> {
+    try {
+      const {
+        primaryEntityId,
+        primaryEntityType,
+        primaryEntityName,
+        secondaryEntityId,
+        secondaryEntityType,
+        secondaryEntityName,
+        action,
+        relationshipType,
+        userId,
+        additionalInfo
+      } = params;
+
+      // Her iki entity için de history kaydı oluştur
+      const historyAction = action === 'add' ? ActionType.RELATIONSHIP_ADD : ActionType.RELATIONSHIP_REMOVE;
       
-      // Her anahtarı karşılaştır
-      for (const key of keys1) {
-        if (!Object.prototype.hasOwnProperty.call(val2, key) || !this.isEqual(val1[key], val2[key])) {
-          return false;
+      const histories: IHistory[] = [];
+
+      // Primary entity için history
+      const primaryHistory = await this.recordHistory({
+        entityId: primaryEntityId,
+        entityType: primaryEntityType,
+        entityName: primaryEntityName,
+        action: historyAction,
+        userId,
+        additionalInfo: {
+          relationshipType,
+          action,
+          relatedEntity: {
+            id: secondaryEntityId,
+            type: secondaryEntityType,
+            name: secondaryEntityName
+          },
+          ...additionalInfo
+        },
+        affectedEntities: [{
+          entityId: secondaryEntityId,
+          entityType: secondaryEntityType,
+          entityName: secondaryEntityName,
+          role: 'secondary'
+        }]
+      });
+      histories.push(primaryHistory);
+
+      // Secondary entity için history
+      const secondaryHistory = await this.recordHistory({
+        entityId: secondaryEntityId,
+        entityType: secondaryEntityType,
+        entityName: secondaryEntityName,
+        action: historyAction,
+        userId,
+        additionalInfo: {
+          relationshipType,
+          action,
+          relatedEntity: {
+            id: primaryEntityId,
+            type: primaryEntityType,
+            name: primaryEntityName
+          },
+          ...additionalInfo
+        },
+        affectedEntities: [{
+          entityId: primaryEntityId,
+          entityType: primaryEntityType,
+          entityName: primaryEntityName,
+          role: 'secondary'
+        }]
+      });
+      histories.push(secondaryHistory);
+
+      return histories;
+    } catch (error) {
+      console.error('[HistoryService] Record relationship change error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Entity'nin tüm history kayıtlarını sil
+   */
+  async deleteEntityHistory(entityId: string | mongoose.Types.ObjectId): Promise<number> {
+    try {
+      const objectId = typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId;
+      
+      const result = await History.deleteMany({
+        $or: [
+          { entityId: objectId },
+          { 'affectedEntities.entityId': objectId }
+        ]
+      });
+      
+      console.log(`[HistoryService] Deleted ${result.deletedCount} history records for entity ${entityId}`);
+      return result.deletedCount || 0;
+    } catch (error) {
+      console.error('[HistoryService] Delete entity history error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Belirli bir tarih aralığındaki history kayıtlarını getir
+   */
+  async getHistoryByDateRange(
+    startDate: Date,
+    endDate: Date,
+    entityType?: EntityType,
+    limit: number = 100
+  ): Promise<IHistory[]> {
+    try {
+      const query: any = {
+        createdAt: {
+          $gte: startDate,
+          $lte: endDate
         }
+      };
+
+      if (entityType) {
+        query.entityType = entityType;
       }
-      
-      return true;
+
+      return await History.find(query)
+        .populate('createdBy', 'name email')
+        .sort({ createdAt: -1 })
+        .limit(limit);
+    } catch (error) {
+      console.error('[HistoryService] Get history by date range error:', error);
+      return [];
     }
-    
-    // Diğer durumlarda basit karşılaştırma yap
-    return val1 === val2;
   }
 }
 

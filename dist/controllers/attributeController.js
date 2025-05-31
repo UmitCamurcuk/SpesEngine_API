@@ -23,10 +23,42 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAttribute = exports.updateAttribute = exports.createAttribute = exports.getAttributeById = exports.getAttributes = void 0;
+exports.updateAttributeGroups = exports.getAttributeGroups = exports.deleteAttribute = exports.updateAttribute = exports.createAttribute = exports.getAttributeById = exports.getAttributes = void 0;
 const Attribute_1 = __importDefault(require("../models/Attribute"));
+const AttributeGroup_1 = __importDefault(require("../models/AttributeGroup"));
 const historyService_1 = __importDefault(require("../services/historyService"));
 const History_1 = require("../models/History");
+const Entity_1 = require("../models/Entity");
+// Translation object'inden metin çıkarmak için utility fonksiyon
+const getEntityNameFromTranslation = (translationObject, fallback = 'Unknown') => {
+    if (!translationObject)
+        return fallback;
+    // Eğer string ise direkt döndür
+    if (typeof translationObject === 'string') {
+        return translationObject;
+    }
+    // Translation object ise
+    if (translationObject.translations) {
+        // Önce Türkçe'yi dene
+        if (translationObject.translations.tr) {
+            return translationObject.translations.tr;
+        }
+        // Sonra İngilizce'yi dene
+        if (translationObject.translations.en) {
+            return translationObject.translations.en;
+        }
+        // Herhangi bir dili dene
+        const firstTranslation = Object.values(translationObject.translations)[0];
+        if (firstTranslation && typeof firstTranslation === 'string') {
+            return firstTranslation;
+        }
+    }
+    // Key varsa onu kullan
+    if (translationObject.key) {
+        return translationObject.key;
+    }
+    return fallback;
+};
 // GET tüm öznitelikleri getir
 const getAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -72,7 +104,6 @@ const getAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         console.log('Sorting with:', { sort, direction, sortOptions });
         // Verileri getir
         const attributes = yield Attribute_1.default.find(filterParams)
-            .populate('attributeGroup', 'name code')
             .populate('name', 'key namespace translations.tr translations.en')
             .populate('description', 'key namespace translations.tr translations.en')
             .sort(sortOptions)
@@ -104,7 +135,6 @@ const getAttributeById = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     try {
         const { id } = req.params;
         const attribute = yield Attribute_1.default.findById(id)
-            .populate('attributeGroup', 'name code description')
             .populate('name', 'key namespace translations.tr translations.en')
             .populate('description', 'key namespace translations.tr translations.en');
         if (!attribute) {
@@ -131,63 +161,65 @@ exports.getAttributeById = getAttributeById;
 const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log('[AttributeController:DEBUG] Gelen veri:', JSON.stringify(req.body, null, 2));
+        // AttributeGroup bilgisini ayır
+        const _a = req.body, { attributeGroup } = _a, attributeData = __rest(_a, ["attributeGroup"]);
         // Validasyon verilerini kontrol et
-        if (req.body.validations) {
-            console.log('[AttributeController:DEBUG] Validasyon içeriği:', JSON.stringify(req.body.validations, null, 2));
-            console.log('[AttributeController:DEBUG] Validasyon tipi:', typeof req.body.validations);
+        if (attributeData.validations) {
+            console.log('[AttributeController:DEBUG] Validasyon içeriği:', JSON.stringify(attributeData.validations, null, 2));
+            console.log('[AttributeController:DEBUG] Validasyon tipi:', typeof attributeData.validations);
             // Validasyon objesi boş ise undefined yap
-            if (Object.keys(req.body.validations).length === 0) {
+            if (Object.keys(attributeData.validations).length === 0) {
                 console.log('[AttributeController:DEBUG] Validasyon objesi boş, undefined yapılıyor');
-                req.body.validations = undefined;
+                attributeData.validations = undefined;
             }
             else {
                 // TCKNO gibi validasyon verilerinin sayısal değerlerini kontrol et
-                if (req.body.type === 'number' && typeof req.body.validations === 'object') {
+                if (attributeData.type === 'number' && typeof attributeData.validations === 'object') {
                     console.log('[AttributeController:DEBUG] Sayısal validasyonlar işleniyor...');
                     // min değeri için özel kontrol
-                    if ('min' in req.body.validations) {
-                        const minVal = Number(req.body.validations.min);
-                        console.log(`[AttributeController:DEBUG] min değeri: ${req.body.validations.min}, dönüştürülen: ${minVal}`);
-                        req.body.validations.min = minVal;
+                    if ('min' in attributeData.validations) {
+                        const minVal = Number(attributeData.validations.min);
+                        console.log(`[AttributeController:DEBUG] min değeri: ${attributeData.validations.min}, dönüştürülen: ${minVal}`);
+                        attributeData.validations.min = minVal;
                     }
                     // max değeri için özel kontrol
-                    if ('max' in req.body.validations) {
-                        const maxVal = Number(req.body.validations.max);
-                        console.log(`[AttributeController:DEBUG] max değeri: ${req.body.validations.max}, dönüştürülen: ${maxVal}`);
-                        req.body.validations.max = maxVal;
+                    if ('max' in attributeData.validations) {
+                        const maxVal = Number(attributeData.validations.max);
+                        console.log(`[AttributeController:DEBUG] max değeri: ${attributeData.validations.max}, dönüştürülen: ${maxVal}`);
+                        attributeData.validations.max = maxVal;
                     }
                     // Boolean değerleri kontrol et
                     ['isInteger', 'isPositive', 'isNegative', 'isZero'].forEach(prop => {
-                        if (prop in req.body.validations) {
-                            const boolVal = Boolean(req.body.validations[prop]);
-                            console.log(`[AttributeController:DEBUG] ${prop} değeri: ${req.body.validations[prop]}, dönüştürülen: ${boolVal}`);
-                            req.body.validations[prop] = boolVal;
+                        if (prop in attributeData.validations) {
+                            const boolVal = Boolean(attributeData.validations[prop]);
+                            console.log(`[AttributeController:DEBUG] ${prop} değeri: ${attributeData.validations[prop]}, dönüştürülen: ${boolVal}`);
+                            attributeData.validations[prop] = boolVal;
                         }
                     });
                 }
                 // Diğer tip validasyonları için de kontrol et
-                if (req.body.type === 'text' && typeof req.body.validations === 'object') {
+                if (attributeData.type === 'text' && typeof attributeData.validations === 'object') {
                     // Text validasyonları için özel kontroller
-                    if ('minLength' in req.body.validations) {
-                        req.body.validations.minLength = Number(req.body.validations.minLength);
+                    if ('minLength' in attributeData.validations) {
+                        attributeData.validations.minLength = Number(attributeData.validations.minLength);
                     }
-                    if ('maxLength' in req.body.validations) {
-                        req.body.validations.maxLength = Number(req.body.validations.maxLength);
+                    if ('maxLength' in attributeData.validations) {
+                        attributeData.validations.maxLength = Number(attributeData.validations.maxLength);
                     }
                 }
                 // Tarih validasyonları için özel kontroller
-                if (req.body.type === 'date' && typeof req.body.validations === 'object') {
+                if (attributeData.type === 'date' && typeof attributeData.validations === 'object') {
                     // Tarih validasyonları için işlemler
                     // (minDate ve maxDate zaten string olarak geliyor)
                 }
                 // Select/MultiSelect validasyonları için özel kontroller
-                if ((req.body.type === 'select' || req.body.type === 'multiselect') &&
-                    typeof req.body.validations === 'object') {
-                    if ('minSelections' in req.body.validations) {
-                        req.body.validations.minSelections = Number(req.body.validations.minSelections);
+                if ((attributeData.type === 'select' || attributeData.type === 'multiselect') &&
+                    typeof attributeData.validations === 'object') {
+                    if ('minSelections' in attributeData.validations) {
+                        attributeData.validations.minSelections = Number(attributeData.validations.minSelections);
                     }
-                    if ('maxSelections' in req.body.validations) {
-                        req.body.validations.maxSelections = Number(req.body.validations.maxSelections);
+                    if ('maxSelections' in attributeData.validations) {
+                        attributeData.validations.maxSelections = Number(attributeData.validations.maxSelections);
                     }
                 }
             }
@@ -195,25 +227,59 @@ const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         else {
             console.log('[AttributeController:DEBUG] Validasyon verisi yok!');
         }
-        console.log('[AttributeController:DEBUG] Attribute oluşturma öncesi son veri:', JSON.stringify(req.body, null, 2));
-        const newAttribute = yield Attribute_1.default.create(req.body);
+        console.log('[AttributeController:DEBUG] Attribute oluşturma öncesi son veri:', JSON.stringify(attributeData, null, 2));
+        const newAttribute = yield Attribute_1.default.create(attributeData);
         // Kayıt sonrası doğrula
         console.log('[AttributeController:DEBUG] Oluşturulan kayıt:', JSON.stringify(newAttribute, null, 2));
         console.log('[AttributeController:DEBUG] Validasyon alanı kaydedildi mi:', newAttribute.validations !== undefined);
         if (newAttribute.validations) {
             console.log('[AttributeController:DEBUG] Kaydedilen validasyon:', JSON.stringify(newAttribute.validations, null, 2));
         }
+        // AttributeGroup'a attribute'u ekle
+        let affectedAttributeGroup = null;
+        if (attributeGroup) {
+            try {
+                console.log(`[AttributeController:DEBUG] AttributeGroup'a ekleme işlemi başlıyor. Group ID: ${attributeGroup}, Attribute ID: ${newAttribute._id}`);
+                const updatedGroup = yield AttributeGroup_1.default.findByIdAndUpdate(attributeGroup, { $addToSet: { attributes: newAttribute._id } }, { new: true }).populate('name', 'key namespace translations.tr translations.en');
+                if (updatedGroup) {
+                    affectedAttributeGroup = updatedGroup;
+                    console.log(`[AttributeController:DEBUG] Attribute ${newAttribute._id} başarıyla AttributeGroup ${attributeGroup} içine eklendi`);
+                    console.log(`[AttributeController:DEBUG] Güncellenmiş grup attributes listesi:`, updatedGroup.attributes);
+                }
+                else {
+                    console.log(`[AttributeController:DEBUG] AttributeGroup ${attributeGroup} bulunamadı`);
+                }
+            }
+            catch (groupError) {
+                console.error('[AttributeController:DEBUG] AttributeGroup güncelleme hatası:', groupError);
+                // AttributeGroup hatası attribute oluşturmayı engellemez
+            }
+        }
+        else {
+            console.log('[AttributeController:DEBUG] AttributeGroup seçilmemiş, ekleme işlemi yapılmıyor');
+        }
         // History kaydı oluştur
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);
             console.log(`[AttributeController:DEBUG] History kaydı oluşturuluyor, userId: ${userId}`);
+            // Etkilenen entity'ler listesi
+            const affectedEntities = [];
+            if (affectedAttributeGroup) {
+                affectedEntities.push({
+                    entityId: affectedAttributeGroup._id,
+                    entityType: Entity_1.EntityType.ATTRIBUTE_GROUP,
+                    entityName: getEntityNameFromTranslation(affectedAttributeGroup.name),
+                    role: 'secondary'
+                });
+            }
             yield historyService_1.default.recordHistory({
                 entityId: String(newAttribute._id),
-                entityType: 'attribute',
-                entityName: String(newAttribute.name),
+                entityType: Entity_1.EntityType.ATTRIBUTE,
+                entityCode: newAttribute.code,
                 action: History_1.ActionType.CREATE,
                 userId: userId,
-                newData: newAttribute.toObject()
+                newData: newAttribute.toObject(),
+                affectedEntities
             });
         }
         res.status(201).json({
@@ -295,8 +361,8 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             // Ana attribute güncelleme history'si
             yield historyService_1.default.recordHistory({
                 entityId: id,
-                entityType: 'attribute',
-                entityName: String((updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.name) || previousAttribute.name),
+                entityType: Entity_1.EntityType.ATTRIBUTE,
+                entityCode: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.code) || previousAttribute.code,
                 action: History_1.ActionType.UPDATE,
                 userId: userId,
                 previousData: previousAttribute.toObject(),
@@ -307,14 +373,13 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 yield historyService_1.default.recordHistory({
                     entityId: translationChange.translationKey,
                     entityType: 'translation',
-                    entityName: `${translationChange.field}_translation`,
                     action: History_1.ActionType.UPDATE,
                     userId: userId,
                     previousData: translationChange.oldValues,
                     newData: translationChange.newValues,
                     additionalInfo: {
                         parentEntityId: id,
-                        parentEntityType: 'attribute',
+                        parentEntityType: Entity_1.EntityType.ATTRIBUTE,
                         field: translationChange.field
                     }
                 });
@@ -346,19 +411,39 @@ const deleteAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             });
             return;
         }
+        // İlişkili AttributeGroup'ları bul
+        const relatedGroups = yield AttributeGroup_1.default.find({ attributes: id })
+            .populate('name', 'key namespace translations.tr translations.en');
         // Veriyi sil
         yield Attribute_1.default.findByIdAndDelete(id);
         // History kaydı oluştur
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);
+            // Etkilenen AttributeGroup'lar
+            const affectedEntities = relatedGroups.map(group => ({
+                entityId: group._id,
+                entityType: Entity_1.EntityType.ATTRIBUTE_GROUP,
+                entityName: getEntityNameFromTranslation(group.name),
+                role: 'secondary'
+            }));
             yield historyService_1.default.recordHistory({
                 entityId: id,
-                entityType: 'attribute',
-                entityName: String(attribute.name),
+                entityType: Entity_1.EntityType.ATTRIBUTE,
+                entityCode: attribute.code,
                 action: History_1.ActionType.DELETE,
                 userId: userId,
-                previousData: attribute.toObject()
+                previousData: attribute.toObject(),
+                affectedEntities
             });
+        }
+        // Entity'nin tüm history kayıtlarını sil
+        try {
+            const deletedHistoryCount = yield historyService_1.default.deleteEntityHistory(id);
+            console.log(`Deleted ${deletedHistoryCount} history records for attribute ${id}`);
+        }
+        catch (historyError) {
+            console.error('Error deleting attribute history:', historyError);
+            // History silme hatası ana işlemi engellemesin
         }
         res.status(200).json({
             success: true,
@@ -373,3 +458,122 @@ const deleteAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.deleteAttribute = deleteAttribute;
+// GET özniteliğin bağlı olduğu grupları getir
+const getAttributeGroups = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        // Attribute'ın var olup olmadığını kontrol et
+        const attribute = yield Attribute_1.default.findById(id);
+        if (!attribute) {
+            res.status(404).json({
+                success: false,
+                message: 'Öznitelik bulunamadı'
+            });
+            return;
+        }
+        // Bu attribute'ı içeren AttributeGroup'ları bul
+        const attributeGroups = yield AttributeGroup_1.default.find({
+            attributes: id,
+            isActive: true
+        })
+            .populate('name', 'key namespace translations.tr translations.en')
+            .populate('description', 'key namespace translations.tr translations.en');
+        res.status(200).json({
+            success: true,
+            count: attributeGroups.length,
+            data: attributeGroups
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Öznitelik grupları getirilirken bir hata oluştu'
+        });
+    }
+});
+exports.getAttributeGroups = getAttributeGroups;
+// PUT özniteliğin bağlı olduğu grupları güncelle
+const updateAttributeGroups = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const { attributeGroups } = req.body; // Yeni grup ID'leri dizisi
+        // Attribute'ın var olup olmadığını kontrol et
+        const attribute = yield Attribute_1.default.findById(id);
+        if (!attribute) {
+            res.status(404).json({
+                success: false,
+                message: 'Öznitelik bulunamadı'
+            });
+            return;
+        }
+        // Önceki grupları bul
+        const previousGroups = yield AttributeGroup_1.default.find({ attributes: id })
+            .populate('name', 'key namespace translations.tr translations.en');
+        // Önce bu attribute'ı tüm gruplardan kaldır
+        yield AttributeGroup_1.default.updateMany({ attributes: id }, { $pull: { attributes: id } });
+        // Sonra seçilen gruplara ekle
+        let newGroups = [];
+        if (attributeGroups && attributeGroups.length > 0) {
+            yield AttributeGroup_1.default.updateMany({ _id: { $in: attributeGroups } }, { $addToSet: { attributes: id } });
+            // Yeni grupları getir
+            newGroups = yield AttributeGroup_1.default.find({ _id: { $in: attributeGroups } })
+                .populate('name', 'key namespace translations.tr translations.en');
+        }
+        // Güncellenmiş grupları getir
+        const updatedGroups = yield AttributeGroup_1.default.find({
+            attributes: id,
+            isActive: true
+        })
+            .populate('name', 'key namespace translations.tr translations.en')
+            .populate('description', 'key namespace translations.tr translations.en');
+        // History kaydı oluştur - ilişki değişiklikleri için
+        if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+            const userId = String(req.user._id);
+            // Kaldırılan gruplar için history
+            for (const removedGroup of previousGroups) {
+                if (!attributeGroups || !attributeGroups.includes(removedGroup._id.toString())) {
+                    yield historyService_1.default.recordRelationshipChange({
+                        primaryEntityId: id,
+                        primaryEntityType: Entity_1.EntityType.ATTRIBUTE,
+                        primaryEntityName: getEntityNameFromTranslation(attribute.name),
+                        secondaryEntityId: removedGroup._id,
+                        secondaryEntityType: Entity_1.EntityType.ATTRIBUTE_GROUP,
+                        secondaryEntityName: getEntityNameFromTranslation(removedGroup.name),
+                        action: 'remove',
+                        relationshipType: 'attribute_group_membership',
+                        userId
+                    });
+                }
+            }
+            // Eklenen gruplar için history
+            for (const addedGroup of newGroups) {
+                const wasAlreadyMember = previousGroups.some(pg => pg._id.toString() === addedGroup._id.toString());
+                if (!wasAlreadyMember) {
+                    yield historyService_1.default.recordRelationshipChange({
+                        primaryEntityId: id,
+                        primaryEntityType: Entity_1.EntityType.ATTRIBUTE,
+                        primaryEntityName: getEntityNameFromTranslation(attribute.name),
+                        secondaryEntityId: addedGroup._id,
+                        secondaryEntityType: Entity_1.EntityType.ATTRIBUTE_GROUP,
+                        secondaryEntityName: getEntityNameFromTranslation(addedGroup.name),
+                        action: 'add',
+                        relationshipType: 'attribute_group_membership',
+                        userId
+                    });
+                }
+            }
+        }
+        res.status(200).json({
+            success: true,
+            count: updatedGroups.length,
+            data: updatedGroups
+        });
+    }
+    catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message || 'Öznitelik grupları güncellenirken bir hata oluştu'
+        });
+    }
+});
+exports.updateAttributeGroups = updateAttributeGroups;

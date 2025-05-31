@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import Family from '../models/Family';
 import historyService from '../services/historyService';
 import { ActionType } from '../models/History';
+import { EntityType } from '../models/Entity';
 
 // GET tüm aileleri getir
 export const getFamilies = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -201,7 +202,7 @@ export const createFamily = async (req: Request, res: Response, next: NextFuncti
       
       try {
         await historyService.recordHistory({
-          entityType: 'family',
+          entityType: EntityType.FAMILY,
           entityId: String(family._id),
           entityName: family.name,
           action: ActionType.CREATE,
@@ -306,7 +307,7 @@ export const updateFamily = async (req: Request, res: Response, next: NextFuncti
       
       try {
         await historyService.recordHistory({
-          entityType: 'family',
+          entityType: EntityType.FAMILY,
           entityId: String(family._id),
           entityName: family.name,
           action: ActionType.UPDATE,
@@ -366,7 +367,7 @@ export const deleteFamily = async (req: Request, res: Response, next: NextFuncti
       
       try {
         await historyService.recordHistory({
-          entityType: 'family',
+          entityType: EntityType.FAMILY,
           entityId: String(family._id),
           entityName: family.name,
           action: ActionType.DELETE,
@@ -383,6 +384,15 @@ export const deleteFamily = async (req: Request, res: Response, next: NextFuncti
         console.error('History deletion failed for family:', historyError);
         // History hatası silme işlemini engellemesin
       }
+    }
+    
+    // Entity'nin tüm history kayıtlarını sil
+    try {
+      const deletedHistoryCount = await historyService.deleteEntityHistory(req.params.id);
+      console.log(`Deleted ${deletedHistoryCount} history records for family ${req.params.id}`);
+    } catch (historyError) {
+      console.error('Error deleting family history:', historyError);
+      // History silme hatası ana işlemi engellemesin
     }
     
     res.status(200).json({

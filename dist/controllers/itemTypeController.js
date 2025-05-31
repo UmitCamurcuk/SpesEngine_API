@@ -14,6 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteItemType = exports.updateItemType = exports.createItemType = exports.getItemTypeById = exports.getItemTypes = void 0;
 const ItemType_1 = __importDefault(require("../models/ItemType"));
+const historyService_1 = __importDefault(require("../services/historyService"));
+const History_1 = require("../models/History");
+const Entity_1 = require("../models/Entity");
 // GET tüm öğe tiplerini getir
 const getItemTypes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -189,13 +192,49 @@ exports.updateItemType = updateItemType;
 // DELETE öğe tipini sil
 const deleteItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const itemType = yield ItemType_1.default.findByIdAndDelete(req.params.id);
+        // Silinmeden önce veriyi al
+        const itemType = yield ItemType_1.default.findById(req.params.id);
         if (!itemType) {
             res.status(404).json({
                 success: false,
                 message: 'Öğe tipi bulunamadı'
             });
             return;
+        }
+        // Veriyi sil
+        yield ItemType_1.default.findByIdAndDelete(req.params.id);
+        // History kaydı oluştur
+        if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+            const userId = String(req.user._id);
+            try {
+                yield historyService_1.default.recordHistory({
+                    entityType: Entity_1.EntityType.ITEM_TYPE,
+                    entityId: String(itemType._id),
+                    entityName: itemType.name,
+                    action: History_1.ActionType.DELETE,
+                    userId: userId,
+                    previousData: {
+                        name: itemType.name,
+                        code: itemType.code,
+                        description: itemType.description || '',
+                        isActive: itemType.isActive
+                    }
+                });
+                console.log('ItemType deletion history saved successfully');
+            }
+            catch (historyError) {
+                console.error('History deletion failed for itemType:', historyError);
+                // History hatası silme işlemini engellemesin
+            }
+        }
+        // Entity'nin tüm history kayıtlarını sil
+        try {
+            const deletedHistoryCount = yield historyService_1.default.deleteEntityHistory(req.params.id);
+            console.log(`Deleted ${deletedHistoryCount} history records for itemType ${req.params.id}`);
+        }
+        catch (historyError) {
+            console.error('Error deleting itemType history:', historyError);
+            // History silme hatası ana işlemi engellemesin
         }
         res.status(200).json({
             success: true,

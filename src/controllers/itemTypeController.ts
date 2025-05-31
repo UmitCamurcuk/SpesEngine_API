@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import ItemType from '../models/ItemType';
+import historyService from '../services/historyService';
+import { ActionType } from '../models/History';
+import { EntityType } from '../models/Entity';
 
 // GET tüm öğe tiplerini getir
 export const getItemTypes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -200,7 +203,8 @@ export const updateItemType = async (req: Request, res: Response, next: NextFunc
 // DELETE öğe tipini sil
 export const deleteItemType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const itemType = await ItemType.findByIdAndDelete(req.params.id);
+    // Silinmeden önce veriyi al
+    const itemType = await ItemType.findById(req.params.id);
     
     if (!itemType) {
       res.status(404).json({
@@ -208,6 +212,43 @@ export const deleteItemType = async (req: Request, res: Response, next: NextFunc
         message: 'Öğe tipi bulunamadı'
       });
       return;
+    }
+    
+    // Veriyi sil
+    await ItemType.findByIdAndDelete(req.params.id);
+    
+    // History kaydı oluştur
+    if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+      const userId = String(req.user._id);
+      
+      try {
+        await historyService.recordHistory({
+          entityType: EntityType.ITEM_TYPE,
+          entityId: String(itemType._id),
+          entityName: itemType.name,
+          action: ActionType.DELETE,
+          userId: userId,
+          previousData: {
+            name: itemType.name,
+            code: itemType.code,
+            description: itemType.description || '',
+            isActive: itemType.isActive
+          }
+        });
+        console.log('ItemType deletion history saved successfully');
+      } catch (historyError) {
+        console.error('History deletion failed for itemType:', historyError);
+        // History hatası silme işlemini engellemesin
+      }
+    }
+    
+    // Entity'nin tüm history kayıtlarını sil
+    try {
+      const deletedHistoryCount = await historyService.deleteEntityHistory(req.params.id);
+      console.log(`Deleted ${deletedHistoryCount} history records for itemType ${req.params.id}`);
+    } catch (historyError) {
+      console.error('Error deleting itemType history:', historyError);
+      // History silme hatası ana işlemi engellemesin
     }
     
     res.status(200).json({

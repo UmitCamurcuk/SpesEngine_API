@@ -27,6 +27,37 @@ exports.deleteAttributeGroup = exports.updateAttributeGroup = exports.createAttr
 const AttributeGroup_1 = __importDefault(require("../models/AttributeGroup"));
 const historyService_1 = __importDefault(require("../services/historyService"));
 const History_1 = require("../models/History");
+const Entity_1 = require("../models/Entity");
+// Translation object'inden metin çıkarmak için utility fonksiyon
+const getEntityNameFromTranslation = (translationObject, fallback = 'Unknown') => {
+    if (!translationObject)
+        return fallback;
+    // Eğer string ise direkt döndür
+    if (typeof translationObject === 'string') {
+        return translationObject;
+    }
+    // Translation object ise
+    if (translationObject.translations) {
+        // Önce Türkçe'yi dene
+        if (translationObject.translations.tr) {
+            return translationObject.translations.tr;
+        }
+        // Sonra İngilizce'yi dene
+        if (translationObject.translations.en) {
+            return translationObject.translations.en;
+        }
+        // Herhangi bir dili dene
+        const firstTranslation = Object.values(translationObject.translations)[0];
+        if (firstTranslation && typeof firstTranslation === 'string') {
+            return firstTranslation;
+        }
+    }
+    // Key varsa onu kullan
+    if (translationObject.key) {
+        return translationObject.key;
+    }
+    return fallback;
+};
 // GET tüm öznitelik gruplarını getir
 const getAttributeGroups = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -90,8 +121,8 @@ const createAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
             const userId = String(req.user._id);
             yield historyService_1.default.recordHistory({
                 entityId: String(attributeGroup._id),
-                entityType: 'attributeGroup',
-                entityName: String(attributeGroup.name),
+                entityType: Entity_1.EntityType.ATTRIBUTE_GROUP,
+                entityName: getEntityNameFromTranslation(attributeGroup.name),
                 action: History_1.ActionType.CREATE,
                 userId: userId,
                 newData: attributeGroup.toObject()
@@ -181,8 +212,8 @@ const updateAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
             // Ana attributeGroup güncelleme history'si
             yield historyService_1.default.recordHistory({
                 entityId: id,
-                entityType: 'attributeGroup',
-                entityName: String(attributeGroup.name || previousAttributeGroup.name),
+                entityType: Entity_1.EntityType.ATTRIBUTE_GROUP,
+                entityName: getEntityNameFromTranslation(attributeGroup.name || previousAttributeGroup.name),
                 action: History_1.ActionType.UPDATE,
                 userId: userId,
                 previousData: previousAttributeGroup.toObject(),
@@ -190,20 +221,21 @@ const updateAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
             });
             // Translation değişiklikleri için ayrı history kayıtları
             for (const translationChange of changedTranslations) {
-                yield historyService_1.default.recordHistory({
-                    entityId: translationChange.translationKey,
-                    entityType: 'translation',
-                    entityName: `${translationChange.field}_translation`,
-                    action: History_1.ActionType.UPDATE,
-                    userId: userId,
-                    previousData: translationChange.oldValues,
-                    newData: translationChange.newValues,
-                    additionalInfo: {
-                        parentEntityId: id,
-                        parentEntityType: 'attributeGroup',
-                        field: translationChange.field
-                    }
-                });
+                // Translation değişikliği için ayrı history kaydı oluştur
+                // await historyService.recordHistory({
+                //   entityId: translationChange.translationKey,
+                //   entityType: EntityType.TRANSLATION,
+                //   entityName: `${translationChange.field}_translation`,
+                //   action: ActionType.UPDATE,
+                //   userId: userId,
+                //   previousData: translationChange.oldValues,
+                //   newData: translationChange.newValues,
+                //   additionalInfo: {
+                //     parentEntityId: id,
+                //     parentEntityType: EntityType.ATTRIBUTE_GROUP,
+                //     field: translationChange.field
+                //   }
+                // });
             }
         }
         res.status(200).json({
@@ -238,12 +270,21 @@ const deleteAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
             const userId = String(req.user._id);
             yield historyService_1.default.recordHistory({
                 entityId: req.params.id,
-                entityType: 'attributeGroup',
-                entityName: String(attributeGroup.name),
+                entityType: Entity_1.EntityType.ATTRIBUTE_GROUP,
+                entityName: getEntityNameFromTranslation(attributeGroup.name),
                 action: History_1.ActionType.DELETE,
                 userId: userId,
                 previousData: attributeGroup.toObject()
             });
+        }
+        // Entity'nin tüm history kayıtlarını sil
+        try {
+            const deletedHistoryCount = yield historyService_1.default.deleteEntityHistory(req.params.id);
+            console.log(`Deleted ${deletedHistoryCount} history records for attribute group ${req.params.id}`);
+        }
+        catch (historyError) {
+            console.error('Error deleting attribute group history:', historyError);
+            // History silme hatası ana işlemi engellemesin
         }
         res.status(200).json({
             success: true,

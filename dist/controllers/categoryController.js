@@ -16,6 +16,7 @@ exports.deleteCategory = exports.updateCategory = exports.createCategory = expor
 const Category_1 = __importDefault(require("../models/Category"));
 const historyService_1 = __importDefault(require("../services/historyService"));
 const History_1 = require("../models/History");
+const Entity_1 = require("../models/Entity");
 // GET tüm kategorileri getir (filtreleme ve sayfalama ile)
 const getCategories = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -196,7 +197,7 @@ const createCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             const userId = String(req.user._id);
             try {
                 yield historyService_1.default.recordHistory({
-                    entityType: 'category',
+                    entityType: Entity_1.EntityType.CATEGORY,
                     entityId: String(category._id),
                     entityName: category.name,
                     action: History_1.ActionType.CREATE,
@@ -296,7 +297,7 @@ const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             const userId = String(req.user._id);
             try {
                 yield historyService_1.default.recordHistory({
-                    entityType: 'category',
+                    entityType: Entity_1.EntityType.CATEGORY,
                     entityId: String(category._id),
                     entityName: category.name,
                     action: History_1.ActionType.UPDATE,
@@ -358,7 +359,7 @@ const deleteCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             const userId = String(req.user._id);
             try {
                 yield historyService_1.default.recordHistory({
-                    entityType: 'category',
+                    entityType: Entity_1.EntityType.CATEGORY,
                     entityId: String(category._id),
                     entityName: category.name,
                     action: History_1.ActionType.DELETE,
@@ -376,6 +377,15 @@ const deleteCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 console.error('History deletion failed for category:', historyError);
                 // History hatası silme işlemini engellemesin
             }
+        }
+        // Entity'nin tüm history kayıtlarını sil
+        try {
+            const deletedHistoryCount = yield historyService_1.default.deleteEntityHistory(id);
+            console.log(`Deleted ${deletedHistoryCount} history records for category ${id}`);
+        }
+        catch (historyError) {
+            console.error('Error deleting category history:', historyError);
+            // History silme hatası ana işlemi engellemesin
         }
         console.log(`Deleted category with ID: ${id}`);
         res.status(200).json({

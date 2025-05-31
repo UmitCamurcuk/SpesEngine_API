@@ -49,6 +49,7 @@ exports.deleteFamily = exports.updateFamily = exports.createFamily = exports.get
 const Family_1 = __importDefault(require("../models/Family"));
 const historyService_1 = __importDefault(require("../services/historyService"));
 const History_1 = require("../models/History");
+const Entity_1 = require("../models/Entity");
 // GET tüm aileleri getir
 const getFamilies = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -220,7 +221,7 @@ const createFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             const userId = String(req.user._id);
             try {
                 yield historyService_1.default.recordHistory({
-                    entityType: 'family',
+                    entityType: Entity_1.EntityType.FAMILY,
                     entityId: String(family._id),
                     entityName: family.name,
                     action: History_1.ActionType.CREATE,
@@ -312,7 +313,7 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             const userId = String(req.user._id);
             try {
                 yield historyService_1.default.recordHistory({
-                    entityType: 'family',
+                    entityType: Entity_1.EntityType.FAMILY,
                     entityId: String(family._id),
                     entityName: family.name,
                     action: History_1.ActionType.UPDATE,
@@ -369,7 +370,7 @@ const deleteFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             const userId = String(req.user._id);
             try {
                 yield historyService_1.default.recordHistory({
-                    entityType: 'family',
+                    entityType: Entity_1.EntityType.FAMILY,
                     entityId: String(family._id),
                     entityName: family.name,
                     action: History_1.ActionType.DELETE,
@@ -387,6 +388,15 @@ const deleteFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 console.error('History deletion failed for family:', historyError);
                 // History hatası silme işlemini engellemesin
             }
+        }
+        // Entity'nin tüm history kayıtlarını sil
+        try {
+            const deletedHistoryCount = yield historyService_1.default.deleteEntityHistory(req.params.id);
+            console.log(`Deleted ${deletedHistoryCount} history records for family ${req.params.id}`);
+        }
+        catch (historyError) {
+            console.error('Error deleting family history:', historyError);
+            // History silme hatası ana işlemi engellemesin
         }
         res.status(200).json({
             success: true,

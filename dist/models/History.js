@@ -35,14 +35,39 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ActionType = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+const Entity_1 = require("./Entity");
 var ActionType;
 (function (ActionType) {
     ActionType["CREATE"] = "create";
     ActionType["UPDATE"] = "update";
     ActionType["DELETE"] = "delete";
     ActionType["RESTORE"] = "restore";
+    ActionType["RELATIONSHIP_ADD"] = "relationship_add";
+    ActionType["RELATIONSHIP_REMOVE"] = "relationship_remove";
 })(ActionType || (exports.ActionType = ActionType = {}));
+const AffectedEntitySchema = new mongoose_1.Schema({
+    entityId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        required: true
+    },
+    entityType: {
+        type: String,
+        required: true,
+        enum: Object.values(Entity_1.EntityType)
+    },
+    entityName: {
+        type: String,
+        required: true
+    },
+    role: {
+        type: String,
+        required: true,
+        enum: ['primary', 'secondary'],
+        default: 'primary'
+    }
+}, { _id: false });
 const HistorySchema = new mongoose_1.Schema({
+    // Ana entity bilgisi (geriye uyumluluk için)
     entityId: {
         type: mongoose_1.Schema.Types.ObjectId,
         required: true,
@@ -51,12 +76,17 @@ const HistorySchema = new mongoose_1.Schema({
     entityType: {
         type: String,
         required: true,
-        enum: ['attribute', 'attributeGroup', 'category', 'item', 'itemType', 'family', 'user', 'translation'],
+        enum: Object.values(Entity_1.EntityType),
         index: true
     },
     entityName: {
         type: String,
         required: true
+    },
+    // Etkilenen tüm entity'ler
+    affectedEntities: {
+        type: [AffectedEntitySchema],
+        default: []
     },
     action: {
         type: String,
@@ -94,6 +124,8 @@ const HistorySchema = new mongoose_1.Schema({
 // Indexler
 HistorySchema.index({ entityId: 1, createdAt: -1 });
 HistorySchema.index({ entityType: 1, createdAt: -1 });
+HistorySchema.index({ 'affectedEntities.entityId': 1, createdAt: -1 });
+HistorySchema.index({ 'affectedEntities.entityType': 1, createdAt: -1 });
 HistorySchema.index({ createdBy: 1, createdAt: -1 });
 HistorySchema.index({ createdAt: -1 });
 exports.default = mongoose_1.default.model('History', HistorySchema);
