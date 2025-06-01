@@ -78,6 +78,35 @@ const getEntityNameFromTranslation = (translationObject, fallback = 'Unknown') =
     }
     return fallback;
 };
+// İki obje arasındaki değişiklikleri hesaplayan fonksiyon
+const calculateChanges = (previousData, newData) => {
+    const changes = {};
+    if (!previousData && !newData) {
+        return changes;
+    }
+    if (!previousData) {
+        // Yeni oluşturma - tüm newData değerleri change olarak sayılır
+        return Object.assign({}, newData);
+    }
+    if (!newData) {
+        // Silme - tüm previousData değerleri change olarak sayılır
+        return Object.assign({}, previousData);
+    }
+    // Her iki data da var - farkları hesapla
+    const allKeys = new Set([...Object.keys(previousData), ...Object.keys(newData)]);
+    for (const key of allKeys) {
+        const oldValue = previousData[key];
+        const newValue = newData[key];
+        // Değerler farklı ise changes'e ekle
+        if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+            changes[key] = {
+                from: oldValue,
+                to: newValue
+            };
+        }
+    }
+    return changes;
+};
 class HistoryService {
     /**
      * Genel history kayıt fonksiyonu
@@ -96,13 +125,24 @@ class HistoryService {
                     else if (previousData === null || previousData === void 0 ? void 0 : previousData.name) {
                         finalEntityName = getEntityNameFromTranslation(previousData.name);
                     }
-                    else {
-                        // Entity service'den getir
-                        finalEntityName = yield entityService_1.default.getEntityName(entityId, entityType);
+                    // Hala yoksa Entity service'den getir
+                    if (!finalEntityName || finalEntityName === 'Unknown') {
+                        try {
+                            finalEntityName = yield entityService_1.default.getEntityName(entityId, entityType);
+                        }
+                        catch (error) {
+                            console.warn(`[HistoryService] Could not get entity name for ${entityType}:${entityId}`, error);
+                            finalEntityName = `${entityType}_${entityId}`;
+                        }
                     }
                 }
                 // Ana entity'yi Entity tablosuna kaydet/güncelle
-                yield entityService_1.default.upsertEntity(entityId, entityType, finalEntityName, entityCode);
+                try {
+                    yield entityService_1.default.upsertEntity(entityId, entityType, entityCode);
+                }
+                catch (error) {
+                    console.warn(`[HistoryService] Could not upsert entity for ${entityType}:${entityId}`, error);
+                }
                 // Etkilenen entity'leri hazırla
                 const processedAffectedEntities = [];
                 // Ana entity'yi ekle
@@ -116,10 +156,21 @@ class HistoryService {
                 for (const affected of affectedEntities) {
                     let affectedEntityName = affected.entityName;
                     if (!affectedEntityName) {
-                        affectedEntityName = yield entityService_1.default.getEntityName(affected.entityId, affected.entityType);
+                        try {
+                            affectedEntityName = yield entityService_1.default.getEntityName(affected.entityId, affected.entityType);
+                        }
+                        catch (error) {
+                            console.warn(`[HistoryService] Could not get affected entity name for ${affected.entityType}:${affected.entityId}`, error);
+                            affectedEntityName = `${affected.entityType}_${affected.entityId}`;
+                        }
                     }
                     // İlişkili entity'yi de Entity tablosuna kaydet
-                    yield entityService_1.default.upsertEntity(affected.entityId, affected.entityType, affectedEntityName, affected.entityCode);
+                    try {
+                        yield entityService_1.default.upsertEntity(affected.entityId, affected.entityType, affected.entityCode);
+                    }
+                    catch (error) {
+                        console.warn(`[HistoryService] Could not upsert affected entity for ${affected.entityType}:${affected.entityId}`, error);
+                    }
                     processedAffectedEntities.push({
                         entityId: typeof affected.entityId === 'string' ? new mongoose_1.default.Types.ObjectId(affected.entityId) : affected.entityId,
                         entityType: affected.entityType,
@@ -127,24 +178,26 @@ class HistoryService {
                         role: affected.role || 'secondary'
                     });
                 }
+                // Changes'i hesapla (eğer verilmemişse)
+                const finalChanges = changes || calculateChanges(previousData, newData);
                 // History kaydını oluştur
                 const historyRecord = new History_1.default({
                     // Ana entity bilgisi (geriye uyumluluk)
                     entityId: typeof entityId === 'string' ? new mongoose_1.default.Types.ObjectId(entityId) : entityId,
                     entityType,
-                    entityName: finalEntityName,
                     // Etkilenen entity'ler
                     affectedEntities: processedAffectedEntities,
                     // İşlem bilgisi
                     action,
-                    changes: changes || {},
-                    previousData: previousData || {},
+                    changes: finalChanges,
+                    // CREATE işlemlerde previousData ekleme
+                    previousData: action === History_1.ActionType.CREATE ? {} : (previousData || {}),
                     newData: newData || {},
                     additionalInfo: additionalInfo || {},
                     createdBy: typeof userId === 'string' ? new mongoose_1.default.Types.ObjectId(userId) : userId
                 });
                 const savedHistory = yield historyRecord.save();
-                console.log(`[HistoryService] History recorded: ${action} on ${entityType}:${entityId}`);
+                console.log(`[HistoryService] History recorded: ${action} on ${entityType}:${entityId} (${finalEntityName})`);
                 if (affectedEntities.length > 0) {
                     console.log(`[HistoryService] Affected entities: ${affectedEntities.length}`);
                 }

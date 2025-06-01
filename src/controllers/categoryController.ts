@@ -215,8 +215,11 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
           newData: {
             name: category.name,
             code: category.code,
-            description: category.description || '',
-            isActive: category.isActive
+            description: category.description,
+            isActive: category.isActive,
+            family: category.family,
+            parent: category.parent,
+            attributeGroups: category.attributeGroups
           }
         });
         console.log('Category creation history saved successfully');
@@ -320,24 +323,35 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
       const userId = String(req.user._id);
       
       try {
+        // Sadece temel alanları karşılaştır
+        const previousData = {
+          name: oldCategory.name,
+          code: oldCategory.code,
+          description: oldCategory.description,
+          isActive: oldCategory.isActive,
+          family: oldCategory.family,
+          parent: oldCategory.parent,
+          attributeGroups: oldCategory.attributeGroups
+        };
+        
+        const newData = {
+          name: category.name,
+          code: category.code,
+          description: category.description,
+          isActive: category.isActive,
+          family: category.family,
+          parent: category.parent,
+          attributeGroups: category.attributeGroups
+        };
+        
         await historyService.recordHistory({
           entityType: EntityType.CATEGORY,
           entityId: String(category._id),
           entityName: category.name,
           action: ActionType.UPDATE,
           userId: userId,
-          previousData: {
-            name: oldCategory.name,
-            code: oldCategory.code,
-            description: oldCategory.description || '',
-            isActive: oldCategory.isActive
-          },
-          newData: {
-            name: category.name,
-            code: category.code,
-            description: category.description || '',
-            isActive: category.isActive
-          }
+          previousData,
+          newData
         });
         console.log('Category update history saved successfully');
       } catch (historyError) {
@@ -396,8 +410,11 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
           previousData: {
             name: category.name,
             code: category.code,
-            description: category.description || '',
-            isActive: category.isActive
+            description: category.description,
+            isActive: category.isActive,
+            family: category.family,
+            parent: category.parent,
+            attributeGroups: category.attributeGroups
           }
         });
         console.log('Category deletion history saved successfully');

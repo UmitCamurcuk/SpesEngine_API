@@ -22,7 +22,6 @@ export interface IHistory extends Document {
   // Ana entity bilgisi (geriye uyumluluk için)
   entityId: mongoose.Types.ObjectId;
   entityType: EntityType;
-  entityName: string;
   
   // Etkilenen tüm entity'ler (yeni sistem)
   affectedEntities: IAffectedEntity[];
@@ -70,10 +69,6 @@ const HistorySchema: Schema = new Schema({
     required: true,
     enum: Object.values(EntityType),
     index: true
-  },
-  entityName: {
-    type: String,
-    required: true
   },
   
   // Etkilenen tüm entity'ler

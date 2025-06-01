@@ -1,14 +1,47 @@
 import Entity, { IEntity, EntityType } from '../models/Entity';
 import mongoose from 'mongoose';
 
+// Translation object'inden metin çıkarmak için utility fonksiyon
+const getEntityNameFromTranslation = (translationObject: any, fallback: string = 'Unknown'): string => {
+  if (!translationObject) return fallback;
+  
+  // Eğer string ise direkt döndür
+  if (typeof translationObject === 'string') {
+    return translationObject;
+  }
+  
+  // Translation object ise
+  if (translationObject.translations) {
+    // Önce Türkçe'yi dene
+    if (translationObject.translations.tr) {
+      return translationObject.translations.tr;
+    }
+    // Sonra İngilizce'yi dene
+    if (translationObject.translations.en) {
+      return translationObject.translations.en;
+    }
+    // Herhangi bir dili dene
+    const firstTranslation = Object.values(translationObject.translations)[0];
+    if (firstTranslation && typeof firstTranslation === 'string') {
+      return firstTranslation;
+    }
+  }
+  
+  // Key varsa onu kullan
+  if (translationObject.key) {
+    return translationObject.key;
+  }
+  
+  return fallback;
+};
+
 class EntityService {
   /**
-   * Entity kaydı oluştur veya güncelle
+   * Entity kaydı oluştur veya güncelle (sadece referans için)
    */
   async upsertEntity(
     entityId: string | mongoose.Types.ObjectId,
     entityType: EntityType,
-    entityName: string,
     entityCode?: string
   ): Promise<IEntity> {
     try {
@@ -17,7 +50,6 @@ class EntityService {
       const entity = await Entity.findOneAndUpdate(
         { entityId: objectId, entityType },
         {
-          entityName: entityName.trim(),
           entityCode: entityCode?.trim(),
           isActive: true
         },
@@ -28,7 +60,7 @@ class EntityService {
         }
       );
       
-      console.log(`[EntityService] Entity upserted: ${entityType}:${entityId} -> ${entityName}`);
+      console.log(`[EntityService] Entity upserted: ${entityType}:${entityId}`);
       return entity;
     } catch (error) {
       console.error('[EntityService] Entity upsert error:', error);
@@ -76,18 +108,63 @@ class EntityService {
   }
 
   /**
-   * Entity adını getir (cache'li)
+   * Entity adını getir (önce Entity tablosundan, yoksa gerçek model'dan)
    */
   async getEntityName(
     entityId: string | mongoose.Types.ObjectId,
     entityType: EntityType
   ): Promise<string> {
     try {
+      // Önce Entity tablosundan dene
       const entity = await this.getEntity(entityId, entityType);
-      return entity?.entityName || 'Unknown Entity';
+      if (entity?.entityName && entity.entityName !== 'Unknown Entity') {
+        return entity.entityName;
+      }
+
+      // Entity tablosunda yoksa gerçek model'dan getir
+      const objectId = typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId;
+      
+      switch (entityType) {
+        case EntityType.CATEGORY:
+          const Category = (await import('../models/Category')).default;
+          const category = await Category.findById(objectId);
+          return category?.name || `category_${entityId}`;
+          
+        case EntityType.ATTRIBUTE:
+          const Attribute = (await import('../models/Attribute')).default;
+          const attribute = await Attribute.findById(objectId).populate('name');
+          return getEntityNameFromTranslation(attribute?.name) || `attribute_${entityId}`;
+          
+        case EntityType.ATTRIBUTE_GROUP:
+          const AttributeGroup = (await import('../models/AttributeGroup')).default;
+          const attributeGroup = await AttributeGroup.findById(objectId).populate('name');
+          return getEntityNameFromTranslation(attributeGroup?.name) || `attributeGroup_${entityId}`;
+          
+        case EntityType.FAMILY:
+          const Family = (await import('../models/Family')).default;
+          const family = await Family.findById(objectId);
+          return family?.name || `family_${entityId}`;
+          
+        case EntityType.ITEM_TYPE:
+          const ItemType = (await import('../models/ItemType')).default;
+          const itemType = await ItemType.findById(objectId);
+          return itemType?.name || `itemType_${entityId}`;
+          
+        case EntityType.USER:
+          const User = (await import('../models/User')).default;
+          const user = await User.findById(objectId);
+          return user?.name || user?.email || `user_${entityId}`;
+          
+        case EntityType.LOCALIZATION:
+          // Localization için namespace:key formatında name döndür
+          return `${entityType}_${entityId}`;
+          
+        default:
+          return `${entityType}_${entityId}`;
+      }
     } catch (error) {
-      console.error('[EntityService] Get entity name error:', error);
-      return 'Unknown Entity';
+      console.error(`[EntityService] Get entity name error for ${entityType}:${entityId}:`, error);
+      return `${entityType}_${entityId}`;
     }
   }
 

@@ -37,6 +37,43 @@ const getEntityNameFromTranslation = (translationObject: any, fallback: string =
   return fallback;
 };
 
+// İki obje arasındaki değişiklikleri hesaplayan fonksiyon
+const calculateChanges = (previousData: any, newData: any): any => {
+  const changes: any = {};
+  
+  if (!previousData && !newData) {
+    return changes;
+  }
+  
+  if (!previousData) {
+    // Yeni oluşturma - tüm newData değerleri change olarak sayılır
+    return { ...newData };
+  }
+  
+  if (!newData) {
+    // Silme - tüm previousData değerleri change olarak sayılır
+    return { ...previousData };
+  }
+  
+  // Her iki data da var - farkları hesapla
+  const allKeys = new Set([...Object.keys(previousData), ...Object.keys(newData)]);
+  
+  for (const key of allKeys) {
+    const oldValue = previousData[key];
+    const newValue = newData[key];
+    
+    // Değerler farklı ise changes'e ekle
+    if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+      changes[key] = {
+        from: oldValue,
+        to: newValue
+      };
+    }
+  }
+  
+  return changes;
+};
+
 interface RecordHistoryParams {
   // Ana entity bilgisi
   entityId: string | mongoose.Types.ObjectId;
@@ -92,14 +129,25 @@ class HistoryService {
           finalEntityName = getEntityNameFromTranslation(newData.name);
         } else if (previousData?.name) {
           finalEntityName = getEntityNameFromTranslation(previousData.name);
-        } else {
-          // Entity service'den getir
-          finalEntityName = await entityService.getEntityName(entityId, entityType);
+        }
+        
+        // Hala yoksa Entity service'den getir
+        if (!finalEntityName || finalEntityName === 'Unknown') {
+          try {
+            finalEntityName = await entityService.getEntityName(entityId, entityType);
+          } catch (error) {
+            console.warn(`[HistoryService] Could not get entity name for ${entityType}:${entityId}`, error);
+            finalEntityName = `${entityType}_${entityId}`;
+          }
         }
       }
 
       // Ana entity'yi Entity tablosuna kaydet/güncelle
-      await entityService.upsertEntity(entityId, entityType, finalEntityName, entityCode);
+      try {
+        await entityService.upsertEntity(entityId, entityType, entityCode);
+      } catch (error) {
+        console.warn(`[HistoryService] Could not upsert entity for ${entityType}:${entityId}`, error);
+      }
 
       // Etkilenen entity'leri hazırla
       const processedAffectedEntities: IAffectedEntity[] = [];
@@ -116,16 +164,24 @@ class HistoryService {
       for (const affected of affectedEntities) {
         let affectedEntityName = affected.entityName;
         if (!affectedEntityName) {
-          affectedEntityName = await entityService.getEntityName(affected.entityId, affected.entityType);
+          try {
+            affectedEntityName = await entityService.getEntityName(affected.entityId, affected.entityType);
+          } catch (error) {
+            console.warn(`[HistoryService] Could not get affected entity name for ${affected.entityType}:${affected.entityId}`, error);
+            affectedEntityName = `${affected.entityType}_${affected.entityId}`;
+          }
         }
 
         // İlişkili entity'yi de Entity tablosuna kaydet
-        await entityService.upsertEntity(
-          affected.entityId,
-          affected.entityType,
-          affectedEntityName,
-          affected.entityCode
-        );
+        try {
+          await entityService.upsertEntity(
+            affected.entityId,
+            affected.entityType,
+            affected.entityCode
+          );
+        } catch (error) {
+          console.warn(`[HistoryService] Could not upsert affected entity for ${affected.entityType}:${affected.entityId}`, error);
+        }
 
         processedAffectedEntities.push({
           entityId: typeof affected.entityId === 'string' ? new mongoose.Types.ObjectId(affected.entityId) : affected.entityId,
@@ -135,20 +191,23 @@ class HistoryService {
         });
       }
 
+      // Changes'i hesapla (eğer verilmemişse)
+      const finalChanges = changes || calculateChanges(previousData, newData);
+
       // History kaydını oluştur
       const historyRecord = new History({
         // Ana entity bilgisi (geriye uyumluluk)
         entityId: typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId,
         entityType,
-        entityName: finalEntityName,
         
         // Etkilenen entity'ler
         affectedEntities: processedAffectedEntities,
         
         // İşlem bilgisi
         action,
-        changes: changes || {},
-        previousData: previousData || {},
+        changes: finalChanges,
+        // CREATE işlemlerde previousData ekleme
+        previousData: action === ActionType.CREATE ? {} : (previousData || {}),
         newData: newData || {},
         additionalInfo: additionalInfo || {},
         createdBy: typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId
@@ -156,7 +215,7 @@ class HistoryService {
 
       const savedHistory = await historyRecord.save();
       
-      console.log(`[HistoryService] History recorded: ${action} on ${entityType}:${entityId}`);
+      console.log(`[HistoryService] History recorded: ${action} on ${entityType}:${entityId} (${finalEntityName})`);
       if (affectedEntities.length > 0) {
         console.log(`[HistoryService] Affected entities: ${affectedEntities.length}`);
       }

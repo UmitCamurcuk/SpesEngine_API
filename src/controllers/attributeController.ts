@@ -288,10 +288,19 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
       await historyService.recordHistory({
         entityId: String(newAttribute._id),
         entityType: EntityType.ATTRIBUTE,
+        entityName: getEntityNameFromTranslation(newAttribute.name),
         entityCode: newAttribute.code,
         action: ActionType.CREATE,
         userId: userId,
-        newData: newAttribute.toObject(),
+        newData: {
+          name: newAttribute.name,
+          code: newAttribute.code,
+          type: newAttribute.type,
+          description: newAttribute.description,
+          isRequired: newAttribute.isRequired,
+          isActive: newAttribute.isActive,
+          options: newAttribute.options
+        },
         affectedEntities
       });
     }
@@ -385,31 +394,41 @@ export const updateAttribute = async (req: Request, res: Response, next: NextFun
       const userId = String(req.user._id);
       
       // Ana attribute güncelleme history'si
+      const previousData = {
+        name: previousAttribute.name,
+        code: previousAttribute.code,
+        type: previousAttribute.type,
+        description: previousAttribute.description,
+        isRequired: previousAttribute.isRequired,
+        isActive: previousAttribute.isActive,
+        options: previousAttribute.options
+      };
+      
+      const newData = {
+        name: updatedAttribute?.name || previousAttribute.name,
+        code: updatedAttribute?.code || previousAttribute.code,
+        type: updatedAttribute?.type || previousAttribute.type,
+        description: updatedAttribute?.description || previousAttribute.description,
+        isRequired: updatedAttribute?.isRequired !== undefined ? updatedAttribute.isRequired : previousAttribute.isRequired,
+        isActive: updatedAttribute?.isActive !== undefined ? updatedAttribute.isActive : previousAttribute.isActive,
+        options: updatedAttribute?.options || previousAttribute.options
+      };
+      
       await historyService.recordHistory({
         entityId: id,
         entityType: EntityType.ATTRIBUTE,
+        entityName: getEntityNameFromTranslation(updatedAttribute?.name || previousAttribute.name),
         entityCode: updatedAttribute?.code || previousAttribute.code,
         action: ActionType.UPDATE,
         userId: userId,
-        previousData: previousAttribute.toObject(),
-        newData: updatedAttribute?.toObject()
+        previousData,
+        newData
       });
 
       // Translation değişiklikleri için ayrı history kayıtları
       for (const translationChange of changedTranslations) {
-        await historyService.recordHistory({
-          entityId: translationChange.translationKey,
-          entityType: 'translation' as EntityType,
-          action: ActionType.UPDATE,
-          userId: userId,
-          previousData: translationChange.oldValues,
-          newData: translationChange.newValues,
-          additionalInfo: {
-            parentEntityId: id,
-            parentEntityType: EntityType.ATTRIBUTE,
-            field: translationChange.field
-          }
-        });
+        // Translation değişiklikleri artık localizationController'da handle ediliyor
+        console.log(`Translation change recorded for ${translationChange.field}: ${translationChange.translationKey}`);
       }
     }
     
@@ -463,10 +482,19 @@ export const deleteAttribute = async (req: Request, res: Response, next: NextFun
       await historyService.recordHistory({
         entityId: id,
         entityType: EntityType.ATTRIBUTE,
+        entityName: getEntityNameFromTranslation(attribute.name),
         entityCode: attribute.code,
         action: ActionType.DELETE,
         userId: userId,
-        previousData: attribute.toObject(),
+        previousData: {
+          name: attribute.name,
+          code: attribute.code,
+          type: attribute.type,
+          description: attribute.description,
+          isRequired: attribute.isRequired,
+          isActive: attribute.isActive,
+          options: attribute.options
+        },
         affectedEntities
       });
     }

@@ -79,10 +79,6 @@ const HistorySchema = new mongoose_1.Schema({
         enum: Object.values(Entity_1.EntityType),
         index: true
     },
-    entityName: {
-        type: String,
-        required: true
-    },
     // Etkilenen tüm entity'ler
     affectedEntities: {
         type: [AffectedEntitySchema],

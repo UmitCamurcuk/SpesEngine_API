@@ -205,8 +205,11 @@ const createCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                     newData: {
                         name: category.name,
                         code: category.code,
-                        description: category.description || '',
-                        isActive: category.isActive
+                        description: category.description,
+                        isActive: category.isActive,
+                        family: category.family,
+                        parent: category.parent,
+                        attributeGroups: category.attributeGroups
                     }
                 });
                 console.log('Category creation history saved successfully');
@@ -296,24 +299,33 @@ const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);
             try {
+                // Sadece temel alanları karşılaştır
+                const previousData = {
+                    name: oldCategory.name,
+                    code: oldCategory.code,
+                    description: oldCategory.description,
+                    isActive: oldCategory.isActive,
+                    family: oldCategory.family,
+                    parent: oldCategory.parent,
+                    attributeGroups: oldCategory.attributeGroups
+                };
+                const newData = {
+                    name: category.name,
+                    code: category.code,
+                    description: category.description,
+                    isActive: category.isActive,
+                    family: category.family,
+                    parent: category.parent,
+                    attributeGroups: category.attributeGroups
+                };
                 yield historyService_1.default.recordHistory({
                     entityType: Entity_1.EntityType.CATEGORY,
                     entityId: String(category._id),
                     entityName: category.name,
                     action: History_1.ActionType.UPDATE,
                     userId: userId,
-                    previousData: {
-                        name: oldCategory.name,
-                        code: oldCategory.code,
-                        description: oldCategory.description || '',
-                        isActive: oldCategory.isActive
-                    },
-                    newData: {
-                        name: category.name,
-                        code: category.code,
-                        description: category.description || '',
-                        isActive: category.isActive
-                    }
+                    previousData,
+                    newData
                 });
                 console.log('Category update history saved successfully');
             }
@@ -367,8 +379,11 @@ const deleteCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                     previousData: {
                         name: category.name,
                         code: category.code,
-                        description: category.description || '',
-                        isActive: category.isActive
+                        description: category.description,
+                        isActive: category.isActive,
+                        family: category.family,
+                        parent: category.parent,
+                        attributeGroups: category.attributeGroups
                     }
                 });
                 console.log('Category deletion history saved successfully');

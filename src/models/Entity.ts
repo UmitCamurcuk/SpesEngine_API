@@ -12,7 +12,8 @@ export enum EntityType {
   PERMISSION = 'permission',
   PERMISSION_GROUP = 'permissionGroup',
   RELATIONSHIP = 'relationship',
-  RELATIONSHIP_TYPE = 'relationshipType'
+  RELATIONSHIP_TYPE = 'relationshipType',
+  LOCALIZATION = 'localization'
 }
 
 export interface IEntity extends Document {

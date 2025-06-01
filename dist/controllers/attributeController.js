@@ -275,10 +275,19 @@ const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             yield historyService_1.default.recordHistory({
                 entityId: String(newAttribute._id),
                 entityType: Entity_1.EntityType.ATTRIBUTE,
+                entityName: getEntityNameFromTranslation(newAttribute.name),
                 entityCode: newAttribute.code,
                 action: History_1.ActionType.CREATE,
                 userId: userId,
-                newData: newAttribute.toObject(),
+                newData: {
+                    name: newAttribute.name,
+                    code: newAttribute.code,
+                    type: newAttribute.type,
+                    description: newAttribute.description,
+                    isRequired: newAttribute.isRequired,
+                    isActive: newAttribute.isActive,
+                    options: newAttribute.options
+                },
                 affectedEntities
             });
         }
@@ -359,30 +368,38 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);
             // Ana attribute güncelleme history'si
+            const previousData = {
+                name: previousAttribute.name,
+                code: previousAttribute.code,
+                type: previousAttribute.type,
+                description: previousAttribute.description,
+                isRequired: previousAttribute.isRequired,
+                isActive: previousAttribute.isActive,
+                options: previousAttribute.options
+            };
+            const newData = {
+                name: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.name) || previousAttribute.name,
+                code: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.code) || previousAttribute.code,
+                type: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.type) || previousAttribute.type,
+                description: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.description) || previousAttribute.description,
+                isRequired: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.isRequired) !== undefined ? updatedAttribute.isRequired : previousAttribute.isRequired,
+                isActive: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.isActive) !== undefined ? updatedAttribute.isActive : previousAttribute.isActive,
+                options: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.options) || previousAttribute.options
+            };
             yield historyService_1.default.recordHistory({
                 entityId: id,
                 entityType: Entity_1.EntityType.ATTRIBUTE,
+                entityName: getEntityNameFromTranslation((updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.name) || previousAttribute.name),
                 entityCode: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.code) || previousAttribute.code,
                 action: History_1.ActionType.UPDATE,
                 userId: userId,
-                previousData: previousAttribute.toObject(),
-                newData: updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.toObject()
+                previousData,
+                newData
             });
             // Translation değişiklikleri için ayrı history kayıtları
             for (const translationChange of changedTranslations) {
-                yield historyService_1.default.recordHistory({
-                    entityId: translationChange.translationKey,
-                    entityType: 'translation',
-                    action: History_1.ActionType.UPDATE,
-                    userId: userId,
-                    previousData: translationChange.oldValues,
-                    newData: translationChange.newValues,
-                    additionalInfo: {
-                        parentEntityId: id,
-                        parentEntityType: Entity_1.EntityType.ATTRIBUTE,
-                        field: translationChange.field
-                    }
-                });
+                // Translation değişiklikleri artık localizationController'da handle ediliyor
+                console.log(`Translation change recorded for ${translationChange.field}: ${translationChange.translationKey}`);
             }
         }
         res.status(200).json({
@@ -429,10 +446,19 @@ const deleteAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             yield historyService_1.default.recordHistory({
                 entityId: id,
                 entityType: Entity_1.EntityType.ATTRIBUTE,
+                entityName: getEntityNameFromTranslation(attribute.name),
                 entityCode: attribute.code,
                 action: History_1.ActionType.DELETE,
                 userId: userId,
-                previousData: attribute.toObject(),
+                previousData: {
+                    name: attribute.name,
+                    code: attribute.code,
+                    type: attribute.type,
+                    description: attribute.description,
+                    isRequired: attribute.isRequired,
+                    isActive: attribute.isActive,
+                    options: attribute.options
+                },
                 affectedEntities
             });
         }

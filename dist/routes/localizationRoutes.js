@@ -11,6 +11,10 @@ const router = express_1.default.Router();
 router.get('/languages', localizationController_1.getSupportedLanguages);
 // Belirli bir dil için çevirileri getir (public endpoint)
 router.get('/:lang', localizationController_1.getTranslations);
+// ID'ye göre çeviri getir
+router.get('/details/:id', localizationController_1.getTranslationById);
+// ID'ye göre çeviri güncelle
+router.put('/details/:id', auth_middleware_1.authenticateToken, (0, auth_middleware_1.checkAccess)(['TRANSLATIONS_MANAGE']), localizationController_1.updateTranslationById);
 // Çeviri işlemleri için yetkilendirme gerekli
 router.post('/', auth_middleware_1.authenticateToken, (0, auth_middleware_1.checkAccess)(['TRANSLATIONS_MANAGE']), localizationController_1.upsertTranslation);
 exports.default = router;
