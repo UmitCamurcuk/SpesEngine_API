@@ -235,11 +235,16 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
     
     const newAttribute = await Attribute.create(attributeData);
     
+    // Oluşturulan attribute'u populate et
+    const populatedAttribute = await Attribute.findById(newAttribute._id)
+      .populate('name','key namespace translations.tr translations.en')
+      .populate('description','key namespace translations.tr translations.en');
+    
     // Kayıt sonrası doğrula
-    console.log('[AttributeController:DEBUG] Oluşturulan kayıt:', JSON.stringify(newAttribute, null, 2));
-    console.log('[AttributeController:DEBUG] Validasyon alanı kaydedildi mi:', newAttribute.validations !== undefined);
-    if (newAttribute.validations) {
-      console.log('[AttributeController:DEBUG] Kaydedilen validasyon:', JSON.stringify(newAttribute.validations, null, 2));
+    console.log('[AttributeController:DEBUG] Oluşturulan kayıt:', JSON.stringify(populatedAttribute, null, 2));
+    console.log('[AttributeController:DEBUG] Validasyon alanı kaydedildi mi:', populatedAttribute?.validations !== undefined);
+    if (populatedAttribute?.validations) {
+      console.log('[AttributeController:DEBUG] Kaydedilen validasyon:', JSON.stringify(populatedAttribute.validations, null, 2));
     }
     
     // AttributeGroup'a attribute'u ekle
@@ -288,18 +293,20 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
       await historyService.recordHistory({
         entityId: String(newAttribute._id),
         entityType: EntityType.ATTRIBUTE,
-        entityName: getEntityNameFromTranslation(newAttribute.name),
-        entityCode: newAttribute.code,
         action: ActionType.CREATE,
         userId: userId,
         newData: {
-          name: newAttribute.name,
-          code: newAttribute.code,
-          type: newAttribute.type,
-          description: newAttribute.description,
-          isRequired: newAttribute.isRequired,
-          isActive: newAttribute.isActive,
-          options: newAttribute.options
+          name: (populatedAttribute?.name as any)?.translations?.tr || populatedAttribute?.code || 'Unknown',
+          code: populatedAttribute?.code,
+          type: populatedAttribute?.type,
+          description: (populatedAttribute?.description as any)?.translations?.tr || '',
+          isRequired: populatedAttribute?.isRequired,
+          isActive: populatedAttribute?.isActive,
+          options: populatedAttribute?.options,
+          validations: populatedAttribute?.validations,
+          _id: String(populatedAttribute?._id),
+          createdAt: populatedAttribute?.createdAt,
+          updatedAt: populatedAttribute?.updatedAt
         },
         affectedEntities
       });
@@ -307,7 +314,7 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
     
     res.status(201).json({
       success: true,
-      data: newAttribute
+      data: populatedAttribute
     });
   } catch (error: any) {
     console.error('[AttributeController:DEBUG] Hata:', error.message);

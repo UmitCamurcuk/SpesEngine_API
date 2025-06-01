@@ -114,23 +114,39 @@ const getAttributeGroupById = (req, res, next) => __awaiter(void 0, void 0, void
 exports.getAttributeGroupById = getAttributeGroupById;
 // POST yeni öznitelik grubu oluştur
 const createAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
     try {
         const attributeGroup = yield AttributeGroup_1.default.create(req.body);
+        // Oluşturulan attributeGroup'u populate et
+        const populatedAttributeGroup = yield AttributeGroup_1.default.findById(attributeGroup._id)
+            .populate('attributes')
+            .populate('name', 'key namespace translations.tr translations.en')
+            .populate('description', 'key namespace translations.tr translations.en');
         // History kaydı oluştur
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);
+            // newData'yı düzgün formatla
+            const historyData = {
+                name: ((_b = (_a = populatedAttributeGroup === null || populatedAttributeGroup === void 0 ? void 0 : populatedAttributeGroup.name) === null || _a === void 0 ? void 0 : _a.translations) === null || _b === void 0 ? void 0 : _b.tr) || (populatedAttributeGroup === null || populatedAttributeGroup === void 0 ? void 0 : populatedAttributeGroup.code) || 'Unknown',
+                code: populatedAttributeGroup === null || populatedAttributeGroup === void 0 ? void 0 : populatedAttributeGroup.code,
+                description: ((_d = (_c = populatedAttributeGroup === null || populatedAttributeGroup === void 0 ? void 0 : populatedAttributeGroup.description) === null || _c === void 0 ? void 0 : _c.translations) === null || _d === void 0 ? void 0 : _d.tr) || '',
+                attributes: (populatedAttributeGroup === null || populatedAttributeGroup === void 0 ? void 0 : populatedAttributeGroup.attributes) || [],
+                isActive: populatedAttributeGroup === null || populatedAttributeGroup === void 0 ? void 0 : populatedAttributeGroup.isActive,
+                _id: String(populatedAttributeGroup === null || populatedAttributeGroup === void 0 ? void 0 : populatedAttributeGroup._id),
+                createdAt: populatedAttributeGroup === null || populatedAttributeGroup === void 0 ? void 0 : populatedAttributeGroup.createdAt,
+                updatedAt: populatedAttributeGroup === null || populatedAttributeGroup === void 0 ? void 0 : populatedAttributeGroup.updatedAt
+            };
             yield historyService_1.default.recordHistory({
                 entityId: String(attributeGroup._id),
                 entityType: Entity_1.EntityType.ATTRIBUTE_GROUP,
-                entityName: getEntityNameFromTranslation(attributeGroup.name),
                 action: History_1.ActionType.CREATE,
                 userId: userId,
-                newData: attributeGroup.toObject()
+                newData: historyData
             });
         }
         res.status(201).json({
             success: true,
-            data: attributeGroup
+            data: populatedAttributeGroup || attributeGroup
         });
     }
     catch (error) {

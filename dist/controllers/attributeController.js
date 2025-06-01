@@ -159,10 +159,11 @@ const getAttributeById = (req, res, next) => __awaiter(void 0, void 0, void 0, f
 exports.getAttributeById = getAttributeById;
 // POST yeni öznitelik oluştur
 const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
     try {
         console.log('[AttributeController:DEBUG] Gelen veri:', JSON.stringify(req.body, null, 2));
         // AttributeGroup bilgisini ayır
-        const _a = req.body, { attributeGroup } = _a, attributeData = __rest(_a, ["attributeGroup"]);
+        const _e = req.body, { attributeGroup } = _e, attributeData = __rest(_e, ["attributeGroup"]);
         // Validasyon verilerini kontrol et
         if (attributeData.validations) {
             console.log('[AttributeController:DEBUG] Validasyon içeriği:', JSON.stringify(attributeData.validations, null, 2));
@@ -229,11 +230,15 @@ const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         }
         console.log('[AttributeController:DEBUG] Attribute oluşturma öncesi son veri:', JSON.stringify(attributeData, null, 2));
         const newAttribute = yield Attribute_1.default.create(attributeData);
+        // Oluşturulan attribute'u populate et
+        const populatedAttribute = yield Attribute_1.default.findById(newAttribute._id)
+            .populate('name', 'key namespace translations.tr translations.en')
+            .populate('description', 'key namespace translations.tr translations.en');
         // Kayıt sonrası doğrula
-        console.log('[AttributeController:DEBUG] Oluşturulan kayıt:', JSON.stringify(newAttribute, null, 2));
-        console.log('[AttributeController:DEBUG] Validasyon alanı kaydedildi mi:', newAttribute.validations !== undefined);
-        if (newAttribute.validations) {
-            console.log('[AttributeController:DEBUG] Kaydedilen validasyon:', JSON.stringify(newAttribute.validations, null, 2));
+        console.log('[AttributeController:DEBUG] Oluşturulan kayıt:', JSON.stringify(populatedAttribute, null, 2));
+        console.log('[AttributeController:DEBUG] Validasyon alanı kaydedildi mi:', (populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.validations) !== undefined);
+        if (populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.validations) {
+            console.log('[AttributeController:DEBUG] Kaydedilen validasyon:', JSON.stringify(populatedAttribute.validations, null, 2));
         }
         // AttributeGroup'a attribute'u ekle
         let affectedAttributeGroup = null;
@@ -275,25 +280,27 @@ const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             yield historyService_1.default.recordHistory({
                 entityId: String(newAttribute._id),
                 entityType: Entity_1.EntityType.ATTRIBUTE,
-                entityName: getEntityNameFromTranslation(newAttribute.name),
-                entityCode: newAttribute.code,
                 action: History_1.ActionType.CREATE,
                 userId: userId,
                 newData: {
-                    name: newAttribute.name,
-                    code: newAttribute.code,
-                    type: newAttribute.type,
-                    description: newAttribute.description,
-                    isRequired: newAttribute.isRequired,
-                    isActive: newAttribute.isActive,
-                    options: newAttribute.options
+                    name: ((_b = (_a = populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.name) === null || _a === void 0 ? void 0 : _a.translations) === null || _b === void 0 ? void 0 : _b.tr) || (populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.code) || 'Unknown',
+                    code: populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.code,
+                    type: populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.type,
+                    description: ((_d = (_c = populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.description) === null || _c === void 0 ? void 0 : _c.translations) === null || _d === void 0 ? void 0 : _d.tr) || '',
+                    isRequired: populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.isRequired,
+                    isActive: populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.isActive,
+                    options: populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.options,
+                    validations: populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.validations,
+                    _id: String(populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute._id),
+                    createdAt: populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.createdAt,
+                    updatedAt: populatedAttribute === null || populatedAttribute === void 0 ? void 0 : populatedAttribute.updatedAt
                 },
                 affectedEntities
             });
         }
         res.status(201).json({
             success: true,
-            data: newAttribute
+            data: populatedAttribute
         });
     }
     catch (error) {

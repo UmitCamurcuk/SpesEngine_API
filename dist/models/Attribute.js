@@ -37,12 +37,34 @@ exports.AttributeType = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 var AttributeType;
 (function (AttributeType) {
+    // Basic (Temel) Types
     AttributeType["TEXT"] = "text";
     AttributeType["NUMBER"] = "number";
-    AttributeType["DATE"] = "date";
     AttributeType["BOOLEAN"] = "boolean";
+    AttributeType["DATE"] = "date";
+    AttributeType["DATETIME"] = "datetime";
+    AttributeType["TIME"] = "time";
+    // Enum / Seçilebilir Değerler
     AttributeType["SELECT"] = "select";
     AttributeType["MULTISELECT"] = "multiselect";
+    // Dosya / Medya Tipleri
+    AttributeType["FILE"] = "file";
+    AttributeType["IMAGE"] = "image";
+    AttributeType["ATTACHMENT"] = "attachment";
+    // Kompozit / Gelişmiş Tipler
+    AttributeType["OBJECT"] = "object";
+    AttributeType["ARRAY"] = "array";
+    AttributeType["JSON"] = "json";
+    AttributeType["FORMULA"] = "formula";
+    AttributeType["EXPRESSION"] = "expression";
+    // UI / Görsel Bileşen Tipleri
+    AttributeType["COLOR"] = "color";
+    AttributeType["RICH_TEXT"] = "rich_text";
+    AttributeType["RATING"] = "rating";
+    AttributeType["BARCODE"] = "barcode";
+    AttributeType["QR"] = "qr";
+    // Special Types
+    AttributeType["READONLY"] = "readonly"; // readonly - Sadece okunabilir (create'te set edilir)
 })(AttributeType || (exports.AttributeType = AttributeType = {}));
 // Mixed tip kullanarak validasyon verilerini esnek bir şekilde depolama
 const ValidationSchema = mongoose_1.Schema.Types.Mixed;
@@ -94,51 +116,72 @@ AttributeSchema.pre('save', function (next) {
         console.log('[Attribute Model] Boş validasyon objesi undefined yapılıyor');
         this.validations = undefined;
     }
-    // TCKNO gibi büyük sayılar için validasyonu doğrula
-    if (this.validations && this.type === AttributeType.NUMBER) {
+    // Validasyon işlemleri
+    if (this.validations) {
         const validations = this.validations;
-        console.log('[Attribute Model] Sayısal tip için validasyonlar işleniyor:', validations);
-        // min ve max değerleri varsa, sayısal tipe dönüştür (Number tipinde olduğundan emin ol)
-        if (validations.min !== undefined) {
-            validations.min = Number(validations.min);
+        // NUMBER tipi için validasyonları işle
+        if (this.type === AttributeType.NUMBER) {
+            console.log('[Attribute Model] Sayısal tip için validasyonlar işleniyor:', validations);
+            if (validations.min !== undefined)
+                validations.min = Number(validations.min);
+            if (validations.max !== undefined)
+                validations.max = Number(validations.max);
+            if (validations.isInteger !== undefined)
+                validations.isInteger = Boolean(validations.isInteger);
+            if (validations.isPositive !== undefined)
+                validations.isPositive = Boolean(validations.isPositive);
+            if (validations.isNegative !== undefined)
+                validations.isNegative = Boolean(validations.isNegative);
+            if (validations.isZero !== undefined)
+                validations.isZero = Boolean(validations.isZero);
         }
-        if (validations.max !== undefined) {
-            validations.max = Number(validations.max);
+        // TEXT tipi için validasyonları işle
+        if (this.type === AttributeType.TEXT || this.type === AttributeType.RICH_TEXT) {
+            console.log('[Attribute Model] Text tipi için validasyonlar işleniyor:', validations);
+            if (validations.minLength !== undefined)
+                validations.minLength = Number(validations.minLength);
+            if (validations.maxLength !== undefined)
+                validations.maxLength = Number(validations.maxLength);
+            if (validations.maxTextLength !== undefined)
+                validations.maxTextLength = Number(validations.maxTextLength);
         }
-        // Boolean değerlerini doğru şekilde dönüştür
-        if (validations.isInteger !== undefined) {
-            validations.isInteger = Boolean(validations.isInteger);
+        // SELECT/MULTISELECT tipi için validasyonları işle
+        if (this.type === AttributeType.SELECT || this.type === AttributeType.MULTISELECT) {
+            console.log('[Attribute Model] Select/MultiSelect tipi için validasyonlar işleniyor:', validations);
+            if (validations.minSelections !== undefined)
+                validations.minSelections = Number(validations.minSelections);
+            if (validations.maxSelections !== undefined)
+                validations.maxSelections = Number(validations.maxSelections);
         }
-        if (validations.isPositive !== undefined) {
-            validations.isPositive = Boolean(validations.isPositive);
+        // FILE/IMAGE/ATTACHMENT tipi için validasyonları işle
+        if (this.type === AttributeType.FILE || this.type === AttributeType.IMAGE || this.type === AttributeType.ATTACHMENT) {
+            console.log('[Attribute Model] File tipi için validasyonlar işleniyor:', validations);
+            if (validations.maxFileSize !== undefined)
+                validations.maxFileSize = Number(validations.maxFileSize);
+            if (validations.maxFiles !== undefined)
+                validations.maxFiles = Number(validations.maxFiles);
+            if (validations.maxWidth !== undefined)
+                validations.maxWidth = Number(validations.maxWidth);
+            if (validations.maxHeight !== undefined)
+                validations.maxHeight = Number(validations.maxHeight);
         }
-        if (validations.isNegative !== undefined) {
-            validations.isNegative = Boolean(validations.isNegative);
+        // ARRAY tipi için validasyonları işle
+        if (this.type === AttributeType.ARRAY) {
+            console.log('[Attribute Model] Array tipi için validasyonlar işleniyor:', validations);
+            if (validations.minItems !== undefined)
+                validations.minItems = Number(validations.minItems);
+            if (validations.maxItems !== undefined)
+                validations.maxItems = Number(validations.maxItems);
         }
-        if (validations.isZero !== undefined) {
-            validations.isZero = Boolean(validations.isZero);
-        }
-    }
-    // Text tipi için validasyonları işle
-    if (this.validations && this.type === AttributeType.TEXT) {
-        const validations = this.validations;
-        console.log('[Attribute Model] Text tipi için validasyonlar işleniyor:', validations);
-        if (validations.minLength !== undefined) {
-            validations.minLength = Number(validations.minLength);
-        }
-        if (validations.maxLength !== undefined) {
-            validations.maxLength = Number(validations.maxLength);
-        }
-    }
-    // Select/MultiSelect tipi için validasyonları işle
-    if (this.validations && (this.type === AttributeType.SELECT || this.type === AttributeType.MULTISELECT)) {
-        const validations = this.validations;
-        console.log('[Attribute Model] Select/MultiSelect tipi için validasyonlar işleniyor:', validations);
-        if (validations.minSelections !== undefined) {
-            validations.minSelections = Number(validations.minSelections);
-        }
-        if (validations.maxSelections !== undefined) {
-            validations.maxSelections = Number(validations.maxSelections);
+        // RATING tipi için validasyonları işle
+        if (this.type === AttributeType.RATING) {
+            console.log('[Attribute Model] Rating tipi için validasyonlar işleniyor:', validations);
+            if (validations.minRating !== undefined)
+                validations.minRating = Number(validations.minRating);
+            if (validations.maxRating !== undefined)
+                validations.maxRating = Number(validations.maxRating);
+            if (validations.allowHalfStars !== undefined)
+                validations.allowHalfStars = Boolean(validations.allowHalfStars);
         }
     }
     next();

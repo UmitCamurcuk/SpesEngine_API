@@ -147,6 +147,7 @@ const getTranslationById = (req, res, next) => __awaiter(void 0, void 0, void 0,
         });
     }
     catch (error) {
+        console.error('Get translation by ID error:', error);
         res.status(500).json({
             success: false,
             message: error.message || 'Çeviri getirilirken bir hata oluştu'

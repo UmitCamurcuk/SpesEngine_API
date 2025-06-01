@@ -100,23 +100,40 @@ export const createAttributeGroup = async (req: Request, res: Response, next: Ne
   try {
     const attributeGroup = await AttributeGroup.create(req.body);
     
+    // Oluşturulan attributeGroup'u populate et
+    const populatedAttributeGroup = await AttributeGroup.findById(attributeGroup._id)
+      .populate('attributes')
+      .populate('name','key namespace translations.tr translations.en')
+      .populate('description','key namespace translations.tr translations.en');
+    
     // History kaydı oluştur
     if (req.user && typeof req.user === 'object' && '_id' in req.user) {
       const userId = String(req.user._id);
       
+      // newData'yı düzgün formatla
+      const historyData = {
+        name: (populatedAttributeGroup?.name as any)?.translations?.tr || populatedAttributeGroup?.code || 'Unknown',
+        code: populatedAttributeGroup?.code,
+        description: (populatedAttributeGroup?.description as any)?.translations?.tr || '',
+        attributes: populatedAttributeGroup?.attributes || [],
+        isActive: populatedAttributeGroup?.isActive,
+        _id: String(populatedAttributeGroup?._id),
+        createdAt: populatedAttributeGroup?.createdAt,
+        updatedAt: populatedAttributeGroup?.updatedAt
+      };
+      
       await historyService.recordHistory({
         entityId: String(attributeGroup._id),
         entityType: EntityType.ATTRIBUTE_GROUP,
-        entityName: getEntityNameFromTranslation(attributeGroup.name),
         action: ActionType.CREATE,
         userId: userId,
-        newData: attributeGroup.toObject()
+        newData: historyData
       });
     }
     
     res.status(201).json({
       success: true,
-      data: attributeGroup
+      data: populatedAttributeGroup || attributeGroup
     });
   } catch (error: any) {
     res.status(400).json({
