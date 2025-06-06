@@ -49,15 +49,29 @@ export const getAttributeGroups = async (req: Request, res: Response, next: Next
       filterParams.isActive = req.query.isActive === 'true';
     }
     
-    const attributeGroups = await AttributeGroup.find(filterParams)
-      .populate('attributes')
+    // includeAttributes parametresi - frontend'den gelen istek
+    const includeAttributes = req.query.includeAttributes === 'true';
+    
+    let query = AttributeGroup.find(filterParams);
+    
+    if (includeAttributes) {
+      query = query.populate({
+        path: 'attributes',
+        populate: [
+          { path: 'name', select: 'key namespace translations.tr translations.en' },
+          { path: 'description', select: 'key namespace translations.tr translations.en' }
+        ]
+      });
+    }
+    
+    const attributeGroups = await query
       .populate('name','key namespace translations.tr translations.en')
       .populate('description','key namespace translations.tr translations.en');
     
     res.status(200).json({
       success: true,
       count: attributeGroups.length,
-      data: attributeGroups
+      attributeGroups: attributeGroups
     });
   } catch (error: any) {
     res.status(500).json({
@@ -71,7 +85,13 @@ export const getAttributeGroups = async (req: Request, res: Response, next: Next
 export const getAttributeGroupById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const attributeGroup = await AttributeGroup.findById(req.params.id)
-      .populate('attributes')
+      .populate({
+        path: 'attributes',
+        populate: [
+          { path: 'name', select: 'key namespace translations.tr translations.en' },
+          { path: 'description', select: 'key namespace translations.tr translations.en' }
+        ]
+      })
       .populate('name','key namespace translations.tr translations.en')
       .populate('description','key namespace translations.tr translations.en');
     

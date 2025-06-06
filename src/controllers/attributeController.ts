@@ -547,6 +547,13 @@ export const getAttributeGroups = async (req: Request, res: Response, next: Next
       attributes: id,
       isActive: true 
     })
+    .populate({
+      path: 'attributes',
+      populate: [
+        { path: 'name', select: 'key namespace translations.tr translations.en' },
+        { path: 'description', select: 'key namespace translations.tr translations.en' }
+      ]
+    })
     .populate('name','key namespace translations.tr translations.en')
     .populate('description','key namespace translations.tr translations.en');
     
@@ -606,6 +613,13 @@ export const updateAttributeGroups = async (req: Request, res: Response, next: N
     const updatedGroups = await AttributeGroup.find({ 
       attributes: id,
       isActive: true 
+    })
+    .populate({
+      path: 'attributes',
+      populate: [
+        { path: 'name', select: 'key namespace translations.tr translations.en' },
+        { path: 'description', select: 'key namespace translations.tr translations.en' }
+      ]
     })
     .populate('name','key namespace translations.tr translations.en')
     .populate('description','key namespace translations.tr translations.en');

@@ -509,6 +509,13 @@ const getAttributeGroups = (req, res, next) => __awaiter(void 0, void 0, void 0,
             attributes: id,
             isActive: true
         })
+            .populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name', select: 'key namespace translations.tr translations.en' },
+                { path: 'description', select: 'key namespace translations.tr translations.en' }
+            ]
+        })
             .populate('name', 'key namespace translations.tr translations.en')
             .populate('description', 'key namespace translations.tr translations.en');
         res.status(200).json({
@@ -556,6 +563,13 @@ const updateAttributeGroups = (req, res, next) => __awaiter(void 0, void 0, void
         const updatedGroups = yield AttributeGroup_1.default.find({
             attributes: id,
             isActive: true
+        })
+            .populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name', select: 'key namespace translations.tr translations.en' },
+                { path: 'description', select: 'key namespace translations.tr translations.en' }
+            ]
         })
             .populate('name', 'key namespace translations.tr translations.en')
             .populate('description', 'key namespace translations.tr translations.en');

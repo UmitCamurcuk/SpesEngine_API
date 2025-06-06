@@ -67,14 +67,25 @@ const getAttributeGroups = (req, res, next) => __awaiter(void 0, void 0, void 0,
         if (req.query.isActive !== undefined) {
             filterParams.isActive = req.query.isActive === 'true';
         }
-        const attributeGroups = yield AttributeGroup_1.default.find(filterParams)
-            .populate('attributes')
+        // includeAttributes parametresi - frontend'den gelen istek
+        const includeAttributes = req.query.includeAttributes === 'true';
+        let query = AttributeGroup_1.default.find(filterParams);
+        if (includeAttributes) {
+            query = query.populate({
+                path: 'attributes',
+                populate: [
+                    { path: 'name', select: 'key namespace translations.tr translations.en' },
+                    { path: 'description', select: 'key namespace translations.tr translations.en' }
+                ]
+            });
+        }
+        const attributeGroups = yield query
             .populate('name', 'key namespace translations.tr translations.en')
             .populate('description', 'key namespace translations.tr translations.en');
         res.status(200).json({
             success: true,
             count: attributeGroups.length,
-            data: attributeGroups
+            attributeGroups: attributeGroups
         });
     }
     catch (error) {
@@ -89,7 +100,13 @@ exports.getAttributeGroups = getAttributeGroups;
 const getAttributeGroupById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const attributeGroup = yield AttributeGroup_1.default.findById(req.params.id)
-            .populate('attributes')
+            .populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name', select: 'key namespace translations.tr translations.en' },
+                { path: 'description', select: 'key namespace translations.tr translations.en' }
+            ]
+        })
             .populate('name', 'key namespace translations.tr translations.en')
             .populate('description', 'key namespace translations.tr translations.en');
         if (!attributeGroup) {
