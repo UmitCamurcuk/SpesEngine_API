@@ -90,6 +90,7 @@ interface RecordHistoryParams {
   newData?: any;
   changes?: any;
   additionalInfo?: any;
+  comment?: string; // Kullanıcı yorumu
   
   // İlişkili entity'ler (opsiyonel)
   affectedEntities?: Array<{
@@ -118,6 +119,7 @@ class HistoryService {
         newData,
         changes,
         additionalInfo,
+        comment,
         affectedEntities = []
       } = params;
 
@@ -210,6 +212,7 @@ class HistoryService {
         previousData: action === ActionType.CREATE ? {} : (previousData || {}),
         newData: newData || {},
         additionalInfo: additionalInfo || {},
+        comment: comment || undefined,
         createdBy: typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId
       });
 

@@ -60,6 +60,16 @@ const AttributeGroupSchema = new mongoose_1.Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    createdBy: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
+    },
+    updatedBy: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
     }
 }, {
     timestamps: true

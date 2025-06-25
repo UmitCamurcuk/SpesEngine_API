@@ -31,6 +31,7 @@ export interface IHistory extends Document {
   previousData: any;
   newData: any;
   additionalInfo?: any;
+  comment?: string;
   createdBy: mongoose.Types.ObjectId;
   createdAt: Date;
 }
@@ -97,6 +98,10 @@ const HistorySchema: Schema = new Schema({
   additionalInfo: {
     type: Schema.Types.Mixed,
     default: {}
+  },
+  comment: {
+    type: String,
+    required: false
   },
   createdBy: {
     type: Schema.Types.ObjectId,

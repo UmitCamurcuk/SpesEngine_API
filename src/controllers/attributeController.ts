@@ -44,7 +44,6 @@ const getEntityNameFromTranslation = (translationObject: any, fallback: string =
 // GET tüm öznitelikleri getir
 export const getAttributes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    console.log('Attributes fetch request received', req.query);
     
     // Sayfalama parametreleri
     const page = parseInt(req.query.page as string) || 1;
@@ -156,36 +155,29 @@ export const getAttributeById = async (req: Request, res: Response, next: NextFu
 // POST yeni öznitelik oluştur
 export const createAttribute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    console.log('[AttributeController:DEBUG] Gelen veri:', JSON.stringify(req.body, null, 2));
     
     // AttributeGroup bilgisini ayır
     const { attributeGroup, ...attributeData } = req.body;
     
     // Validasyon verilerini kontrol et
     if (attributeData.validations) {
-      console.log('[AttributeController:DEBUG] Validasyon içeriği:', JSON.stringify(attributeData.validations, null, 2));
-      console.log('[AttributeController:DEBUG] Validasyon tipi:', typeof attributeData.validations);
       
       // Validasyon objesi boş ise undefined yap
       if (Object.keys(attributeData.validations).length === 0) {
-        console.log('[AttributeController:DEBUG] Validasyon objesi boş, undefined yapılıyor');
         attributeData.validations = undefined;
       } else {
         // TCKNO gibi validasyon verilerinin sayısal değerlerini kontrol et
         if (attributeData.type === 'number' && typeof attributeData.validations === 'object') {
-          console.log('[AttributeController:DEBUG] Sayısal validasyonlar işleniyor...');
           
           // min değeri için özel kontrol
           if ('min' in attributeData.validations) {
             const minVal = Number(attributeData.validations.min);
-            console.log(`[AttributeController:DEBUG] min değeri: ${attributeData.validations.min}, dönüştürülen: ${minVal}`);
             attributeData.validations.min = minVal;
           }
           
           // max değeri için özel kontrol
           if ('max' in attributeData.validations) {
             const maxVal = Number(attributeData.validations.max);
-            console.log(`[AttributeController:DEBUG] max değeri: ${attributeData.validations.max}, dönüştürülen: ${maxVal}`);
             attributeData.validations.max = maxVal;
           }
           
@@ -193,7 +185,6 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
           ['isInteger', 'isPositive', 'isNegative', 'isZero'].forEach(prop => {
             if (prop in attributeData.validations) {
               const boolVal = Boolean(attributeData.validations[prop]);
-              console.log(`[AttributeController:DEBUG] ${prop} değeri: ${attributeData.validations[prop]}, dönüştürülen: ${boolVal}`);
               attributeData.validations[prop] = boolVal;
             }
           });
@@ -228,10 +219,7 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
         }
       }
     } else {
-      console.log('[AttributeController:DEBUG] Validasyon verisi yok!');
     }
-    
-    console.log('[AttributeController:DEBUG] Attribute oluşturma öncesi son veri:', JSON.stringify(attributeData, null, 2));
     
     const newAttribute = await Attribute.create(attributeData);
     
@@ -241,17 +229,11 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
       .populate('description','key namespace translations.tr translations.en');
     
     // Kayıt sonrası doğrula
-    console.log('[AttributeController:DEBUG] Oluşturulan kayıt:', JSON.stringify(populatedAttribute, null, 2));
-    console.log('[AttributeController:DEBUG] Validasyon alanı kaydedildi mi:', populatedAttribute?.validations !== undefined);
-    if (populatedAttribute?.validations) {
-      console.log('[AttributeController:DEBUG] Kaydedilen validasyon:', JSON.stringify(populatedAttribute.validations, null, 2));
-    }
     
     // AttributeGroup'a attribute'u ekle
     let affectedAttributeGroup = null;
     if (attributeGroup) {
       try {
-        console.log(`[AttributeController:DEBUG] AttributeGroup'a ekleme işlemi başlıyor. Group ID: ${attributeGroup}, Attribute ID: ${newAttribute._id}`);
         
         const updatedGroup = await AttributeGroup.findByIdAndUpdate(
           attributeGroup,
@@ -261,23 +243,17 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
         
         if (updatedGroup) {
           affectedAttributeGroup = updatedGroup;
-          console.log(`[AttributeController:DEBUG] Attribute ${newAttribute._id} başarıyla AttributeGroup ${attributeGroup} içine eklendi`);
-          console.log(`[AttributeController:DEBUG] Güncellenmiş grup attributes listesi:`, updatedGroup.attributes);
         } else {
-          console.log(`[AttributeController:DEBUG] AttributeGroup ${attributeGroup} bulunamadı`);
         }
-      } catch (groupError) {
-        console.error('[AttributeController:DEBUG] AttributeGroup güncelleme hatası:', groupError);
+      } catch (groupError) {          
         // AttributeGroup hatası attribute oluşturmayı engellemez
       }
     } else {
-      console.log('[AttributeController:DEBUG] AttributeGroup seçilmemiş, ekleme işlemi yapılmıyor');
     }
     
     // History kaydı oluştur
     if (req.user && typeof req.user === 'object' && '_id' in req.user) {
       const userId = String(req.user._id);
-      console.log(`[AttributeController:DEBUG] History kaydı oluşturuluyor, userId: ${userId}`);
       
       // Etkilenen entity'ler listesi
       const affectedEntities = [];
@@ -317,8 +293,6 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
       data: populatedAttribute
     });
   } catch (error: any) {
-    console.error('[AttributeController:DEBUG] Hata:', error.message);
-    console.error('[AttributeController:DEBUG] Stack:', error.stack);
     res.status(400).json({
       success: false,
       message: error.message || 'Öznitelik oluşturulurken bir hata oluştu'
@@ -435,7 +409,6 @@ export const updateAttribute = async (req: Request, res: Response, next: NextFun
       // Translation değişiklikleri için ayrı history kayıtları
       for (const translationChange of changedTranslations) {
         // Translation değişiklikleri artık localizationController'da handle ediliyor
-        console.log(`Translation change recorded for ${translationChange.field}: ${translationChange.translationKey}`);
       }
     }
     
@@ -509,9 +482,7 @@ export const deleteAttribute = async (req: Request, res: Response, next: NextFun
     // Entity'nin tüm history kayıtlarını sil
     try {
       const deletedHistoryCount = await historyService.deleteEntityHistory(id);
-      console.log(`Deleted ${deletedHistoryCount} history records for attribute ${id}`);
-    } catch (historyError) {
-      console.error('Error deleting attribute history:', historyError);
+          } catch (historyError) {
       // History silme hatası ana işlemi engellemesin
     }
     

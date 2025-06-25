@@ -41,12 +41,27 @@ const getEntityNameFromTranslation = (translationObject: any, fallback: string =
 // GET tüm öznitelik gruplarını getir
 export const getAttributeGroups = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Sayfalama parametreleri
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+    
     // Filtreleme parametrelerini alma
     const filterParams: any = {};
     
     // isActive parametresi
     if (req.query.isActive !== undefined) {
       filterParams.isActive = req.query.isActive === 'true';
+    }
+    
+    // Search parametresi
+    if (req.query.search && typeof req.query.search === 'string') {
+      const searchTerm = req.query.search.trim();
+      if (searchTerm) {
+        filterParams.$or = [
+          { code: { $regex: searchTerm, $options: 'i' } }
+        ];
+      }
     }
     
     // includeAttributes parametresi - frontend'den gelen istek
@@ -64,13 +79,30 @@ export const getAttributeGroups = async (req: Request, res: Response, next: Next
       });
     }
     
+    // Sorting
+    const sortField = req.query.sort as string || 'updatedAt';
+    const sortDirection = req.query.direction === 'asc' ? 1 : -1;
+    const sortObj: any = {};
+    sortObj[sortField] = sortDirection;
+    
+    // Get total count
+    const total = await AttributeGroup.countDocuments(filterParams);
+    
     const attributeGroups = await query
       .populate('name','key namespace translations.tr translations.en')
-      .populate('description','key namespace translations.tr translations.en');
+      .populate('description','key namespace translations.tr translations.en')
+      .populate('createdBy', 'name email')
+      .populate('updatedBy', 'name email')
+      .sort(sortObj)
+      .skip(skip)
+      .limit(limit);
     
     res.status(200).json({
       success: true,
       count: attributeGroups.length,
+      total: total,
+      page: page,
+      limit: limit,
       attributeGroups: attributeGroups
     });
   } catch (error: any) {
@@ -93,7 +125,9 @@ export const getAttributeGroupById = async (req: Request, res: Response, next: N
         ]
       })
       .populate('name','key namespace translations.tr translations.en')
-      .populate('description','key namespace translations.tr translations.en');
+      .populate('description','key namespace translations.tr translations.en')
+      .populate('createdBy', 'name email')
+      .populate('updatedBy', 'name email');
     
     if (!attributeGroup) {
       res.status(404).json({
@@ -118,13 +152,21 @@ export const getAttributeGroupById = async (req: Request, res: Response, next: N
 // POST yeni öznitelik grubu oluştur
 export const createAttributeGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const attributeGroup = await AttributeGroup.create(req.body);
+    // createdBy field'ini ekle
+    const createData = {
+      ...req.body,
+      createdBy: req.user && typeof req.user === 'object' && '_id' in req.user ? req.user._id : undefined
+    };
+    
+    const attributeGroup = await AttributeGroup.create(createData);
     
     // Oluşturulan attributeGroup'u populate et
     const populatedAttributeGroup = await AttributeGroup.findById(attributeGroup._id)
       .populate('attributes')
       .populate('name','key namespace translations.tr translations.en')
-      .populate('description','key namespace translations.tr translations.en');
+      .populate('description','key namespace translations.tr translations.en')
+      .populate('createdBy', 'name email')
+      .populate('updatedBy', 'name email');
     
     // History kaydı oluştur
     if (req.user && typeof req.user === 'object' && '_id' in req.user) {
@@ -184,6 +226,11 @@ export const updateAttributeGroup = async (req: Request, res: Response, next: Ne
 
     let updateData = { ...otherData };
     const changedTranslations: any[] = [];
+
+    // updatedBy field'ini ekle
+    if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+      updateData.updatedBy = req.user._id;
+    }
 
     // Name translations'ını güncelle
     if (nameTranslations && typeof nameTranslations === 'object') {
@@ -253,7 +300,8 @@ export const updateAttributeGroup = async (req: Request, res: Response, next: Ne
         action: ActionType.UPDATE,
         userId: userId,
         previousData: previousAttributeGroup.toObject(),
-        newData: attributeGroup.toObject()
+        newData: attributeGroup.toObject(),
+        comment: req.body.comment || undefined
       });
 
       // Translation değişiklikleri için ayrı history kayıtları

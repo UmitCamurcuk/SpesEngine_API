@@ -6,6 +6,8 @@ export interface IAttributeGroup extends Document {
   description: string;
   attributes: mongoose.Types.ObjectId[];
   isActive: boolean;
+  createdBy?: mongoose.Types.ObjectId;
+  updatedBy?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +39,16 @@ const AttributeGroupSchema: Schema = new Schema(
     isActive: {
       type: Boolean,
       default: true
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false
+    },
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false
     }
   },
   {

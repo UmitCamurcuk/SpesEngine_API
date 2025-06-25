@@ -61,11 +61,24 @@ const getEntityNameFromTranslation = (translationObject, fallback = 'Unknown') =
 // GET tüm öznitelik gruplarını getir
 const getAttributeGroups = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        // Sayfalama parametreleri
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
         // Filtreleme parametrelerini alma
         const filterParams = {};
         // isActive parametresi
         if (req.query.isActive !== undefined) {
             filterParams.isActive = req.query.isActive === 'true';
+        }
+        // Search parametresi
+        if (req.query.search && typeof req.query.search === 'string') {
+            const searchTerm = req.query.search.trim();
+            if (searchTerm) {
+                filterParams.$or = [
+                    { code: { $regex: searchTerm, $options: 'i' } }
+                ];
+            }
         }
         // includeAttributes parametresi - frontend'den gelen istek
         const includeAttributes = req.query.includeAttributes === 'true';
@@ -79,12 +92,27 @@ const getAttributeGroups = (req, res, next) => __awaiter(void 0, void 0, void 0,
                 ]
             });
         }
+        // Sorting
+        const sortField = req.query.sort || 'updatedAt';
+        const sortDirection = req.query.direction === 'asc' ? 1 : -1;
+        const sortObj = {};
+        sortObj[sortField] = sortDirection;
+        // Get total count
+        const total = yield AttributeGroup_1.default.countDocuments(filterParams);
         const attributeGroups = yield query
             .populate('name', 'key namespace translations.tr translations.en')
-            .populate('description', 'key namespace translations.tr translations.en');
+            .populate('description', 'key namespace translations.tr translations.en')
+            .populate('createdBy', 'name email')
+            .populate('updatedBy', 'name email')
+            .sort(sortObj)
+            .skip(skip)
+            .limit(limit);
         res.status(200).json({
             success: true,
             count: attributeGroups.length,
+            total: total,
+            page: page,
+            limit: limit,
             attributeGroups: attributeGroups
         });
     }
@@ -108,7 +136,9 @@ const getAttributeGroupById = (req, res, next) => __awaiter(void 0, void 0, void
             ]
         })
             .populate('name', 'key namespace translations.tr translations.en')
-            .populate('description', 'key namespace translations.tr translations.en');
+            .populate('description', 'key namespace translations.tr translations.en')
+            .populate('createdBy', 'name email')
+            .populate('updatedBy', 'name email');
         if (!attributeGroup) {
             res.status(404).json({
                 success: false,
@@ -133,12 +163,16 @@ exports.getAttributeGroupById = getAttributeGroupById;
 const createAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d;
     try {
-        const attributeGroup = yield AttributeGroup_1.default.create(req.body);
+        // createdBy field'ini ekle
+        const createData = Object.assign(Object.assign({}, req.body), { createdBy: req.user && typeof req.user === 'object' && '_id' in req.user ? req.user._id : undefined });
+        const attributeGroup = yield AttributeGroup_1.default.create(createData);
         // Oluşturulan attributeGroup'u populate et
         const populatedAttributeGroup = yield AttributeGroup_1.default.findById(attributeGroup._id)
             .populate('attributes')
             .populate('name', 'key namespace translations.tr translations.en')
-            .populate('description', 'key namespace translations.tr translations.en');
+            .populate('description', 'key namespace translations.tr translations.en')
+            .populate('createdBy', 'name email')
+            .populate('updatedBy', 'name email');
         // History kaydı oluştur
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);
@@ -193,6 +227,10 @@ const updateAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
         }
         let updateData = Object.assign({}, otherData);
         const changedTranslations = [];
+        // updatedBy field'ini ekle
+        if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+            updateData.updatedBy = req.user._id;
+        }
         // Name translations'ını güncelle
         if (nameTranslations && typeof nameTranslations === 'object') {
             const nameTranslationKey = (_a = previousAttributeGroup.name) === null || _a === void 0 ? void 0 : _a.key;
