@@ -55,16 +55,32 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
     const categories = await Category.find(filterParams)
       .populate({
         path: 'family',
-        select: 'name code description'
+        select: 'name code description',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
       })
       .populate({
         path: 'parent',
-        select: 'name code description'
+        select: 'name code description',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
       })
       .populate({
         path: 'attributeGroups',
-        select: 'name code description'
+        select: 'name code description',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
       })
+      .populate([
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' }
+      ])
       .sort(sortOption)
       .skip(skip)
       .limit(limit);
@@ -103,12 +119,24 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
     let query = Category.findById(id)
       .populate({
         path: 'family',
-        select: 'name code description'
+        select: 'name code description',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
       })
       .populate({
         path: 'parent',
-        select: 'name code description'
-      });
+        select: 'name code description',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate([
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' }
+      ]);
     
     // Attributes'ları include et
     if (includeAttributes) {

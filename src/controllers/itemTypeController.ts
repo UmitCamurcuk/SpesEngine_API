@@ -40,7 +40,30 @@ export const getItemTypes = async (req: Request, res: Response, next: NextFuncti
     
     // Verileri getir
     const itemTypes = await ItemType.find(filterParams)
-      .populate('attributes')
+      .populate({
+        path: 'category',
+        select: 'name code description',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate({
+        path: 'attributeGroups',
+        select: 'name code description',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate({
+        path: 'attributes',
+        select: 'name code type description',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
@@ -181,10 +204,27 @@ export const createItemType = async (req: Request, res: Response, next: NextFunc
   try {
     const itemType = await ItemType.create(req.body);
     
-    // Oluşturulan öğe tipini attribute alanlarıyla birlikte getir
+    // Oluşturulan öğe tipini tüm alanlarıyla birlikte getir
     const newItemType = await ItemType.findById(itemType._id)
       .populate({
+        path: 'category',
+        select: 'name code description',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate({
+        path: 'attributeGroups',
+        select: 'name code description',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate({
         path: 'attributes',
+        select: 'name code type description',
         populate: [
           { path: 'name', select: 'key namespace translations' },
           { path: 'description', select: 'key namespace translations' }
@@ -211,7 +251,22 @@ export const updateItemType = async (req: Request, res: Response, next: NextFunc
       req.body,
       { new: true, runValidators: true }
     ).populate({
+      path: 'category',
+      select: 'name code description',
+      populate: [
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' }
+      ]
+    }).populate({
+      path: 'attributeGroups',
+      select: 'name code description',
+      populate: [
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' }
+      ]
+    }).populate({
       path: 'attributes',
+      select: 'name code type description',
       populate: [
         { path: 'name', select: 'key namespace translations' },
         { path: 'description', select: 'key namespace translations' }

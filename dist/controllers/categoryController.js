@@ -60,16 +60,32 @@ const getCategories = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         const categories = yield Category_1.default.find(filterParams)
             .populate({
             path: 'family',
-            select: 'name code description'
+            select: 'name code description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
         })
             .populate({
             path: 'parent',
-            select: 'name code description'
+            select: 'name code description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
         })
             .populate({
             path: 'attributeGroups',
-            select: 'name code description'
+            select: 'name code description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
         })
+            .populate([
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' }
+        ])
             .sort(sortOption)
             .skip(skip)
             .limit(limit);
@@ -105,12 +121,24 @@ const getCategoryById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         let query = Category_1.default.findById(id)
             .populate({
             path: 'family',
-            select: 'name code description'
+            select: 'name code description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
         })
             .populate({
             path: 'parent',
-            select: 'name code description'
-        });
+            select: 'name code description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate([
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' }
+        ]);
         // Attributes'ları include et
         if (includeAttributes) {
             query = query.populate({

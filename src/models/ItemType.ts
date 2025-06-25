@@ -4,7 +4,7 @@ export interface IItemType extends Document {
   name: string;
   code: string;
   description: string;
-  family: mongoose.Types.ObjectId;
+  category: mongoose.Types.ObjectId;
   attributeGroups?: mongoose.Types.ObjectId[];
   attributes: mongoose.Types.ObjectId[];
   isActive: boolean;
@@ -29,10 +29,10 @@ const ItemTypeSchema: Schema = new Schema(
       type: String,
       required: [true, 'Öğe tipi açıklaması zorunludur']
     },
-    family: {
+    category: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Family',
-      required: [true, 'Aile seçimi zorunludur']
+      ref: 'Category',
+      required: [true, 'Kategori seçimi zorunludur']
     },
     attributeGroups: [
       {

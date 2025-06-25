@@ -50,10 +50,10 @@ const ItemTypeSchema = new mongoose_1.Schema({
         type: String,
         required: [true, 'Öğe tipi açıklaması zorunludur']
     },
-    family: {
+    category: {
         type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'Family',
-        required: [true, 'Aile seçimi zorunludur']
+        ref: 'Category',
+        required: [true, 'Kategori seçimi zorunludur']
     },
     attributeGroups: [
         {

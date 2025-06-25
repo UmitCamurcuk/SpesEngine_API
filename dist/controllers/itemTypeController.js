@@ -47,7 +47,30 @@ const getItemTypes = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         const total = yield ItemType_1.default.countDocuments(filterParams);
         // Verileri getir
         const itemTypes = yield ItemType_1.default.find(filterParams)
-            .populate('attributes')
+            .populate({
+            path: 'category',
+            select: 'name code description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate({
+            path: 'attributeGroups',
+            select: 'name code description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate({
+            path: 'attributes',
+            select: 'name code type description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
             .sort(sortOptions)
             .skip(skip)
             .limit(limit);
@@ -175,10 +198,27 @@ exports.getItemTypeById = getItemTypeById;
 const createItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const itemType = yield ItemType_1.default.create(req.body);
-        // Oluşturulan öğe tipini attribute alanlarıyla birlikte getir
+        // Oluşturulan öğe tipini tüm alanlarıyla birlikte getir
         const newItemType = yield ItemType_1.default.findById(itemType._id)
             .populate({
+            path: 'category',
+            select: 'name code description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate({
+            path: 'attributeGroups',
+            select: 'name code description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate({
             path: 'attributes',
+            select: 'name code type description',
             populate: [
                 { path: 'name', select: 'key namespace translations' },
                 { path: 'description', select: 'key namespace translations' }
@@ -201,7 +241,22 @@ exports.createItemType = createItemType;
 const updateItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const itemType = yield ItemType_1.default.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate({
+            path: 'category',
+            select: 'name code description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        }).populate({
+            path: 'attributeGroups',
+            select: 'name code description',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        }).populate({
             path: 'attributes',
+            select: 'name code type description',
             populate: [
                 { path: 'name', select: 'key namespace translations' },
                 { path: 'description', select: 'key namespace translations' }
