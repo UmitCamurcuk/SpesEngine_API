@@ -110,7 +110,13 @@ export const getItemById = async (req: Request, res: Response, next: NextFunctio
 
 // Yardımcı fonksiyon: itemType ve category'den zorunlu attribute'ları getir
 async function getRequiredAttributes(itemTypeId: string, categoryId: string) {
-  const itemType = await ItemType.findById(itemTypeId).populate('attributes');
+  const itemType = await ItemType.findById(itemTypeId).populate({
+    path: 'attributes',
+    populate: [
+      { path: 'name', select: 'key namespace translations' },
+      { path: 'description', select: 'key namespace translations' }
+    ]
+  });
   let requiredAttributes: any[] = [];
   if (itemType && itemType.attributes) {
     requiredAttributes = requiredAttributes.concat(
@@ -120,7 +126,17 @@ async function getRequiredAttributes(itemTypeId: string, categoryId: string) {
   if (categoryId) {
     const category = await Category.findById(categoryId).populate({
       path: 'attributeGroups',
-      populate: { path: 'attributes' }
+      populate: [
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' },
+        {
+          path: 'attributes',
+          populate: [
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' }
+          ]
+        }
+      ]
     });
     if (category && category.attributeGroups && (category.attributeGroups as any).length > 0) {
       // Her bir attributeGroup için

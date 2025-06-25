@@ -114,7 +114,11 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
     if (includeAttributes) {
       query = query.populate({
         path: 'attributes',
-        select: 'name code type description'
+        select: 'name code type description',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
       });
     }
     
@@ -123,16 +127,29 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
       if (populateAttributeGroupsAttributes) {
         query = query.populate({
           path: 'attributeGroups',
-          populate: {
-            path: 'attributes',
-            model: 'Attribute',
-            select: 'name code type description isRequired options attributeGroup validations'
-          }
+          select: 'name code description attributes',
+          populate: [
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' },
+            {
+              path: 'attributes',
+              model: 'Attribute',
+              select: 'name code type description isRequired options attributeGroup validations',
+              populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+              ]
+            }
+          ]
         });
       } else {
         query = query.populate({
           path: 'attributeGroups',
-          select: 'name code description'
+          select: 'name code description',
+          populate: [
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' }
+          ]
         });
       }
     }

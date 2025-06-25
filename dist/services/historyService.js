@@ -114,7 +114,7 @@ class HistoryService {
     recordHistory(params) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { entityId, entityType, entityName, entityCode, action, userId, previousData, newData, changes, additionalInfo, affectedEntities = [] } = params;
+                const { entityId, entityType, entityName, entityCode, action, userId, previousData, newData, changes, additionalInfo, comment, affectedEntities = [] } = params;
                 // Ana entity adını belirle
                 let finalEntityName = entityName;
                 if (!finalEntityName) {
@@ -194,6 +194,7 @@ class HistoryService {
                     previousData: action === History_1.ActionType.CREATE ? {} : (previousData || {}),
                     newData: newData || {},
                     additionalInfo: additionalInfo || {},
+                    comment: comment || undefined,
                     createdBy: typeof userId === 'string' ? new mongoose_1.default.Types.ObjectId(userId) : userId
                 });
                 const savedHistory = yield historyRecord.save();

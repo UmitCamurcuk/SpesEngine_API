@@ -96,8 +96,8 @@ export const getAttributes = async (req: Request, res: Response, next: NextFunct
     
     // Verileri getir
     const attributes = await Attribute.find(filterParams)
-      .populate('name','key namespace translations.tr translations.en')
-      .populate('description','key namespace translations.tr translations.en')   
+      .populate('name','key namespace translations')
+      .populate('description','key namespace translations')   
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
@@ -129,8 +129,8 @@ export const getAttributeById = async (req: Request, res: Response, next: NextFu
     const { id } = req.params;
     
     const attribute = await Attribute.findById(id)
-      .populate('name','key namespace translations.tr translations.en')
-      .populate('description','key namespace translations.tr translations.en')
+      .populate('name','key namespace translations')
+      .populate('description','key namespace translations')
     
     if (!attribute) {
       res.status(404).json({
@@ -225,8 +225,8 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
     
     // Oluşturulan attribute'u populate et
     const populatedAttribute = await Attribute.findById(newAttribute._id)
-      .populate('name','key namespace translations.tr translations.en')
-      .populate('description','key namespace translations.tr translations.en');
+      .populate('name','key namespace translations')
+      .populate('description','key namespace translations');
     
     // Kayıt sonrası doğrula
     
@@ -239,7 +239,7 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
           attributeGroup,
           { $addToSet: { attributes: newAttribute._id } },
           { new: true }
-        ).populate('name','key namespace translations.tr translations.en');
+        ).populate('name','key namespace translations');
         
         if (updatedGroup) {
           affectedAttributeGroup = updatedGroup;
@@ -308,8 +308,8 @@ export const updateAttribute = async (req: Request, res: Response, next: NextFun
     
     // Güncelleme öncesi mevcut veriyi al (geçmiş için)
     const previousAttribute = await Attribute.findById(id)
-      .populate('name','key namespace translations.tr translations.en')
-      .populate('description','key namespace translations.tr translations.en');
+      .populate('name','key namespace translations')
+      .populate('description','key namespace translations');
     
     if (!previousAttribute) {
       res.status(404).json({
@@ -367,8 +367,8 @@ export const updateAttribute = async (req: Request, res: Response, next: NextFun
       id,
       updateData,
       { new: true, runValidators: true }
-    ).populate('name','key namespace translations.tr translations.en')
-     .populate('description','key namespace translations.tr translations.en');
+    ).populate('name','key namespace translations')
+     .populate('description','key namespace translations');
     
     // History kaydı oluştur
     if (req.user && typeof req.user === 'object' && '_id' in req.user) {
@@ -442,7 +442,7 @@ export const deleteAttribute = async (req: Request, res: Response, next: NextFun
     
     // İlişkili AttributeGroup'ları bul
     const relatedGroups = await AttributeGroup.find({ attributes: id })
-      .populate('name','key namespace translations.tr translations.en');
+      .populate('name','key namespace translations');
     
     // Veriyi sil
     await Attribute.findByIdAndDelete(id);
@@ -521,12 +521,12 @@ export const getAttributeGroups = async (req: Request, res: Response, next: Next
     .populate({
       path: 'attributes',
       populate: [
-        { path: 'name', select: 'key namespace translations.tr translations.en' },
-        { path: 'description', select: 'key namespace translations.tr translations.en' }
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' }
       ]
     })
-    .populate('name','key namespace translations.tr translations.en')
-    .populate('description','key namespace translations.tr translations.en');
+    .populate('name','key namespace translations')
+    .populate('description','key namespace translations');
     
     res.status(200).json({
       success: true,
@@ -559,7 +559,7 @@ export const updateAttributeGroups = async (req: Request, res: Response, next: N
     
     // Önceki grupları bul
     const previousGroups = await AttributeGroup.find({ attributes: id })
-      .populate('name','key namespace translations.tr translations.en');
+      .populate('name','key namespace translations');
     
     // Önce bu attribute'ı tüm gruplardan kaldır
     await AttributeGroup.updateMany(
@@ -577,7 +577,7 @@ export const updateAttributeGroups = async (req: Request, res: Response, next: N
       
       // Yeni grupları getir
       newGroups = await AttributeGroup.find({ _id: { $in: attributeGroups } })
-        .populate('name','key namespace translations.tr translations.en');
+        .populate('name','key namespace translations');
     }
     
     // Güncellenmiş grupları getir
@@ -588,12 +588,12 @@ export const updateAttributeGroups = async (req: Request, res: Response, next: N
     .populate({
       path: 'attributes',
       populate: [
-        { path: 'name', select: 'key namespace translations.tr translations.en' },
-        { path: 'description', select: 'key namespace translations.tr translations.en' }
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' }
       ]
     })
-    .populate('name','key namespace translations.tr translations.en')
-    .populate('description','key namespace translations.tr translations.en');
+    .populate('name','key namespace translations')
+    .populate('description','key namespace translations');
     
     // History kaydı oluştur - ilişki değişiklikleri için
     if (req.user && typeof req.user === 'object' && '_id' in req.user) {

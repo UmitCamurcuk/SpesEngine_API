@@ -89,7 +89,13 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         // Attributes'ları include et
         if (includeAttributes) {
             const attributes = yield ItemType_1.default.findById(req.params.id)
-                .populate('attributes')
+                .populate({
+                path: 'attributes',
+                populate: [
+                    { path: 'name', select: 'key namespace translations' },
+                    { path: 'description', select: 'key namespace translations' }
+                ]
+            })
                 .lean()
                 .then(result => (result === null || result === void 0 ? void 0 : result.attributes) || []);
             itemType.attributes = attributes;
@@ -101,9 +107,17 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 const itemTypeWithGroups = yield ItemType_1.default.findById(req.params.id)
                     .populate({
                     path: 'attributeGroups',
-                    populate: {
-                        path: 'attributes'
-                    }
+                    populate: [
+                        { path: 'name', select: 'key namespace translations' },
+                        { path: 'description', select: 'key namespace translations' },
+                        {
+                            path: 'attributes',
+                            populate: [
+                                { path: 'name', select: 'key namespace translations' },
+                                { path: 'description', select: 'key namespace translations' }
+                            ]
+                        }
+                    ]
                 })
                     .lean();
                 itemType.attributeGroups = (itemTypeWithGroups === null || itemTypeWithGroups === void 0 ? void 0 : itemTypeWithGroups.attributeGroups) || [];
@@ -111,14 +125,26 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             else {
                 // AttributeGroups'ları getir
                 const attributeGroups = yield ItemType_1.default.findById(req.params.id)
-                    .populate('attributeGroups')
+                    .populate({
+                    path: 'attributeGroups',
+                    populate: [
+                        { path: 'name', select: 'key namespace translations' },
+                        { path: 'description', select: 'key namespace translations' }
+                    ]
+                })
                     .lean()
                     .then(result => (result === null || result === void 0 ? void 0 : result.attributeGroups) || []);
                 // Her bir AttributeGroup için, ilgili attribute'ları bulup ata
                 if (attributeGroups.length > 0 && includeAttributes) {
                     // Tüm ilgili attribute'ları tek bir sorguda getir
                     const allAttributes = yield ItemType_1.default.findById(req.params.id)
-                        .populate('attributes')
+                        .populate({
+                        path: 'attributes',
+                        populate: [
+                            { path: 'name', select: 'key namespace translations' },
+                            { path: 'description', select: 'key namespace translations' }
+                        ]
+                    })
                         .lean()
                         .then(result => (result === null || result === void 0 ? void 0 : result.attributes) || []);
                     // Her AttributeGroup için, ona ait attribute'ları filtrele ve ata
@@ -151,7 +177,13 @@ const createItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         const itemType = yield ItemType_1.default.create(req.body);
         // Oluşturulan öğe tipini attribute alanlarıyla birlikte getir
         const newItemType = yield ItemType_1.default.findById(itemType._id)
-            .populate('attributes');
+            .populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        });
         res.status(201).json({
             success: true,
             data: newItemType
@@ -168,7 +200,13 @@ exports.createItemType = createItemType;
 // PUT öğe tipini güncelle
 const updateItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const itemType = yield ItemType_1.default.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate('attributes');
+        const itemType = yield ItemType_1.default.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        });
         if (!itemType) {
             res.status(404).json({
                 success: false,

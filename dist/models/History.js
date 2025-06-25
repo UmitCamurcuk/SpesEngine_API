@@ -105,6 +105,10 @@ const HistorySchema = new mongoose_1.Schema({
         type: mongoose_1.Schema.Types.Mixed,
         default: {}
     },
+    comment: {
+        type: String,
+        required: false
+    },
     createdBy: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'User',

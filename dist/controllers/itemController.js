@@ -112,7 +112,13 @@ exports.getItemById = getItemById;
 // Yardımcı fonksiyon: itemType ve category'den zorunlu attribute'ları getir
 function getRequiredAttributes(itemTypeId, categoryId) {
     return __awaiter(this, void 0, void 0, function* () {
-        const itemType = yield ItemType_1.default.findById(itemTypeId).populate('attributes');
+        const itemType = yield ItemType_1.default.findById(itemTypeId).populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        });
         let requiredAttributes = [];
         if (itemType && itemType.attributes) {
             requiredAttributes = requiredAttributes.concat(itemType.attributes.filter(attr => attr.isRequired));
@@ -120,7 +126,17 @@ function getRequiredAttributes(itemTypeId, categoryId) {
         if (categoryId) {
             const category = yield Category_1.default.findById(categoryId).populate({
                 path: 'attributeGroups',
-                populate: { path: 'attributes' }
+                populate: [
+                    { path: 'name', select: 'key namespace translations' },
+                    { path: 'description', select: 'key namespace translations' },
+                    {
+                        path: 'attributes',
+                        populate: [
+                            { path: 'name', select: 'key namespace translations' },
+                            { path: 'description', select: 'key namespace translations' }
+                        ]
+                    }
+                ]
             });
             if (category && category.attributeGroups && category.attributeGroups.length > 0) {
                 // Her bir attributeGroup için

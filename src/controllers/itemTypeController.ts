@@ -86,7 +86,13 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
     // Attributes'ları include et
     if (includeAttributes) {
       const attributes = await ItemType.findById(req.params.id)
-        .populate('attributes')
+        .populate({
+          path: 'attributes',
+          populate: [
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' }
+          ]
+        })
         .lean()
         .then(result => result?.attributes || []);
         
@@ -100,9 +106,17 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
         const itemTypeWithGroups = await ItemType.findById(req.params.id)
           .populate({
             path: 'attributeGroups',
-            populate: {
-              path: 'attributes'
-            }
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' },
+              {
+                path: 'attributes',
+                populate: [
+                  { path: 'name', select: 'key namespace translations' },
+                  { path: 'description', select: 'key namespace translations' }
+                ]
+              }
+            ]
           })
           .lean();
         
@@ -110,7 +124,13 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
       } else {
         // AttributeGroups'ları getir
         const attributeGroups = await ItemType.findById(req.params.id)
-          .populate('attributeGroups')
+          .populate({
+            path: 'attributeGroups',
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' }
+            ]
+          })
           .lean()
           .then(result => result?.attributeGroups || []);
       
@@ -118,7 +138,13 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
         if (attributeGroups.length > 0 && includeAttributes) {
           // Tüm ilgili attribute'ları tek bir sorguda getir
           const allAttributes = await ItemType.findById(req.params.id)
-            .populate('attributes')
+            .populate({
+              path: 'attributes',
+              populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+              ]
+            })
             .lean()
             .then(result => result?.attributes || []);
             
@@ -157,7 +183,13 @@ export const createItemType = async (req: Request, res: Response, next: NextFunc
     
     // Oluşturulan öğe tipini attribute alanlarıyla birlikte getir
     const newItemType = await ItemType.findById(itemType._id)
-      .populate('attributes');
+      .populate({
+        path: 'attributes',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      });
     
     res.status(201).json({
       success: true,
@@ -178,7 +210,13 @@ export const updateItemType = async (req: Request, res: Response, next: NextFunc
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('attributes');
+    ).populate({
+      path: 'attributes',
+      populate: [
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' }
+      ]
+    });
     
     if (!itemType) {
       res.status(404).json({

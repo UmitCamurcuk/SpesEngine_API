@@ -87,8 +87,8 @@ const getAttributeGroups = (req, res, next) => __awaiter(void 0, void 0, void 0,
             query = query.populate({
                 path: 'attributes',
                 populate: [
-                    { path: 'name', select: 'key namespace translations.tr translations.en' },
-                    { path: 'description', select: 'key namespace translations.tr translations.en' }
+                    { path: 'name', select: 'key namespace translations' },
+                    { path: 'description', select: 'key namespace translations' }
                 ]
             });
         }
@@ -100,8 +100,8 @@ const getAttributeGroups = (req, res, next) => __awaiter(void 0, void 0, void 0,
         // Get total count
         const total = yield AttributeGroup_1.default.countDocuments(filterParams);
         const attributeGroups = yield query
-            .populate('name', 'key namespace translations.tr translations.en')
-            .populate('description', 'key namespace translations.tr translations.en')
+            .populate('name', 'key namespace translations')
+            .populate('description', 'key namespace translations')
             .populate('createdBy', 'name email')
             .populate('updatedBy', 'name email')
             .sort(sortObj)
@@ -131,12 +131,12 @@ const getAttributeGroupById = (req, res, next) => __awaiter(void 0, void 0, void
             .populate({
             path: 'attributes',
             populate: [
-                { path: 'name', select: 'key namespace translations.tr translations.en' },
-                { path: 'description', select: 'key namespace translations.tr translations.en' }
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
             ]
         })
-            .populate('name', 'key namespace translations.tr translations.en')
-            .populate('description', 'key namespace translations.tr translations.en')
+            .populate('name', 'key namespace translations')
+            .populate('description', 'key namespace translations')
             .populate('createdBy', 'name email')
             .populate('updatedBy', 'name email');
         if (!attributeGroup) {
@@ -168,9 +168,15 @@ const createAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
         const attributeGroup = yield AttributeGroup_1.default.create(createData);
         // Oluşturulan attributeGroup'u populate et
         const populatedAttributeGroup = yield AttributeGroup_1.default.findById(attributeGroup._id)
-            .populate('attributes')
-            .populate('name', 'key namespace translations.tr translations.en')
-            .populate('description', 'key namespace translations.tr translations.en')
+            .populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate('name', 'key namespace translations')
+            .populate('description', 'key namespace translations')
             .populate('createdBy', 'name email')
             .populate('updatedBy', 'name email');
         // History kaydı oluştur
@@ -216,8 +222,8 @@ const updateAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
         const _e = req.body, { nameTranslations, descriptionTranslations } = _e, otherData = __rest(_e, ["nameTranslations", "descriptionTranslations"]);
         // Güncelleme öncesi mevcut veriyi al (geçmiş için)
         const previousAttributeGroup = yield AttributeGroup_1.default.findById(id)
-            .populate('name', 'key namespace translations.tr translations.en')
-            .populate('description', 'key namespace translations.tr translations.en');
+            .populate('name', 'key namespace translations')
+            .populate('description', 'key namespace translations');
         if (!previousAttributeGroup) {
             res.status(404).json({
                 success: false,
@@ -267,9 +273,15 @@ const updateAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
                 });
             }
         }
-        const attributeGroup = yield AttributeGroup_1.default.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).populate('attributes')
-            .populate('name', 'key namespace translations.tr translations.en')
-            .populate('description', 'key namespace translations.tr translations.en');
+        const attributeGroup = yield AttributeGroup_1.default.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate('name', 'key namespace translations')
+            .populate('description', 'key namespace translations');
         if (!attributeGroup) {
             res.status(404).json({
                 success: false,
@@ -288,7 +300,8 @@ const updateAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
                 action: History_1.ActionType.UPDATE,
                 userId: userId,
                 previousData: previousAttributeGroup.toObject(),
-                newData: attributeGroup.toObject()
+                newData: attributeGroup.toObject(),
+                comment: req.body.comment || undefined
             });
             // Translation değişiklikleri için ayrı history kayıtları
             for (const translationChange of changedTranslations) {

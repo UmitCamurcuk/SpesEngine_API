@@ -111,7 +111,15 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
         
         // AttributeGroup'ları ve içindeki öznitelikleri getir
         const groups = await AttributeGroup.default.find({ _id: { $in: groupIds } })
-          .populate(populateAttributeGroupsAttributes ? 'attributes' : []);
+          .populate('name','key namespace translations')
+          .populate('description','key namespace translations')
+          .populate(populateAttributeGroupsAttributes ? {
+            path: 'attributes',
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' }
+            ]
+          } : []);
         
         console.log(`[getFamilyById] ${groups.length} AttributeGroup bulundu`);
         
@@ -126,7 +134,13 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
       if (includeAttributes && response.category) {
         const Category = await import('../models/Category');
         const category = await Category.default.findById(response.category._id)
-          .populate('attributes');
+          .populate({
+            path: 'attributes',
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' }
+            ]
+          });
           
         if (category && category.attributes) {
           response.category.attributes = category.attributes;
@@ -139,9 +153,17 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
         const category = await Category.default.findById(response.category._id)
           .populate({
             path: 'attributeGroups',
-            populate: populateAttributeGroupsAttributes ? {
-              path: 'attributes'
-            } : undefined
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' },
+              ...(populateAttributeGroupsAttributes ? [{
+                path: 'attributes',
+                populate: [
+                  { path: 'name', select: 'key namespace translations' },
+                  { path: 'description', select: 'key namespace translations' }
+                ]
+              }] : [])
+            ]
           });
           
         if (category && category.attributeGroups) {
@@ -225,8 +247,20 @@ export const createFamily = async (req: Request, res: Response, next: NextFuncti
     const newFamily = await Family.findById(family._id)
       .populate('itemType')
       .populate('parent')
-      .populate('attributeGroups')
-      .populate('attributes');
+      .populate({
+        path: 'attributeGroups',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate({
+        path: 'attributes',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      });
     
     res.status(201).json({
       success: true,
@@ -290,8 +324,20 @@ export const updateFamily = async (req: Request, res: Response, next: NextFuncti
     )
     .populate('itemType')
     .populate('parent')
-    .populate('attributeGroups')
-    .populate('attributes');
+    .populate({
+      path: 'attributeGroups',
+      populate: [
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' }
+      ]
+    })
+    .populate({
+      path: 'attributes',
+      populate: [
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' }
+      ]
+    });
     
     if (!family) {
       res.status(404).json({

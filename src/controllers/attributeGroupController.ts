@@ -73,8 +73,8 @@ export const getAttributeGroups = async (req: Request, res: Response, next: Next
       query = query.populate({
         path: 'attributes',
         populate: [
-          { path: 'name', select: 'key namespace translations.tr translations.en' },
-          { path: 'description', select: 'key namespace translations.tr translations.en' }
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
         ]
       });
     }
@@ -89,8 +89,8 @@ export const getAttributeGroups = async (req: Request, res: Response, next: Next
     const total = await AttributeGroup.countDocuments(filterParams);
     
     const attributeGroups = await query
-      .populate('name','key namespace translations.tr translations.en')
-      .populate('description','key namespace translations.tr translations.en')
+      .populate('name','key namespace translations')
+      .populate('description','key namespace translations')
       .populate('createdBy', 'name email')
       .populate('updatedBy', 'name email')
       .sort(sortObj)
@@ -120,12 +120,12 @@ export const getAttributeGroupById = async (req: Request, res: Response, next: N
       .populate({
         path: 'attributes',
         populate: [
-          { path: 'name', select: 'key namespace translations.tr translations.en' },
-          { path: 'description', select: 'key namespace translations.tr translations.en' }
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
         ]
       })
-      .populate('name','key namespace translations.tr translations.en')
-      .populate('description','key namespace translations.tr translations.en')
+      .populate('name','key namespace translations')
+      .populate('description','key namespace translations')
       .populate('createdBy', 'name email')
       .populate('updatedBy', 'name email');
     
@@ -162,9 +162,15 @@ export const createAttributeGroup = async (req: Request, res: Response, next: Ne
     
     // Oluşturulan attributeGroup'u populate et
     const populatedAttributeGroup = await AttributeGroup.findById(attributeGroup._id)
-      .populate('attributes')
-      .populate('name','key namespace translations.tr translations.en')
-      .populate('description','key namespace translations.tr translations.en')
+      .populate({
+        path: 'attributes',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate('name','key namespace translations')
+      .populate('description','key namespace translations')
       .populate('createdBy', 'name email')
       .populate('updatedBy', 'name email');
     
@@ -213,8 +219,8 @@ export const updateAttributeGroup = async (req: Request, res: Response, next: Ne
     
     // Güncelleme öncesi mevcut veriyi al (geçmiş için)
     const previousAttributeGroup = await AttributeGroup.findById(id)
-      .populate('name','key namespace translations.tr translations.en')
-      .populate('description','key namespace translations.tr translations.en');
+      .populate('name','key namespace translations')
+      .populate('description','key namespace translations');
     
     if (!previousAttributeGroup) {
       res.status(404).json({
@@ -276,9 +282,15 @@ export const updateAttributeGroup = async (req: Request, res: Response, next: Ne
       id,
       updateData,
       { new: true, runValidators: true }
-    ).populate('attributes')
-     .populate('name','key namespace translations.tr translations.en')
-     .populate('description','key namespace translations.tr translations.en');
+    ).populate({
+      path: 'attributes',
+      populate: [
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' }
+      ]
+    })
+     .populate('name','key namespace translations')
+     .populate('description','key namespace translations');
     
     if (!attributeGroup) {
       res.status(404).json({

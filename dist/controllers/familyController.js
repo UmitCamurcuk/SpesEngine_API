@@ -144,7 +144,15 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 console.log(`[getFamilyById] AttributeGroup IDs:`, groupIds);
                 // AttributeGroup'ları ve içindeki öznitelikleri getir
                 const groups = yield AttributeGroup.default.find({ _id: { $in: groupIds } })
-                    .populate(populateAttributeGroupsAttributes ? 'attributes' : []);
+                    .populate('name', 'key namespace translations')
+                    .populate('description', 'key namespace translations')
+                    .populate(populateAttributeGroupsAttributes ? {
+                    path: 'attributes',
+                    populate: [
+                        { path: 'name', select: 'key namespace translations' },
+                        { path: 'description', select: 'key namespace translations' }
+                    ]
+                } : []);
                 console.log(`[getFamilyById] ${groups.length} AttributeGroup bulundu`);
                 // Yanıta ekle
                 response.attributeGroups = groups.map(g => g.toJSON());
@@ -156,7 +164,13 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             if (includeAttributes && response.category) {
                 const Category = yield Promise.resolve().then(() => __importStar(require('../models/Category')));
                 const category = yield Category.default.findById(response.category._id)
-                    .populate('attributes');
+                    .populate({
+                    path: 'attributes',
+                    populate: [
+                        { path: 'name', select: 'key namespace translations' },
+                        { path: 'description', select: 'key namespace translations' }
+                    ]
+                });
                 if (category && category.attributes) {
                     response.category.attributes = category.attributes;
                 }
@@ -167,9 +181,17 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 const category = yield Category.default.findById(response.category._id)
                     .populate({
                     path: 'attributeGroups',
-                    populate: populateAttributeGroupsAttributes ? {
-                        path: 'attributes'
-                    } : undefined
+                    populate: [
+                        { path: 'name', select: 'key namespace translations' },
+                        { path: 'description', select: 'key namespace translations' },
+                        ...(populateAttributeGroupsAttributes ? [{
+                                path: 'attributes',
+                                populate: [
+                                    { path: 'name', select: 'key namespace translations' },
+                                    { path: 'description', select: 'key namespace translations' }
+                                ]
+                            }] : [])
+                    ]
                 });
                 if (category && category.attributeGroups) {
                     response.category.attributeGroups = category.attributeGroups;
@@ -244,8 +266,20 @@ const createFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         const newFamily = yield Family_1.default.findById(family._id)
             .populate('itemType')
             .populate('parent')
-            .populate('attributeGroups')
-            .populate('attributes');
+            .populate({
+            path: 'attributeGroups',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        });
         res.status(201).json({
             success: true,
             data: newFamily
@@ -299,8 +333,20 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         const family = yield Family_1.default.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
             .populate('itemType')
             .populate('parent')
-            .populate('attributeGroups')
-            .populate('attributes');
+            .populate({
+            path: 'attributeGroups',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        });
         if (!family) {
             res.status(404).json({
                 success: false,
