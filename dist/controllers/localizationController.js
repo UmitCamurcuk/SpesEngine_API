@@ -119,21 +119,24 @@ const upsertTranslation = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.upsertTranslation = upsertTranslation;
-// ID'ye göre çeviri getir
+// ID'ye göre çeviri getir (hem MongoDB ID hem de namespace:key formatını destekler)
 const getTranslationById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        // ID MongoDB ObjectId formatında mı kontrol et
-        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-            res.status(400).json({
-                success: false,
-                message: 'Geçersiz ID formatı'
-            });
-            return;
-        }
-        // Localization'ı ID'ye göre bul
         const Localization = (yield Promise.resolve().then(() => __importStar(require('../models/Localization')))).default;
-        const localization = yield Localization.findById(id);
+        let localization;
+        // ID MongoDB ObjectId formatında mı kontrol et
+        if (id.match(/^[0-9a-fA-F]{24}$/)) {
+            // MongoDB ObjectId ile ara
+            localization = yield Localization.findById(id);
+        }
+        else if (id.includes(':')) {
+            // namespace:key formatında ise parse et
+            const [namespace, key] = id.split(':');
+            if (namespace && key) {
+                localization = yield localizationService_1.default.getTranslation(key, namespace);
+            }
+        }
         if (!localization) {
             res.status(404).json({
                 success: false,
@@ -155,22 +158,28 @@ const getTranslationById = (req, res, next) => __awaiter(void 0, void 0, void 0,
     }
 });
 exports.getTranslationById = getTranslationById;
-// ID'ye göre çeviri güncelle
+// ID'ye göre çeviri güncelle (hem MongoDB ID hem de namespace:key formatını destekler)
 const updateTranslationById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
         const { key, namespace, translations } = req.body;
-        // ID MongoDB ObjectId formatında mı kontrol et
-        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-            res.status(400).json({
-                success: false,
-                message: 'Geçersiz ID formatı'
-            });
-            return;
-        }
         const Localization = (yield Promise.resolve().then(() => __importStar(require('../models/Localization')))).default;
-        // Mevcut çeviriyi bul
-        const existingTranslation = yield Localization.findById(id);
+        let existingTranslation;
+        let updateMethod = 'mongodb';
+        // ID MongoDB ObjectId formatında mı kontrol et
+        if (id.match(/^[0-9a-fA-F]{24}$/)) {
+            // MongoDB ObjectId ile ara
+            existingTranslation = yield Localization.findById(id);
+            updateMethod = 'mongodb';
+        }
+        else if (id.includes(':')) {
+            // namespace:key formatında ise parse et
+            const [currentNamespace, currentKey] = id.split(':');
+            if (currentNamespace && currentKey) {
+                existingTranslation = yield localizationService_1.default.getTranslation(currentKey, currentNamespace);
+                updateMethod = 'composite';
+            }
+        }
         if (!existingTranslation) {
             res.status(404).json({
                 success: false,
@@ -178,16 +187,28 @@ const updateTranslationById = (req, res, next) => __awaiter(void 0, void 0, void
             });
             return;
         }
-        // Güncelleme verisini hazırla
-        const updateData = {};
-        if (key !== undefined)
-            updateData.key = key;
-        if (namespace !== undefined)
-            updateData.namespace = namespace;
-        if (translations !== undefined)
-            updateData.translations = translations;
-        // Güncelle
-        const updatedTranslation = yield Localization.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+        let updatedTranslation;
+        if (updateMethod === 'mongodb') {
+            // MongoDB ID ile güncelleme
+            const updateData = {};
+            if (key !== undefined)
+                updateData.key = key;
+            if (namespace !== undefined)
+                updateData.namespace = namespace;
+            if (translations !== undefined)
+                updateData.translations = translations;
+            updatedTranslation = yield Localization.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+        }
+        else {
+            // namespace:key ile güncelleme - localizationService kullan
+            const [currentNamespace, currentKey] = id.split(':');
+            const result = yield localizationService_1.default.upsertTranslation({
+                key: key || currentKey,
+                namespace: namespace || currentNamespace,
+                translations: translations || existingTranslation.translations
+            });
+            updatedTranslation = result;
+        }
         // History kaydı oluştur
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);

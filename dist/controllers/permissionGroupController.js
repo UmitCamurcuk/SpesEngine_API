@@ -15,6 +15,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deletePermissionGroup = exports.removePermissionFromGroup = exports.addPermissionToGroup = exports.updatePermissionGroup = exports.getPermissionGroupById = exports.createPermissionGroup = exports.getPermissionGroups = void 0;
 const PermissionGroup_1 = __importDefault(require("../models/PermissionGroup"));
 const Permission_1 = __importDefault(require("../models/Permission"));
+const historyService_1 = __importDefault(require("../services/historyService"));
+const Entity_1 = require("../models/Entity");
+const History_1 = require("../models/History");
 // @desc    Tüm izin gruplarını getir
 // @route   GET /api/permissionGroups
 // @access  Private
@@ -53,6 +56,7 @@ exports.getPermissionGroups = getPermissionGroups;
 // @route   POST /api/permissionGroups
 // @access  Private
 const createPermissionGroup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const { name, description, code, permissions } = req.body;
         // İzin grubu zaten var mı kontrol et
@@ -85,6 +89,29 @@ const createPermissionGroup = (req, res) => __awaiter(void 0, void 0, void 0, fu
         // Populate ederek dön
         const populatedPermissionGroup = yield PermissionGroup_1.default.findById(permissionGroup._id)
             .populate('permissions', 'name description code');
+        // History kaydı oluştur
+        try {
+            yield historyService_1.default.recordHistory({
+                entityId: String(permissionGroup._id),
+                entityType: Entity_1.EntityType.PERMISSION_GROUP,
+                entityName: permissionGroup.name,
+                entityCode: permissionGroup.code,
+                action: History_1.ActionType.CREATE,
+                userId: ((_a = req.user) === null || _a === void 0 ? void 0 : _a.id) ? String(req.user.id) : 'system',
+                newData: {
+                    name: permissionGroup.name,
+                    description: permissionGroup.description,
+                    code: permissionGroup.code,
+                    permissions: permissionGroup.permissions,
+                    isActive: permissionGroup.isActive
+                },
+                comment: 'İzin grubu oluşturuldu'
+            });
+        }
+        catch (historyError) {
+            console.error('History kaydı oluşturulamadı:', historyError);
+            // History hatası ana işlemi durdurmasın
+        }
         res.status(201).json({
             success: true,
             message: 'İzin grubu başarıyla oluşturuldu',
@@ -131,8 +158,18 @@ exports.getPermissionGroupById = getPermissionGroupById;
 // @route   PUT /api/permissionGroups/:id
 // @access  Private
 const updatePermissionGroup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const { name, description, code, permissions, isActive } = req.body;
+        const { name, description, code, permissions, isActive, comment } = req.body;
+        // Mevcut izin grubunu al (history için)
+        const existingPermissionGroup = yield PermissionGroup_1.default.findById(req.params.id)
+            .populate('permissions', 'name description code');
+        if (!existingPermissionGroup) {
+            return res.status(404).json({
+                success: false,
+                message: 'İzin grubu bulunamadı'
+            });
+        }
         // İsim veya kod değiştiriliyorsa, başka bir grup ile çakışıyor mu kontrol et
         if (name || code) {
             const query = { _id: { $ne: req.params.id } };
@@ -140,8 +177,8 @@ const updatePermissionGroup = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 query.name = name;
             if (code)
                 query.code = code;
-            const existingPermissionGroup = yield PermissionGroup_1.default.findOne(query);
-            if (existingPermissionGroup) {
+            const duplicatePermissionGroup = yield PermissionGroup_1.default.findOne(query);
+            if (duplicatePermissionGroup) {
                 return res.status(400).json({
                     success: false,
                     message: 'Bu isim veya kod ile başka bir izin grubu zaten mevcut'
@@ -165,6 +202,36 @@ const updatePermissionGroup = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 success: false,
                 message: 'İzin grubu bulunamadı'
             });
+        }
+        // History kaydı oluştur
+        try {
+            yield historyService_1.default.recordHistory({
+                entityId: req.params.id,
+                entityType: Entity_1.EntityType.PERMISSION_GROUP,
+                entityName: permissionGroup.name,
+                entityCode: permissionGroup.code,
+                action: History_1.ActionType.UPDATE,
+                userId: ((_a = req.user) === null || _a === void 0 ? void 0 : _a.id) ? String(req.user.id) : 'system',
+                previousData: {
+                    name: existingPermissionGroup.name,
+                    description: existingPermissionGroup.description,
+                    code: existingPermissionGroup.code,
+                    permissions: existingPermissionGroup.permissions,
+                    isActive: existingPermissionGroup.isActive
+                },
+                newData: {
+                    name: permissionGroup.name,
+                    description: permissionGroup.description,
+                    code: permissionGroup.code,
+                    permissions: permissionGroup.permissions,
+                    isActive: permissionGroup.isActive
+                },
+                comment: comment || 'İzin grubu güncellendi'
+            });
+        }
+        catch (historyError) {
+            console.error('History kaydı oluşturulamadı:', historyError);
+            // History hatası ana işlemi durdurmasın
         }
         res.status(200).json({
             success: true,

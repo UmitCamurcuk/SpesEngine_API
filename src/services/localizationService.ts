@@ -59,12 +59,12 @@ class LocalizationService {
   }
   
   // Bir çeviriyi tüm dillerde getir
-  async getTranslation(key: string, namespace = 'common'): Promise<Record<string, string> | null> {
-    const translation = await Localization.findOne({ key, namespace }).lean();
+  async getTranslation(key: string, namespace = 'common'): Promise<ILocalization | null> {
+    const translation = await Localization.findOne({ key, namespace });
     
     if (!translation) return null;
     
-    return translation.translations as Record<string, string>;
+    return translation;
   }
   
   // Çeviri sil

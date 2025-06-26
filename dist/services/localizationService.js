@@ -49,10 +49,10 @@ class LocalizationService {
     // Bir çeviriyi tüm dillerde getir
     getTranslation(key_1) {
         return __awaiter(this, arguments, void 0, function* (key, namespace = 'common') {
-            const translation = yield Localization_1.default.findOne({ key, namespace }).lean();
+            const translation = yield Localization_1.default.findOne({ key, namespace });
             if (!translation)
                 return null;
-            return translation.translations;
+            return translation;
         });
     }
     // Çeviri sil

@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import PermissionGroup from '../models/PermissionGroup';
 import Permission from '../models/Permission';
+import historyService from '../services/historyService';
+import { EntityType } from '../models/Entity';
+import { ActionType } from '../models/History';
 
 // @desc    Tüm izin gruplarını getir
 // @route   GET /api/permissionGroups
@@ -79,6 +82,29 @@ export const createPermissionGroup = async (req: Request, res: Response) => {
     const populatedPermissionGroup = await PermissionGroup.findById(permissionGroup._id)
       .populate('permissions', 'name description code');
 
+    // History kaydı oluştur
+    try {
+      await historyService.recordHistory({
+        entityId: String(permissionGroup._id),
+        entityType: EntityType.PERMISSION_GROUP,
+        entityName: permissionGroup.name,
+        entityCode: permissionGroup.code,
+        action: ActionType.CREATE,
+        userId: req.user?.id ? String(req.user.id) : 'system',
+        newData: {
+          name: permissionGroup.name,
+          description: permissionGroup.description,
+          code: permissionGroup.code,
+          permissions: permissionGroup.permissions,
+          isActive: permissionGroup.isActive
+        },
+        comment: 'İzin grubu oluşturuldu'
+      });
+    } catch (historyError: any) {
+      console.error('History kaydı oluşturulamadı:', historyError);
+      // History hatası ana işlemi durdurmasın
+    }
+
     res.status(201).json({
       success: true,
       message: 'İzin grubu başarıyla oluşturuldu',
@@ -126,7 +152,18 @@ export const getPermissionGroupById = async (req: Request, res: Response) => {
 // @access  Private
 export const updatePermissionGroup = async (req: Request, res: Response) => {
   try {
-    const { name, description, code, permissions, isActive } = req.body;
+    const { name, description, code, permissions, isActive, comment } = req.body;
+
+    // Mevcut izin grubunu al (history için)
+    const existingPermissionGroup = await PermissionGroup.findById(req.params.id)
+      .populate('permissions', 'name description code');
+
+    if (!existingPermissionGroup) {
+      return res.status(404).json({
+        success: false,
+        message: 'İzin grubu bulunamadı'
+      });
+    }
 
     // İsim veya kod değiştiriliyorsa, başka bir grup ile çakışıyor mu kontrol et
     if (name || code) {
@@ -135,9 +172,9 @@ export const updatePermissionGroup = async (req: Request, res: Response) => {
       if (name) query.name = name;
       if (code) query.code = code;
       
-      const existingPermissionGroup = await PermissionGroup.findOne(query);
+      const duplicatePermissionGroup = await PermissionGroup.findOne(query);
       
-      if (existingPermissionGroup) {
+      if (duplicatePermissionGroup) {
         return res.status(400).json({
           success: false,
           message: 'Bu isim veya kod ile başka bir izin grubu zaten mevcut'
@@ -168,6 +205,36 @@ export const updatePermissionGroup = async (req: Request, res: Response) => {
         success: false,
         message: 'İzin grubu bulunamadı'
       });
+    }
+
+    // History kaydı oluştur
+    try {
+      await historyService.recordHistory({
+        entityId: req.params.id,
+        entityType: EntityType.PERMISSION_GROUP,
+        entityName: permissionGroup.name,
+        entityCode: permissionGroup.code,
+        action: ActionType.UPDATE,
+        userId: req.user?.id ? String(req.user.id) : 'system',
+        previousData: {
+          name: existingPermissionGroup.name,
+          description: existingPermissionGroup.description,
+          code: existingPermissionGroup.code,
+          permissions: existingPermissionGroup.permissions,
+          isActive: existingPermissionGroup.isActive
+        },
+        newData: {
+          name: permissionGroup.name,
+          description: permissionGroup.description,
+          code: permissionGroup.code,
+          permissions: permissionGroup.permissions,
+          isActive: permissionGroup.isActive
+        },
+        comment: comment || 'İzin grubu güncellendi'
+      });
+    } catch (historyError: any) {
+      console.error('History kaydı oluşturulamadı:', historyError);
+      // History hatası ana işlemi durdurmasın
     }
 
     res.status(200).json({

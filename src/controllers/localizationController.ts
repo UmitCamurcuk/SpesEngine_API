@@ -81,23 +81,25 @@ export const upsertTranslation = async (req: Request, res: Response, next: NextF
   }
 };
 
-// ID'ye göre çeviri getir
+// ID'ye göre çeviri getir (hem MongoDB ID hem de namespace:key formatını destekler)
 export const getTranslationById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
     
-    // ID MongoDB ObjectId formatında mı kontrol et
-    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-      res.status(400).json({
-        success: false,
-        message: 'Geçersiz ID formatı'
-      });
-      return;
-    }
-    
-    // Localization'ı ID'ye göre bul
     const Localization = (await import('../models/Localization')).default;
-    const localization = await Localization.findById(id);
+    let localization;
+    
+    // ID MongoDB ObjectId formatında mı kontrol et
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      // MongoDB ObjectId ile ara
+      localization = await Localization.findById(id);
+    } else if (id.includes(':')) {
+      // namespace:key formatında ise parse et
+      const [namespace, key] = id.split(':');
+      if (namespace && key) {
+        localization = await localizationService.getTranslation(key, namespace);
+      }
+    }
     
     if (!localization) {
       res.status(404).json({
@@ -120,25 +122,30 @@ export const getTranslationById = async (req: Request, res: Response, next: Next
   }
 };
 
-// ID'ye göre çeviri güncelle
+// ID'ye göre çeviri güncelle (hem MongoDB ID hem de namespace:key formatını destekler)
 export const updateTranslationById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
     const { key, namespace, translations } = req.body;
     
+    const Localization = (await import('../models/Localization')).default;
+    let existingTranslation;
+    let updateMethod: 'mongodb' | 'composite' = 'mongodb';
+    
     // ID MongoDB ObjectId formatında mı kontrol et
-    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-      res.status(400).json({
-        success: false,
-        message: 'Geçersiz ID formatı'
-      });
-      return;
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      // MongoDB ObjectId ile ara
+      existingTranslation = await Localization.findById(id);
+      updateMethod = 'mongodb';
+    } else if (id.includes(':')) {
+      // namespace:key formatında ise parse et
+      const [currentNamespace, currentKey] = id.split(':');
+      if (currentNamespace && currentKey) {
+        existingTranslation = await localizationService.getTranslation(currentKey, currentNamespace);
+        updateMethod = 'composite';
+      }
     }
     
-    const Localization = (await import('../models/Localization')).default;
-    
-    // Mevcut çeviriyi bul
-    const existingTranslation = await Localization.findById(id);
     if (!existingTranslation) {
       res.status(404).json({
         success: false,
@@ -147,18 +154,32 @@ export const updateTranslationById = async (req: Request, res: Response, next: N
       return;
     }
     
-    // Güncelleme verisini hazırla
-    const updateData: any = {};
-    if (key !== undefined) updateData.key = key;
-    if (namespace !== undefined) updateData.namespace = namespace;
-    if (translations !== undefined) updateData.translations = translations;
+    let updatedTranslation;
     
-    // Güncelle
-    const updatedTranslation = await Localization.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+    if (updateMethod === 'mongodb') {
+      // MongoDB ID ile güncelleme
+      const updateData: any = {};
+      if (key !== undefined) updateData.key = key;
+      if (namespace !== undefined) updateData.namespace = namespace;
+      if (translations !== undefined) updateData.translations = translations;
+      
+      updatedTranslation = await Localization.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true, runValidators: true }
+      );
+    } else {
+      // namespace:key ile güncelleme - localizationService kullan
+      const [currentNamespace, currentKey] = id.split(':');
+      
+      const result = await localizationService.upsertTranslation({
+        key: key || currentKey,
+        namespace: namespace || currentNamespace,
+        translations: translations || existingTranslation.translations
+      });
+      
+      updatedTranslation = result;
+    }
     
     // History kaydı oluştur
     if (req.user && typeof req.user === 'object' && '_id' in req.user) {
