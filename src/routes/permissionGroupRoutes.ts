@@ -5,7 +5,9 @@ import {
   createPermissionGroup,
   getPermissionGroupById,
   updatePermissionGroup,
-  deletePermissionGroup
+  deletePermissionGroup,
+  addPermissionToGroup,
+  removePermissionFromGroup
 } from '../controllers/permissionGroupController';
 
 const router = express.Router();
@@ -23,5 +25,14 @@ router
   .get(checkAccess(['PERMISSION_GROUPS_VIEW']), getPermissionGroupById)
   .put(checkAccess(['PERMISSION_GROUPS_UPDATE']), updatePermissionGroup)
   .delete(checkAccess(['PERMISSION_GROUPS_DELETE']), deletePermissionGroup);
+
+// Permission group'a permission ekleme/çıkarma
+router
+  .route('/:id/permissions')
+  .post(checkAccess(['PERMISSION_GROUPS_UPDATE']), addPermissionToGroup);
+
+router
+  .route('/:id/permissions/:permissionId')
+  .delete(checkAccess(['PERMISSION_GROUPS_UPDATE']), removePermissionFromGroup);
 
 export default router; 

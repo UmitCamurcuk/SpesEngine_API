@@ -45,11 +45,26 @@ const RoleSchema = new mongoose_1.Schema({
         type: String,
         required: [true, 'Rol açıklaması zorunludur']
     },
-    permissions: [
+    permissionGroups: [
         {
-            type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: 'Permission',
-            required: true
+            permissionGroup: {
+                type: mongoose_1.default.Schema.Types.ObjectId,
+                ref: 'PermissionGroup',
+                required: true
+            },
+            permissions: [
+                {
+                    permission: {
+                        type: mongoose_1.default.Schema.Types.ObjectId,
+                        ref: 'Permission',
+                        required: true
+                    },
+                    granted: {
+                        type: Boolean,
+                        default: true
+                    }
+                }
+            ]
         }
     ],
     isActive: {

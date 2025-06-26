@@ -36,24 +36,31 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const PermissionSchema = new mongoose_1.Schema({
     name: {
-        type: String,
-        required: [true, 'İzin adı zorunludur'],
-        unique: true,
-        trim: true
+        tr: {
+            type: String,
+            required: [true, 'Türkçe izin adı zorunludur'],
+            trim: true
+        },
+        en: {
+            type: String,
+            required: [true, 'İngilizce izin adı zorunludur'],
+            trim: true
+        }
     },
     description: {
-        type: String,
-        required: [true, 'İzin açıklaması zorunludur']
+        tr: {
+            type: String,
+            required: [true, 'Türkçe izin açıklaması zorunludur']
+        },
+        en: {
+            type: String,
+            required: [true, 'İngilizce izin açıklaması zorunludur']
+        }
     },
     code: {
         type: String,
         required: [true, 'İzin kodu zorunludur'],
         unique: true
-    },
-    permissionGroup: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'PermissionGroup',
-        required: true
     },
     isActive: {
         type: Boolean,

@@ -12,8 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePermissionGroup = exports.updatePermissionGroup = exports.getPermissionGroupById = exports.createPermissionGroup = exports.getPermissionGroups = void 0;
+exports.deletePermissionGroup = exports.removePermissionFromGroup = exports.addPermissionToGroup = exports.updatePermissionGroup = exports.getPermissionGroupById = exports.createPermissionGroup = exports.getPermissionGroups = void 0;
 const PermissionGroup_1 = __importDefault(require("../models/PermissionGroup"));
+const Permission_1 = __importDefault(require("../models/Permission"));
 // @desc    Tüm izin gruplarını getir
 // @route   GET /api/permissionGroups
 // @access  Private
@@ -24,6 +25,7 @@ const getPermissionGroups = (req, res) => __awaiter(void 0, void 0, void 0, func
         const skip = (page - 1) * limit;
         const total = yield PermissionGroup_1.default.countDocuments();
         const permissionGroups = yield PermissionGroup_1.default.find()
+            .populate('permissions', 'name description code')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -52,7 +54,7 @@ exports.getPermissionGroups = getPermissionGroups;
 // @access  Private
 const createPermissionGroup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, description, code } = req.body;
+        const { name, description, code, permissions } = req.body;
         // İzin grubu zaten var mı kontrol et
         const existingPermissionGroup = yield PermissionGroup_1.default.findOne({
             $or: [{ name }, { code }]
@@ -63,16 +65,30 @@ const createPermissionGroup = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 message: 'Bu isim veya kod ile bir izin grubu zaten mevcut'
             });
         }
+        // Eğer permissions verildiyse, bunların geçerli olup olmadığını kontrol et
+        if (permissions && permissions.length > 0) {
+            const validPermissions = yield Permission_1.default.find({ _id: { $in: permissions } });
+            if (validPermissions.length !== permissions.length) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Geçersiz izin ID\'leri bulundu'
+                });
+            }
+        }
         // Yeni izin grubu oluştur
         const permissionGroup = yield PermissionGroup_1.default.create({
             name,
             description,
-            code
+            code,
+            permissions: permissions || []
         });
+        // Populate ederek dön
+        const populatedPermissionGroup = yield PermissionGroup_1.default.findById(permissionGroup._id)
+            .populate('permissions', 'name description code');
         res.status(201).json({
             success: true,
             message: 'İzin grubu başarıyla oluşturuldu',
-            permissionGroup
+            permissionGroup: populatedPermissionGroup
         });
     }
     catch (error) {
@@ -89,7 +105,8 @@ exports.createPermissionGroup = createPermissionGroup;
 // @access  Private
 const getPermissionGroupById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const permissionGroup = yield PermissionGroup_1.default.findById(req.params.id);
+        const permissionGroup = yield PermissionGroup_1.default.findById(req.params.id)
+            .populate('permissions', 'name description code');
         if (!permissionGroup) {
             return res.status(404).json({
                 success: false,
@@ -115,7 +132,7 @@ exports.getPermissionGroupById = getPermissionGroupById;
 // @access  Private
 const updatePermissionGroup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, description, code, isActive } = req.body;
+        const { name, description, code, permissions, isActive } = req.body;
         // İsim veya kod değiştiriliyorsa, başka bir grup ile çakışıyor mu kontrol et
         if (name || code) {
             const query = { _id: { $ne: req.params.id } };
@@ -131,8 +148,18 @@ const updatePermissionGroup = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 });
             }
         }
+        // Eğer permissions verildiyse, bunların geçerli olup olmadığını kontrol et
+        if (permissions && permissions.length > 0) {
+            const validPermissions = yield Permission_1.default.find({ _id: { $in: permissions } });
+            if (validPermissions.length !== permissions.length) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Geçersiz izin ID\'leri bulundu'
+                });
+            }
+        }
         // İzin grubunu güncelle
-        const permissionGroup = yield PermissionGroup_1.default.findByIdAndUpdate(req.params.id, { name, description, code, isActive }, { new: true, runValidators: true });
+        const permissionGroup = yield PermissionGroup_1.default.findByIdAndUpdate(req.params.id, { name, description, code, permissions, isActive }, { new: true, runValidators: true }).populate('permissions', 'name description code');
         if (!permissionGroup) {
             return res.status(404).json({
                 success: false,
@@ -154,6 +181,98 @@ const updatePermissionGroup = (req, res) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.updatePermissionGroup = updatePermissionGroup;
+// @desc    İzin grubuna izin ekle
+// @route   POST /api/permissionGroups/:id/permissions
+// @access  Private
+const addPermissionToGroup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { permissionId } = req.body;
+        // İzin grubu var mı kontrol et
+        const permissionGroup = yield PermissionGroup_1.default.findById(req.params.id);
+        if (!permissionGroup) {
+            return res.status(404).json({
+                success: false,
+                message: 'İzin grubu bulunamadı'
+            });
+        }
+        // İzin var mı kontrol et
+        const permission = yield Permission_1.default.findById(permissionId);
+        if (!permission) {
+            return res.status(404).json({
+                success: false,
+                message: 'İzin bulunamadı'
+            });
+        }
+        // İzin zaten grupta var mı kontrol et
+        if (permissionGroup.permissions.includes(permissionId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bu izin zaten grupta mevcut'
+            });
+        }
+        // İzni gruba ekle
+        permissionGroup.permissions.push(permissionId);
+        yield permissionGroup.save();
+        // Populate ederek dön
+        const updatedPermissionGroup = yield PermissionGroup_1.default.findById(req.params.id)
+            .populate('permissions', 'name description code');
+        res.status(200).json({
+            success: true,
+            message: 'İzin başarıyla gruba eklendi',
+            permissionGroup: updatedPermissionGroup
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'İzin gruba eklenemedi',
+            error: error.message
+        });
+    }
+});
+exports.addPermissionToGroup = addPermissionToGroup;
+// @desc    İzin grubundan izin çıkar
+// @route   DELETE /api/permissionGroups/:id/permissions/:permissionId
+// @access  Private
+const removePermissionFromGroup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id, permissionId } = req.params;
+        // İzin grubu var mı kontrol et
+        const permissionGroup = yield PermissionGroup_1.default.findById(id);
+        if (!permissionGroup) {
+            return res.status(404).json({
+                success: false,
+                message: 'İzin grubu bulunamadı'
+            });
+        }
+        // İzin grupta var mı kontrol et
+        if (!permissionGroup.permissions.includes(permissionId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bu izin grupta mevcut değil'
+            });
+        }
+        // İzni gruptan çıkar
+        permissionGroup.permissions = permissionGroup.permissions.filter(p => p.toString() !== permissionId);
+        yield permissionGroup.save();
+        // Populate ederek dön
+        const updatedPermissionGroup = yield PermissionGroup_1.default.findById(id)
+            .populate('permissions', 'name description code');
+        res.status(200).json({
+            success: true,
+            message: 'İzin başarıyla gruptan çıkarıldı',
+            permissionGroup: updatedPermissionGroup
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'İzin gruptan çıkarılamadı',
+            error: error.message
+        });
+    }
+});
+exports.removePermissionFromGroup = removePermissionFromGroup;
 // @desc    İzin grubunu sil
 // @route   DELETE /api/permissionGroups/:id
 // @access  Private

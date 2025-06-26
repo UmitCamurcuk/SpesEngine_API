@@ -5,7 +5,9 @@ import {
   createRole,
   getRoleById,
   updateRole,
-  deleteRole
+  deleteRole,
+  addPermissionGroupToRole,
+  removePermissionGroupFromRole
 } from '../controllers/roleController';
 
 const router = express.Router();
@@ -23,5 +25,14 @@ router
   .get(checkAccess(['ROLES_VIEW']), getRoleById)
   .put(checkAccess(['ROLES_UPDATE']), updateRole)
   .delete(checkAccess(['ROLES_DELETE']), deleteRole);
+
+// Role'e permission group ekleme/çıkarma
+router
+  .route('/:id/permissionGroups')
+  .post(checkAccess(['ROLES_UPDATE']), addPermissionGroupToRole);
+
+router
+  .route('/:id/permissionGroups/:permissionGroupId')
+  .delete(checkAccess(['ROLES_UPDATE']), removePermissionGroupFromRole);
 
 export default router; 

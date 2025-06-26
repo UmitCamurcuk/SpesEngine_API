@@ -18,4 +18,11 @@ router
     .get((0, auth_middleware_1.checkAccess)(['ROLES_VIEW']), roleController_1.getRoleById)
     .put((0, auth_middleware_1.checkAccess)(['ROLES_UPDATE']), roleController_1.updateRole)
     .delete((0, auth_middleware_1.checkAccess)(['ROLES_DELETE']), roleController_1.deleteRole);
+// Role'e permission group ekleme/çıkarma
+router
+    .route('/:id/permissionGroups')
+    .post((0, auth_middleware_1.checkAccess)(['ROLES_UPDATE']), roleController_1.addPermissionGroupToRole);
+router
+    .route('/:id/permissionGroups/:permissionGroupId')
+    .delete((0, auth_middleware_1.checkAccess)(['ROLES_UPDATE']), roleController_1.removePermissionGroupFromRole);
 exports.default = router;

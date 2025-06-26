@@ -40,9 +40,16 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     const user = await User.findById(decoded.id)
       .populate({
         path: 'role',
-        populate: {
-          path: 'permissions'
-        }
+        populate: [
+          {
+            path: 'permissionGroups.permissionGroup',
+            select: 'name code description'
+          },
+          {
+            path: 'permissionGroups.permissions.permission',
+            select: 'name description code'
+          }
+        ]
       })
       .select('-password');
     
@@ -76,8 +83,22 @@ export const checkAccess = (requiredPermissions: string[] = []) => {
 
     try {
       const userRole = req.user.role as any; // Tip dönüşümü için
-      const userPermissions = userRole.permissions.map((p: any) => p.code);
-
+      
+      // Yeni yapıya göre kullanıcının permission'larını topla
+      const userPermissions: string[] = [];
+      
+      if (userRole.permissionGroups && Array.isArray(userRole.permissionGroups)) {
+        for (const permissionGroup of userRole.permissionGroups) {
+          if (permissionGroup.permissions && Array.isArray(permissionGroup.permissions)) {
+            for (const permissionItem of permissionGroup.permissions) {
+              // Sadece granted:true olan permission'ları ekle
+              if (permissionItem.granted && permissionItem.permission && permissionItem.permission.code) {
+                userPermissions.push(permissionItem.permission.code);
+              }
+            }
+          }
+        }
+      }
       // İzin kontrolü
       if (requiredPermissions.length > 0) {
         const hasPermission = requiredPermissions.some(permission => 

@@ -1,10 +1,15 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IPermission extends Document {
-  name: string;
-  description: string;
+  name: {
+    tr: string;
+    en: string;
+  };
+  description: {
+    tr: string;
+    en: string;
+  };
   code: string;
-  permissionGroup: mongoose.Types.ObjectId;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -13,24 +18,31 @@ export interface IPermission extends Document {
 const PermissionSchema: Schema = new Schema(
   {
     name: {
-      type: String,
-      required: [true, 'İzin adı zorunludur'],
-      unique: true,
-      trim: true
+      tr: {
+        type: String,
+        required: [true, 'Türkçe izin adı zorunludur'],
+        trim: true
+      },
+      en: {
+        type: String,
+        required: [true, 'İngilizce izin adı zorunludur'],
+        trim: true
+      }
     },
     description: {
-      type: String,
-      required: [true, 'İzin açıklaması zorunludur']
+      tr: {
+        type: String,
+        required: [true, 'Türkçe izin açıklaması zorunludur']
+      },
+      en: {
+        type: String,
+        required: [true, 'İngilizce izin açıklaması zorunludur']
+      }
     },
     code: {
       type: String,
       required: [true, 'İzin kodu zorunludur'],
       unique: true
-    },
-    permissionGroup: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'PermissionGroup',
-      required: true
     },
     isActive: {
       type: Boolean,

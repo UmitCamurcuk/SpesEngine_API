@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import Permission from '../models/Permission';
-import PermissionGroup from '../models/PermissionGroup';
 
 // @desc    Tüm izinleri getir
 // @route   GET /api/permissions
@@ -13,7 +12,6 @@ export const getPermissions = async (req: Request, res: Response) => {
 
     const total = await Permission.countDocuments();
     const permissions = await Permission.find()
-      .populate('permissionGroup', 'name code')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -42,26 +40,15 @@ export const getPermissions = async (req: Request, res: Response) => {
 // @access  Private
 export const createPermission = async (req: Request, res: Response) => {
   try {
-    const { name, description, code, permissionGroup } = req.body;
+    const { name, description, code } = req.body;
 
     // İzin zaten var mı kontrol et
-    const existingPermission = await Permission.findOne({
-      $or: [{ name }, { code }]
-    });
+    const existingPermission = await Permission.findOne({ code });
 
     if (existingPermission) {
       return res.status(400).json({
         success: false,
-        message: 'Bu isim veya kod ile bir izin zaten mevcut'
-      });
-    }
-
-    // İzin grubu var mı kontrol et
-    const groupExists = await PermissionGroup.findById(permissionGroup);
-    if (!groupExists) {
-      return res.status(400).json({
-        success: false,
-        message: 'Belirtilen izin grubu bulunamadı'
+        message: 'Bu kod ile bir izin zaten mevcut'
       });
     }
 
@@ -69,8 +56,7 @@ export const createPermission = async (req: Request, res: Response) => {
     const permission = await Permission.create({
       name,
       description,
-      code,
-      permissionGroup
+      code
     });
 
     res.status(201).json({
@@ -92,7 +78,7 @@ export const createPermission = async (req: Request, res: Response) => {
 // @access  Private
 export const getPermissionById = async (req: Request, res: Response) => {
   try {
-    const permission = await Permission.findById(req.params.id).populate('permissionGroup', 'name code');
+    const permission = await Permission.findById(req.params.id);
 
     if (!permission) {
       return res.status(404).json({
@@ -119,32 +105,19 @@ export const getPermissionById = async (req: Request, res: Response) => {
 // @access  Private
 export const updatePermission = async (req: Request, res: Response) => {
   try {
-    const { name, description, code, permissionGroup, isActive } = req.body;
+    const { name, description, code, isActive } = req.body;
 
-    // İsim veya kod değiştiriliyorsa, başka bir izin ile çakışıyor mu kontrol et
-    if (name || code) {
-      const query: any = { _id: { $ne: req.params.id } };
-      
-      if (name) query.name = name;
-      if (code) query.code = code;
-      
-      const existingPermission = await Permission.findOne(query);
+    // Kod değiştiriliyorsa, başka bir izin ile çakışıyor mu kontrol et
+    if (code) {
+      const existingPermission = await Permission.findOne({
+        _id: { $ne: req.params.id },
+        code
+      });
       
       if (existingPermission) {
         return res.status(400).json({
           success: false,
-          message: 'Bu isim veya kod ile başka bir izin zaten mevcut'
-        });
-      }
-    }
-
-    // İzin grubu değiştiriliyorsa, yeni grup var mı kontrol et
-    if (permissionGroup) {
-      const groupExists = await PermissionGroup.findById(permissionGroup);
-      if (!groupExists) {
-        return res.status(400).json({
-          success: false,
-          message: 'Belirtilen izin grubu bulunamadı'
+          message: 'Bu kod ile başka bir izin zaten mevcut'
         });
       }
     }
@@ -152,9 +125,9 @@ export const updatePermission = async (req: Request, res: Response) => {
     // İzni güncelle
     const permission = await Permission.findByIdAndUpdate(
       req.params.id,
-      { name, description, code, permissionGroup, isActive },
+      { name, description, code, isActive },
       { new: true, runValidators: true }
-    ).populate('permissionGroup', 'name code');
+    );
 
     if (!permission) {
       return res.status(404).json({

@@ -50,6 +50,12 @@ const PermissionGroupSchema = new mongoose_1.Schema({
         required: [true, 'İzin grubu kodu zorunludur'],
         unique: true
     },
+    permissions: [
+        {
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: 'Permission'
+        }
+    ],
     isActive: {
         type: Boolean,
         default: true

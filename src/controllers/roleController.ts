@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Role from '../models/Role';
+import PermissionGroup from '../models/PermissionGroup';
 import Permission from '../models/Permission';
 
 // @desc    Tüm rolleri getir
@@ -13,7 +14,14 @@ export const getRoles = async (req: Request, res: Response) => {
 
     const total = await Role.countDocuments();
     const roles = await Role.find()
-      .populate('permissions', 'name code')
+      .populate({
+        path: 'permissionGroups.permissionGroup',
+        select: 'name code description'
+      })
+      .populate({
+        path: 'permissionGroups.permissions.permission',
+        select: 'name description code'
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -42,7 +50,7 @@ export const getRoles = async (req: Request, res: Response) => {
 // @access  Private
 export const createRole = async (req: Request, res: Response) => {
   try {
-    const { name, description, permissions } = req.body;
+    const { name, description, permissionGroups } = req.body;
 
     // Rol zaten var mı kontrol et
     const existingRole = await Role.findOne({ name });
@@ -54,17 +62,43 @@ export const createRole = async (req: Request, res: Response) => {
       });
     }
 
-    // İzinler var mı kontrol et
-    if (permissions && permissions.length > 0) {
-      const permissionCount = await Permission.countDocuments({
-        _id: { $in: permissions }
-      });
+    // Permission Groups validasyonu
+    if (permissionGroups && permissionGroups.length > 0) {
+      for (const pg of permissionGroups) {
+        // Permission Group var mı kontrol et
+        const permissionGroup = await PermissionGroup.findById(pg.permissionGroup);
+        if (!permissionGroup) {
+          return res.status(400).json({
+            success: false,
+            message: 'Geçersiz izin grubu ID\'si bulundu'
+          });
+        }
 
-      if (permissionCount !== permissions.length) {
-        return res.status(400).json({
-          success: false,
-          message: 'Bazı izinler bulunamadı'
-        });
+        // Bu grubun permissions'ları ile validate et
+        if (pg.permissions && pg.permissions.length > 0) {
+          const permissionIds = pg.permissions.map((p: any) => p.permission);
+          const validPermissions = await Permission.find({ 
+            _id: { $in: permissionIds }
+          });
+          
+          if (validPermissions.length !== permissionIds.length) {
+            return res.status(400).json({
+              success: false,
+              message: 'Geçersiz izin ID\'si bulundu'
+            });
+          }
+
+          // Permissions'ların gerçekten bu gruba ait olup olmadığını kontrol et
+          const groupPermissions = permissionGroup.permissions.map(p => p.toString());
+          for (const permId of permissionIds) {
+            if (!groupPermissions.includes(permId.toString())) {
+              return res.status(400).json({
+                success: false,
+                message: 'Bazı izinler belirtilen gruba ait değil'
+              });
+            }
+          }
+        }
       }
     }
 
@@ -72,10 +106,18 @@ export const createRole = async (req: Request, res: Response) => {
     const role = await Role.create({
       name,
       description,
-      permissions: permissions || []
+      permissionGroups: permissionGroups || []
     });
 
-    const populatedRole = await Role.findById(role._id).populate('permissions', 'name code');
+    const populatedRole = await Role.findById(role._id)
+      .populate({
+        path: 'permissionGroups.permissionGroup',
+        select: 'name code description'
+      })
+      .populate({
+        path: 'permissionGroups.permissions.permission',
+        select: 'name description code'
+      });
 
     res.status(201).json({
       success: true,
@@ -96,7 +138,19 @@ export const createRole = async (req: Request, res: Response) => {
 // @access  Private
 export const getRoleById = async (req: Request, res: Response) => {
   try {
-    const role = await Role.findById(req.params.id).populate('permissions', 'name code description');
+    const role = await Role.findById(req.params.id)
+      .populate({
+        path: 'permissionGroups.permissionGroup',
+        select: 'name code description permissions',
+        populate: {
+          path: 'permissions',
+          select: 'name description code'
+        }
+      })
+      .populate({
+        path: 'permissionGroups.permissions.permission',
+        select: 'name description code'
+      });
 
     if (!role) {
       return res.status(404).json({
@@ -123,7 +177,7 @@ export const getRoleById = async (req: Request, res: Response) => {
 // @access  Private
 export const updateRole = async (req: Request, res: Response) => {
   try {
-    const { name, description, permissions, isActive } = req.body;
+    const { name, description, permissionGroups, isActive } = req.body;
 
     // İsim değiştiriliyorsa, başka bir rol ile çakışıyor mu kontrol et
     if (name) {
@@ -140,17 +194,43 @@ export const updateRole = async (req: Request, res: Response) => {
       }
     }
 
-    // İzinler değiştiriliyorsa, var mı kontrol et
-    if (permissions && permissions.length > 0) {
-      const permissionCount = await Permission.countDocuments({
-        _id: { $in: permissions }
-      });
+    // Permission Groups validasyonu
+    if (permissionGroups) {
+      for (const pg of permissionGroups) {
+        // Permission Group var mı kontrol et
+        const permissionGroup = await PermissionGroup.findById(pg.permissionGroup);
+        if (!permissionGroup) {
+          return res.status(400).json({
+            success: false,
+            message: 'Geçersiz izin grubu ID\'si bulundu'
+          });
+        }
 
-      if (permissionCount !== permissions.length) {
-        return res.status(400).json({
-          success: false,
-          message: 'Bazı izinler bulunamadı'
-        });
+        // Bu grubun permissions'ları ile validate et
+        if (pg.permissions && pg.permissions.length > 0) {
+          const permissionIds = pg.permissions.map((p: any) => p.permission);
+          const validPermissions = await Permission.find({ 
+            _id: { $in: permissionIds }
+          });
+          
+          if (validPermissions.length !== permissionIds.length) {
+            return res.status(400).json({
+              success: false,
+              message: 'Geçersiz izin ID\'si bulundu'
+            });
+          }
+
+          // Permissions'ların gerçekten bu gruba ait olup olmadığını kontrol et
+          const groupPermissions = permissionGroup.permissions.map(p => p.toString());
+          for (const permId of permissionIds) {
+            if (!groupPermissions.includes(permId.toString())) {
+              return res.status(400).json({
+                success: false,
+                message: 'Bazı izinler belirtilen gruba ait değil'
+              });
+            }
+          }
+        }
       }
     }
 
@@ -158,14 +238,22 @@ export const updateRole = async (req: Request, res: Response) => {
     const updateData: any = {};
     if (name) updateData.name = name;
     if (description) updateData.description = description;
-    if (permissions) updateData.permissions = permissions;
+    if (permissionGroups) updateData.permissionGroups = permissionGroups;
     if (isActive !== undefined) updateData.isActive = isActive;
 
     const role = await Role.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true, runValidators: true }
-    ).populate('permissions', 'name code');
+    )
+    .populate({
+      path: 'permissionGroups.permissionGroup',
+      select: 'name code description'
+    })
+    .populate({
+      path: 'permissionGroups.permissions.permission',
+      select: 'name description code'
+    });
 
     if (!role) {
       return res.status(404).json({
@@ -183,6 +271,160 @@ export const updateRole = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Rol güncellenemedi',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Role permission group ekle
+// @route   POST /api/roles/:id/permissionGroups
+// @access  Private
+export const addPermissionGroupToRole = async (req: Request, res: Response) => {
+  try {
+    const { permissionGroupId, permissions } = req.body;
+
+    // Rol var mı kontrol et
+    const role = await Role.findById(req.params.id);
+    if (!role) {
+      return res.status(404).json({
+        success: false,
+        message: 'Rol bulunamadı'
+      });
+    }
+
+    // Permission Group var mı kontrol et
+    const permissionGroup = await PermissionGroup.findById(permissionGroupId);
+    if (!permissionGroup) {
+      return res.status(404).json({
+        success: false,
+        message: 'İzin grubu bulunamadı'
+      });
+    }
+
+    // Bu permission group zaten role ekli mi?
+    const existingPG = role.permissionGroups.find(
+      pg => pg.permissionGroup.toString() === permissionGroupId
+    );
+    if (existingPG) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bu izin grubu zaten role ekli'
+      });
+    }
+
+    // Permissions validasyonu
+    let validatedPermissions = [];
+    if (permissions && permissions.length > 0) {
+      const permissionIds = permissions.map((p: any) => p.permission);
+      const validPermissions = await Permission.find({ 
+        _id: { $in: permissionIds }
+      });
+      
+      if (validPermissions.length !== permissionIds.length) {
+        return res.status(400).json({
+          success: false,
+          message: 'Geçersiz izin ID\'si bulundu'
+        });
+      }
+
+      // Permissions'ların gerçekten bu gruba ait olup olmadığını kontrol et
+      const groupPermissions = permissionGroup.permissions.map(p => p.toString());
+      for (const permId of permissionIds) {
+        if (!groupPermissions.includes(permId.toString())) {
+          return res.status(400).json({
+            success: false,
+            message: 'Bazı izinler belirtilen gruba ait değil'
+          });
+        }
+      }
+      validatedPermissions = permissions;
+    }
+
+    // Permission group'u role ekle
+    role.permissionGroups.push({
+      permissionGroup: permissionGroupId,
+      permissions: validatedPermissions
+    } as any);
+
+    await role.save();
+
+    // Populate ederek dön
+    const updatedRole = await Role.findById(req.params.id)
+      .populate({
+        path: 'permissionGroups.permissionGroup',
+        select: 'name code description'
+      })
+      .populate({
+        path: 'permissionGroups.permissions.permission',
+        select: 'name description code'
+      });
+
+    res.status(200).json({
+      success: true,
+      message: 'İzin grubu başarıyla role eklendi',
+      role: updatedRole
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'İzin grubu role eklenemedi',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Rolden permission group çıkar
+// @route   DELETE /api/roles/:id/permissionGroups/:permissionGroupId
+// @access  Private
+export const removePermissionGroupFromRole = async (req: Request, res: Response) => {
+  try {
+    const { id, permissionGroupId } = req.params;
+
+    // Rol var mı kontrol et
+    const role = await Role.findById(id);
+    if (!role) {
+      return res.status(404).json({
+        success: false,
+        message: 'Rol bulunamadı'
+      });
+    }
+
+    // Permission group rolde var mı kontrol et
+    const permissionGroupIndex = role.permissionGroups.findIndex(
+      pg => pg.permissionGroup.toString() === permissionGroupId
+    );
+
+    if (permissionGroupIndex === -1) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bu izin grubu rolde mevcut değil'
+      });
+    }
+
+    // Permission group'u rolden çıkar
+    role.permissionGroups.splice(permissionGroupIndex, 1);
+    await role.save();
+
+    // Populate ederek dön
+    const updatedRole = await Role.findById(id)
+      .populate({
+        path: 'permissionGroups.permissionGroup',
+        select: 'name code description'
+      })
+      .populate({
+        path: 'permissionGroups.permissions.permission',
+        select: 'name description code'
+      });
+
+    res.status(200).json({
+      success: true,
+      message: 'İzin grubu başarıyla rolden çıkarıldı',
+      role: updatedRole
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'İzin grubu rolden çıkarılamadı',
       error: error.message
     });
   }
