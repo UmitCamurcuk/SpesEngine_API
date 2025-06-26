@@ -314,31 +314,44 @@ export const updateItemType = async (req: Request, res: Response, next: NextFunc
       const userId = String(req.user._id);
       
       try {
-        await historyService.recordHistory({
+        // Sadece değişen alanları history'e kaydet
+        const historyData: any = {
           entityType: EntityType.ITEM_TYPE,
           entityId: String(itemType._id),
           entityName: itemType.code,
           action: ActionType.UPDATE,
-          userId: userId,
-          previousData: {
-            name: String(oldItemType.name),
-            code: oldItemType.code,
-            description: String(oldItemType.description),
-            category: String(oldItemType.category),
-            attributeGroups: (oldItemType.attributeGroups || []).map(id => String(id)),
-            attributes: (oldItemType.attributes || []).map(id => String(id)),
-            isActive: oldItemType.isActive
-          },
-          newData: {
-            name: String(itemType.name),
-            code: itemType.code,
-            description: String(itemType.description),
-            category: String(itemType.category),
-            attributeGroups: (itemType.attributeGroups || []).map(id => String(id)),
-            attributes: (itemType.attributes || []).map(id => String(id)),
-            isActive: itemType.isActive
+          userId: userId
+        };
+
+        // Comment varsa ekle
+        if (req.body.comment) {
+          historyData.comment = req.body.comment;
+        }
+
+        // Sadece request body'de gelen (değişen) alanları kaydet
+        const previousData: any = {};
+        const newData: any = {};
+
+        // req.body'de gelen her alan için eski ve yeni değerleri kaydet
+        Object.keys(req.body).forEach(key => {
+          if (key !== 'comment') { // comment alanını data'ya dahil etme
+            if (key === 'attributeGroups' || key === 'attributes') {
+              previousData[key] = ((oldItemType as any)[key] || []).map((id: any) => String(id));
+              newData[key] = (req.body[key] || []).map((id: any) => String(id));
+            } else if (key === 'name' || key === 'description' || key === 'category') {
+              previousData[key] = String((oldItemType as any)[key]);
+              newData[key] = String(req.body[key]);
+            } else {
+              previousData[key] = (oldItemType as any)[key];
+              newData[key] = req.body[key];
+            }
           }
         });
+
+        historyData.previousData = previousData;
+        historyData.newData = newData;
+
+        await historyService.recordHistory(historyData);
         console.log('ItemType update history saved successfully');
       } catch (historyError) {
         console.error('History update failed for itemType:', historyError);

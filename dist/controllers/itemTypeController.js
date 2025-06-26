@@ -305,31 +305,41 @@ const updateItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);
             try {
-                yield historyService_1.default.recordHistory({
+                // Sadece değişen alanları history'e kaydet
+                const historyData = {
                     entityType: Entity_1.EntityType.ITEM_TYPE,
                     entityId: String(itemType._id),
                     entityName: itemType.code,
                     action: History_1.ActionType.UPDATE,
-                    userId: userId,
-                    previousData: {
-                        name: String(oldItemType.name),
-                        code: oldItemType.code,
-                        description: String(oldItemType.description),
-                        category: String(oldItemType.category),
-                        attributeGroups: (oldItemType.attributeGroups || []).map(id => String(id)),
-                        attributes: (oldItemType.attributes || []).map(id => String(id)),
-                        isActive: oldItemType.isActive
-                    },
-                    newData: {
-                        name: String(itemType.name),
-                        code: itemType.code,
-                        description: String(itemType.description),
-                        category: String(itemType.category),
-                        attributeGroups: (itemType.attributeGroups || []).map(id => String(id)),
-                        attributes: (itemType.attributes || []).map(id => String(id)),
-                        isActive: itemType.isActive
+                    userId: userId
+                };
+                // Comment varsa ekle
+                if (req.body.comment) {
+                    historyData.comment = req.body.comment;
+                }
+                // Sadece request body'de gelen (değişen) alanları kaydet
+                const previousData = {};
+                const newData = {};
+                // req.body'de gelen her alan için eski ve yeni değerleri kaydet
+                Object.keys(req.body).forEach(key => {
+                    if (key !== 'comment') { // comment alanını data'ya dahil etme
+                        if (key === 'attributeGroups' || key === 'attributes') {
+                            previousData[key] = (oldItemType[key] || []).map((id) => String(id));
+                            newData[key] = (req.body[key] || []).map((id) => String(id));
+                        }
+                        else if (key === 'name' || key === 'description' || key === 'category') {
+                            previousData[key] = String(oldItemType[key]);
+                            newData[key] = String(req.body[key]);
+                        }
+                        else {
+                            previousData[key] = oldItemType[key];
+                            newData[key] = req.body[key];
+                        }
                     }
                 });
+                historyData.previousData = previousData;
+                historyData.newData = newData;
+                yield historyService_1.default.recordHistory(historyData);
                 console.log('ItemType update history saved successfully');
             }
             catch (historyError) {
