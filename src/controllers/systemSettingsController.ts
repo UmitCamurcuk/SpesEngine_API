@@ -102,4 +102,72 @@ export const updateLogo = async (req: RequestWithUser, res: Response): Promise<v
       message: error.message || 'Logo güncellenirken bir hata oluştu'
     });
   }
+};
+
+// Slack webhook test et
+export const testSlackWebhook = async (req: RequestWithUser, res: Response): Promise<void> => {
+  try {
+    const { webhookUrl, channel, username, iconEmoji } = req.body;
+    
+    if (!webhookUrl) {
+      res.status(400).json({
+        success: false,
+        message: 'Webhook URL gerekli'
+      });
+      return;
+    }
+
+    // Test mesajı hazırla
+    const testMessage = {
+      channel: channel || '#general',
+      username: username || 'SpesEngine',
+      icon_emoji: iconEmoji || ':robot_face:',
+      text: 'SpesEngine Slack entegrasyonu test mesajı! 🚀',
+      attachments: [
+        {
+          color: 'good',
+          fields: [
+            {
+              title: 'Test Sonucu',
+              value: 'Slack webhook bağlantısı başarıyla çalışıyor!',
+              short: false
+            },
+            {
+              title: 'Zaman',
+              value: new Date().toLocaleString('tr-TR'),
+              short: true
+            }
+          ]
+        }
+      ]
+    };
+
+    // Slack'e mesaj gönder
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(testMessage)
+    });
+
+    if (response.ok) {
+      res.json({
+        success: true,
+        message: 'Slack webhook test mesajı başarıyla gönderildi!'
+      });
+    } else {
+      const errorText = await response.text();
+      res.status(400).json({
+        success: false,
+        message: `Slack webhook hatası: ${response.status} - ${errorText}`
+      });
+    }
+  } catch (error: any) {
+    console.error('Slack webhook test hatası:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Slack webhook test edilirken bir hata oluştu'
+    });
+  }
 }; 

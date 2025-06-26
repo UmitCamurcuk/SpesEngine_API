@@ -76,6 +76,16 @@ export interface ISystemSettings extends Document {
       clientSecret: string;
       callbackUrl: string;
     };
+    slack: {
+      enabled: boolean;
+      webhookUrl: string;
+      channel: string;
+      username: string;
+      iconEmoji: string;
+      notifyOnErrors: boolean;
+      notifyOnWarnings: boolean;
+      notifyOnSuccess: boolean;
+    };
   };
 
   // Lisans Bilgileri
@@ -315,6 +325,40 @@ const SystemSettingsSchema: Schema = new Schema({
       clientId: String,
       clientSecret: String,
       callbackUrl: String
+    },
+    slack: {
+      enabled: {
+        type: Boolean,
+        default: false
+      },
+      webhookUrl: {
+        type: String,
+        default: ''
+      },
+      channel: {
+        type: String,
+        default: '#general'
+      },
+      username: {
+        type: String,
+        default: 'SpesEngine Bot'
+      },
+      iconEmoji: {
+        type: String,
+        default: ':robot_face:'
+      },
+      notifyOnErrors: {
+        type: Boolean,
+        default: true
+      },
+      notifyOnWarnings: {
+        type: Boolean,
+        default: false
+      },
+      notifyOnSuccess: {
+        type: Boolean,
+        default: false
+      }
     }
   },
 

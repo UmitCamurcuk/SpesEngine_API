@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateToken, checkAccess } from '../middleware/auth.middleware';
-import { getSettings, updateSettings, updateSection, updateLogo } from '../controllers/systemSettingsController';
+import { getSettings, updateSettings, updateSection, updateLogo, testSlackWebhook } from '../controllers/systemSettingsController';
 
 const router = express.Router();
 
@@ -13,11 +13,14 @@ router.get('/', checkAccess(['SETTINGS_VIEW']), getSettings);
 // Tüm ayarları güncelle
 router.put('/', checkAccess(['SETTINGS_MANAGE']), updateSettings);
 
-// Belirli bir bölümü güncelle
-router.put('/:section', checkAccess(['SETTINGS_MANAGE']), updateSection);
-
 // Logo güncelle
 router.put('/logo', checkAccess(['SETTINGS_MANAGE']), updateLogo);
+
+// Slack webhook test et
+router.post('/test-slack', checkAccess(['SETTINGS_MANAGE']), testSlackWebhook);
+
+// Belirli bir bölümü güncelle (logo dışında)
+router.put('/:section', checkAccess(['SETTINGS_MANAGE']), updateSection);
 
 // Tema ayarlarını güncelle
 router.put('/theme', checkAccess(['SETTINGS_MANAGE']), async (req, res) => {
