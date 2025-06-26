@@ -41,6 +41,14 @@ export const getItemTypes = async (req: Request, res: Response, next: NextFuncti
     // Verileri getir
     const itemTypes = await ItemType.find(filterParams)
       .populate({
+        path: 'name',
+        select: 'key namespace translations'
+      })
+      .populate({
+        path: 'description',
+        select: 'key namespace translations'
+      })
+      .populate({
         path: 'category',
         select: 'name code description',
         populate: [
@@ -90,13 +98,48 @@ export const getItemTypes = async (req: Request, res: Response, next: NextFuncti
 // GET tek bir öğe tipini getir
 export const getItemTypeById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // Query parametrelerini al
-    const includeAttributes = req.query.includeAttributes === 'true';
-    const includeAttributeGroups = req.query.includeAttributeGroups === 'true';
-    const populateAttributeGroupsAttributes = req.query.populateAttributeGroupsAttributes === 'true';
-    
-    // Temel ItemType sorgusu
-    const itemType = await ItemType.findById(req.params.id).lean();
+    const itemType = await ItemType.findById(req.params.id)
+      .populate({
+        path: 'name',
+        select: 'key namespace translations'
+      })
+      .populate({
+        path: 'description', 
+        select: 'key namespace translations'
+      })
+      .populate({
+        path: 'category',
+        select: 'name code description isActive',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate({
+        path: 'attributeGroups',
+        select: 'name code description attributes isActive',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' },
+          {
+            path: 'attributes',
+            select: 'name code type description isRequired isActive',
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' }
+            ]
+          }
+        ]
+      })
+      .populate({
+        path: 'attributes',
+        select: 'name code type description isRequired isActive',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .lean();
     
     if (!itemType) {
       res.status(404).json({
@@ -104,87 +147,6 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
         message: 'Öğe tipi bulunamadı'
       });
       return;
-    }
-    
-    // Attributes'ları include et
-    if (includeAttributes) {
-      const attributes = await ItemType.findById(req.params.id)
-        .populate({
-          path: 'attributes',
-          populate: [
-            { path: 'name', select: 'key namespace translations' },
-            { path: 'description', select: 'key namespace translations' }
-          ]
-        })
-        .lean()
-        .then(result => result?.attributes || []);
-        
-      itemType.attributes = attributes;
-    }
-    
-    // AttributeGroups'ları include et
-    if (includeAttributeGroups) {
-      // populateAttributeGroupsAttributes=true ise attribute'ları da içeren sorgu kullan
-      if (populateAttributeGroupsAttributes) {
-        const itemTypeWithGroups = await ItemType.findById(req.params.id)
-          .populate({
-            path: 'attributeGroups',
-            populate: [
-              { path: 'name', select: 'key namespace translations' },
-              { path: 'description', select: 'key namespace translations' },
-              {
-                path: 'attributes',
-                populate: [
-                  { path: 'name', select: 'key namespace translations' },
-                  { path: 'description', select: 'key namespace translations' }
-                ]
-              }
-            ]
-          })
-          .lean();
-        
-        itemType.attributeGroups = itemTypeWithGroups?.attributeGroups || [];
-      } else {
-        // AttributeGroups'ları getir
-        const attributeGroups = await ItemType.findById(req.params.id)
-          .populate({
-            path: 'attributeGroups',
-            populate: [
-              { path: 'name', select: 'key namespace translations' },
-              { path: 'description', select: 'key namespace translations' }
-            ]
-          })
-          .lean()
-          .then(result => result?.attributeGroups || []);
-      
-        // Her bir AttributeGroup için, ilgili attribute'ları bulup ata
-        if (attributeGroups.length > 0 && includeAttributes) {
-          // Tüm ilgili attribute'ları tek bir sorguda getir
-          const allAttributes = await ItemType.findById(req.params.id)
-            .populate({
-              path: 'attributes',
-              populate: [
-                { path: 'name', select: 'key namespace translations' },
-                { path: 'description', select: 'key namespace translations' }
-              ]
-            })
-            .lean()
-            .then(result => result?.attributes || []);
-            
-          // Her AttributeGroup için, ona ait attribute'ları filtrele ve ata
-          for (const group of attributeGroups) {
-            // Bu gruba ait attribute'ları filtrele
-            const groupAttributes = allAttributes.filter((attr: any) => 
-              attr.attributeGroup && attr.attributeGroup.toString() === group._id.toString()
-            );
-            
-            // AttributeGroup'a ait attribute'ları ata
-            (group as any).attributes = groupAttributes;
-          }
-        }
-        
-        itemType.attributeGroups = attributeGroups;
-      }
     }
     
     res.status(200).json({
@@ -202,10 +164,59 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
 // POST yeni öğe tipi oluştur
 export const createItemType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Eğer attributeGroups seçilmişse, bunlara ait attributes'ları otomatik ekle
+    if (req.body.attributeGroups && req.body.attributeGroups.length > 0) {
+      const Attribute = require('../models/Attribute').default;
+      
+      // Seçilen AttributeGroup'lara ait tüm attribute'ları bul
+      const attributes = await Attribute.find({
+        attributeGroup: { $in: req.body.attributeGroups }
+      }).select('_id').lean();
+      
+      // Bulunan attribute ID'lerini req.body'ye ekle
+      req.body.attributes = attributes.map((attr: any) => attr._id);
+    }
+
     const itemType = await ItemType.create(req.body);
+    
+    // History kaydı oluştur
+    if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+      const userId = String(req.user._id);
+      
+      try {
+        await historyService.recordHistory({
+          entityType: EntityType.ITEM_TYPE,
+          entityId: String(itemType._id),
+          entityName: itemType.code, // name ObjectId olduğu için code kullanıyoruz
+          action: ActionType.CREATE,
+          userId: userId,
+          newData: {
+            name: String(itemType.name),
+            code: itemType.code,
+            description: String(itemType.description),
+            category: String(itemType.category),
+            attributeGroups: (itemType.attributeGroups || []).map(id => String(id)),
+            attributes: (itemType.attributes || []).map(id => String(id)),
+            isActive: itemType.isActive
+          }
+        });
+        console.log('ItemType creation history saved successfully');
+      } catch (historyError) {
+        console.error('History creation failed for itemType:', historyError);
+        // History hatası oluşturma işlemini engellemesin
+      }
+    }
     
     // Oluşturulan öğe tipini tüm alanlarıyla birlikte getir
     const newItemType = await ItemType.findById(itemType._id)
+      .populate({
+        path: 'name',
+        select: 'key namespace translations'
+      })
+      .populate({
+        path: 'description',
+        select: 'key namespace translations'
+      })
       .populate({
         path: 'category',
         select: 'name code description',
@@ -246,11 +257,28 @@ export const createItemType = async (req: Request, res: Response, next: NextFunc
 // PUT öğe tipini güncelle
 export const updateItemType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Güncellemeden önceki veriyi al
+    const oldItemType = await ItemType.findById(req.params.id);
+    
+    if (!oldItemType) {
+      res.status(404).json({
+        success: false,
+        message: 'Öğe tipi bulunamadı'
+      });
+      return;
+    }
+    
     const itemType = await ItemType.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     ).populate({
+      path: 'name',
+      select: 'key namespace translations'
+    }).populate({
+      path: 'description',
+      select: 'key namespace translations'
+    }).populate({
       path: 'category',
       select: 'name code description',
       populate: [
@@ -279,6 +307,43 @@ export const updateItemType = async (req: Request, res: Response, next: NextFunc
         message: 'Öğe tipi bulunamadı'
       });
       return;
+    }
+    
+    // History kaydı oluştur
+    if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+      const userId = String(req.user._id);
+      
+      try {
+        await historyService.recordHistory({
+          entityType: EntityType.ITEM_TYPE,
+          entityId: String(itemType._id),
+          entityName: itemType.code,
+          action: ActionType.UPDATE,
+          userId: userId,
+          previousData: {
+            name: String(oldItemType.name),
+            code: oldItemType.code,
+            description: String(oldItemType.description),
+            category: String(oldItemType.category),
+            attributeGroups: (oldItemType.attributeGroups || []).map(id => String(id)),
+            attributes: (oldItemType.attributes || []).map(id => String(id)),
+            isActive: oldItemType.isActive
+          },
+          newData: {
+            name: String(itemType.name),
+            code: itemType.code,
+            description: String(itemType.description),
+            category: String(itemType.category),
+            attributeGroups: (itemType.attributeGroups || []).map(id => String(id)),
+            attributes: (itemType.attributes || []).map(id => String(id)),
+            isActive: itemType.isActive
+          }
+        });
+        console.log('ItemType update history saved successfully');
+      } catch (historyError) {
+        console.error('History update failed for itemType:', historyError);
+        // History hatası güncelleme işlemini engellemesin
+      }
     }
     
     res.status(200).json({
@@ -318,13 +383,16 @@ export const deleteItemType = async (req: Request, res: Response, next: NextFunc
         await historyService.recordHistory({
           entityType: EntityType.ITEM_TYPE,
           entityId: String(itemType._id),
-          entityName: itemType.name,
+          entityName: itemType.code,
           action: ActionType.DELETE,
           userId: userId,
           previousData: {
-            name: itemType.name,
+            name: String(itemType.name),
             code: itemType.code,
-            description: itemType.description || '',
+            description: String(itemType.description),
+            category: String(itemType.category),
+            attributeGroups: (itemType.attributeGroups || []).map(id => String(id)),
+            attributes: (itemType.attributes || []).map(id => String(id)),
             isActive: itemType.isActive
           }
         });

@@ -1,12 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IItemType extends Document {
-  name: string;
+  name: mongoose.Types.ObjectId;
   code: string;
-  description: string;
+  description: mongoose.Types.ObjectId;
   category: mongoose.Types.ObjectId;
   attributeGroups?: mongoose.Types.ObjectId[];
-  attributes: mongoose.Types.ObjectId[];
+  attributes?: mongoose.Types.ObjectId[];
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -15,9 +15,9 @@ export interface IItemType extends Document {
 const ItemTypeSchema: Schema = new Schema(
   {
     name: {
-      type: String,
-      required: [true, 'Öğe tipi adı zorunludur'],
-      trim: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Localization',
+      required: [true, 'Öğe tipi adı zorunludur']
     },
     code: {
       type: String,
@@ -26,7 +26,8 @@ const ItemTypeSchema: Schema = new Schema(
       trim: true
     },
     description: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Localization',
       required: [true, 'Öğe tipi açıklaması zorunludur']
     },
     category: {
@@ -45,7 +46,7 @@ const ItemTypeSchema: Schema = new Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Attribute',
-        required: true
+        required: false
       }
     ],
     isActive: {

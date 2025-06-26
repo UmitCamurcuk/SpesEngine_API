@@ -36,9 +36,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const CategorySchema = new mongoose_1.Schema({
     name: {
-        type: String,
-        required: [true, 'Kategori adı zorunludur'],
-        trim: true
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Localization',
+        required: [true, 'Öznitelik adı zorunludur']
     },
     code: {
         type: String,
@@ -47,8 +47,9 @@ const CategorySchema = new mongoose_1.Schema({
         trim: true
     },
     description: {
-        type: String,
-        required: [true, 'Kategori açıklaması zorunludur']
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Localization',
+        required: false
     },
     family: {
         type: mongoose_1.default.Schema.Types.ObjectId,

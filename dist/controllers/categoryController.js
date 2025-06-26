@@ -82,10 +82,8 @@ const getCategories = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 { path: 'description', select: 'key namespace translations' }
             ]
         })
-            .populate([
-            { path: 'name', select: 'key namespace translations' },
-            { path: 'description', select: 'key namespace translations' }
-        ])
+            .populate('name', 'key namespace translations')
+            .populate('description', 'key namespace translations')
             .sort(sortOption)
             .skip(skip)
             .limit(limit);
@@ -244,17 +242,17 @@ const createCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 yield historyService_1.default.recordHistory({
                     entityType: Entity_1.EntityType.CATEGORY,
                     entityId: String(category._id),
-                    entityName: category.name,
+                    entityName: category.code,
                     action: History_1.ActionType.CREATE,
                     userId: userId,
                     newData: {
-                        name: category.name,
+                        name: String(category.name),
                         code: category.code,
-                        description: category.description,
+                        description: String(category.description),
                         isActive: category.isActive,
-                        family: category.family,
-                        parent: category.parent,
-                        attributeGroups: category.attributeGroups
+                        family: String(category.family || ''),
+                        parent: String(category.parent || ''),
+                        attributeGroups: (category.attributeGroups || []).map(id => String(id))
                     }
                 });
                 console.log('Category creation history saved successfully');
@@ -346,27 +344,27 @@ const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             try {
                 // Sadece temel alanları karşılaştır
                 const previousData = {
-                    name: oldCategory.name,
+                    name: String(oldCategory.name),
                     code: oldCategory.code,
-                    description: oldCategory.description,
+                    description: String(oldCategory.description),
                     isActive: oldCategory.isActive,
-                    family: oldCategory.family,
-                    parent: oldCategory.parent,
-                    attributeGroups: oldCategory.attributeGroups
+                    family: String(oldCategory.family || ''),
+                    parent: String(oldCategory.parent || ''),
+                    attributeGroups: (oldCategory.attributeGroups || []).map(id => String(id))
                 };
                 const newData = {
-                    name: category.name,
+                    name: String(category.name),
                     code: category.code,
-                    description: category.description,
+                    description: String(category.description),
                     isActive: category.isActive,
-                    family: category.family,
-                    parent: category.parent,
-                    attributeGroups: category.attributeGroups
+                    family: String(category.family || ''),
+                    parent: String(category.parent || ''),
+                    attributeGroups: (category.attributeGroups || []).map(id => String(id))
                 };
                 yield historyService_1.default.recordHistory({
                     entityType: Entity_1.EntityType.CATEGORY,
                     entityId: String(category._id),
-                    entityName: category.name,
+                    entityName: category.code,
                     action: History_1.ActionType.UPDATE,
                     userId: userId,
                     previousData,
@@ -418,17 +416,17 @@ const deleteCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 yield historyService_1.default.recordHistory({
                     entityType: Entity_1.EntityType.CATEGORY,
                     entityId: String(category._id),
-                    entityName: category.name,
+                    entityName: category.code,
                     action: History_1.ActionType.DELETE,
                     userId: userId,
                     previousData: {
-                        name: category.name,
+                        name: String(category.name),
                         code: category.code,
-                        description: category.description,
+                        description: String(category.description),
                         isActive: category.isActive,
-                        family: category.family,
-                        parent: category.parent,
-                        attributeGroups: category.attributeGroups
+                        family: String(category.family || ''),
+                        parent: String(category.parent || ''),
+                        attributeGroups: (category.attributeGroups || []).map(id => String(id))
                     }
                 });
                 console.log('Category deletion history saved successfully');

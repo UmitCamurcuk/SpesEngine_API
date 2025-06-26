@@ -1,9 +1,9 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ICategory extends Document {
-  name: string;
+  name: mongoose.Types.ObjectId;
   code: string;
-  description: string;
+  description: mongoose.Types.ObjectId;
   family?: mongoose.Types.ObjectId;
   parent?: mongoose.Types.ObjectId;
   attributeGroups?: mongoose.Types.ObjectId[];
@@ -16,9 +16,9 @@ export interface ICategory extends Document {
 const CategorySchema: Schema = new Schema(
   {
     name: {
-      type: String,
-      required: [true, 'Kategori adı zorunludur'],
-      trim: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Localization',
+      required: [true, 'Öznitelik adı zorunludur']
     },
     code: {
       type: String,
@@ -27,8 +27,9 @@ const CategorySchema: Schema = new Schema(
       trim: true
     },
     description: {
-      type: String,
-      required: [true, 'Kategori açıklaması zorunludur']
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Localization',
+      required: false
     },
     family: {
       type: mongoose.Schema.Types.ObjectId,

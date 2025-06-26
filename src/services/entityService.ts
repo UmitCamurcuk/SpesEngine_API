@@ -127,8 +127,8 @@ class EntityService {
       switch (entityType) {
         case EntityType.CATEGORY:
           const Category = (await import('../models/Category')).default;
-          const category = await Category.findById(objectId);
-          return category?.name || `category_${entityId}`;
+          const category = await Category.findById(objectId).populate('name');
+          return getEntityNameFromTranslation(category?.name) || `category_${entityId}`;
           
         case EntityType.ATTRIBUTE:
           const Attribute = (await import('../models/Attribute')).default;
@@ -147,8 +147,8 @@ class EntityService {
           
         case EntityType.ITEM_TYPE:
           const ItemType = (await import('../models/ItemType')).default;
-          const itemType = await ItemType.findById(objectId);
-          return itemType?.name || `itemType_${entityId}`;
+          const itemType = await ItemType.findById(objectId).populate('name');
+          return getEntityNameFromTranslation(itemType?.name) || `itemType_${entityId}`;
           
         case EntityType.USER:
           const User = (await import('../models/User')).default;
