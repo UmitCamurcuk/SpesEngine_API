@@ -27,6 +27,7 @@ exports.updateAttributeGroups = exports.getAttributeGroups = exports.deleteAttri
 const Attribute_1 = __importDefault(require("../models/Attribute"));
 const AttributeGroup_1 = __importDefault(require("../models/AttributeGroup"));
 const historyService_1 = __importDefault(require("../services/historyService"));
+const notificationService_1 = __importDefault(require("../services/notificationService"));
 const History_1 = require("../models/History");
 const Entity_1 = require("../models/Entity");
 // Translation object'inden metin çıkarmak için utility fonksiyon
@@ -290,10 +291,10 @@ const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 exports.createAttribute = createAttribute;
 // PUT özniteliği güncelle
 const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f, _g;
     try {
         const { id } = req.params;
-        const _e = req.body, { nameTranslations, descriptionTranslations } = _e, otherData = __rest(_e, ["nameTranslations", "descriptionTranslations"]);
+        const _h = req.body, { nameTranslations, descriptionTranslations } = _h, otherData = __rest(_h, ["nameTranslations", "descriptionTranslations"]);
         // Güncelleme öncesi mevcut veriyi al (geçmiş için)
         const previousAttribute = yield Attribute_1.default.findById(id)
             .populate('name', 'key namespace translations')
@@ -376,11 +377,38 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 action: History_1.ActionType.UPDATE,
                 userId: userId,
                 previousData,
-                newData
+                newData,
+                comment: req.body.comment // Comment'i history'ye ekle
             });
             // Translation değişiklikleri için ayrı history kayıtları
             for (const translationChange of changedTranslations) {
                 // Translation değişiklikleri artık localizationController'da handle ediliyor
+            }
+            // Bildirim sistemi - onUpdate true ise bildirim gönder
+            if ((_e = updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.notificationSettings) === null || _e === void 0 ? void 0 : _e.onUpdate) {
+                try {
+                    // Değişen alanları belirle
+                    const changes = [];
+                    const fieldsToCheck = ['code', 'type', 'isRequired', 'isActive'];
+                    fieldsToCheck.forEach(field => {
+                        if (previousData[field] !== newData[field]) {
+                            changes.push(`${field}: ${previousData[field]} → ${newData[field]}`);
+                        }
+                    });
+                    // Translation değişiklikleri de ekle
+                    changedTranslations.forEach(translationChange => {
+                        changes.push(`${translationChange.field} translations updated`);
+                    });
+                    if (changes.length > 0) {
+                        const userName = ((_f = req.user) === null || _f === void 0 ? void 0 : _f.name) || ((_g = req.user) === null || _g === void 0 ? void 0 : _g.username) || 'Bilinmeyen Kullanıcı';
+                        const comment = req.body.comment || '';
+                        yield notificationService_1.default.sendEntityUpdateNotification('attribute', id, getEntityNameFromTranslation(updatedAttribute.name), changes, comment, userId, userName);
+                    }
+                }
+                catch (notificationError) {
+                    console.error('Notification error:', notificationError);
+                    // Bildirim hatası ana işlemi engellemez
+                }
             }
         }
         res.status(200).json({
@@ -398,6 +426,7 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 exports.updateAttribute = updateAttribute;
 // DELETE özniteliği sil
 const deleteAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
     try {
         const { id } = req.params;
         // Silme öncesi veriyi al (geçmiş için)
@@ -442,6 +471,17 @@ const deleteAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 },
                 affectedEntities
             });
+            // Bildirim sistemi - onDelete true ise bildirim gönder
+            if ((_a = attribute.notificationSettings) === null || _a === void 0 ? void 0 : _a.onDelete) {
+                try {
+                    const userName = ((_b = req.user) === null || _b === void 0 ? void 0 : _b.name) || ((_c = req.user) === null || _c === void 0 ? void 0 : _c.username) || 'Bilinmeyen Kullanıcı';
+                    yield notificationService_1.default.sendEntityDeleteNotification('attribute', id, getEntityNameFromTranslation(attribute.name), userId, userName);
+                }
+                catch (notificationError) {
+                    console.error('Notification error:', notificationError);
+                    // Bildirim hatası ana işlemi engellemez
+                }
+            }
         }
         // Entity'nin tüm history kayıtlarını sil
         try {

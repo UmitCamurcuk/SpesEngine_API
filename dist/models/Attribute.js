@@ -100,6 +100,18 @@ const AttributeSchema = new mongoose_1.Schema({
         default: []
     },
     validations: ValidationSchema,
+    notificationSettings: {
+        type: {
+            onUpdate: { type: Boolean, default: false },
+            onDelete: { type: Boolean, default: false },
+            onUsedInCategory: { type: Boolean, default: false },
+            onUsedInFamily: { type: Boolean, default: false },
+            onUsedInAttributeGroup: { type: Boolean, default: false },
+            onUsedInItemType: { type: Boolean, default: false },
+            onUsedInItem: { type: Boolean, default: false }
+        },
+        default: {}
+    },
     isActive: {
         type: Boolean,
         default: true

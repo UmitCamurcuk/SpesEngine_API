@@ -4,6 +4,7 @@ import Attribute from '../models/Attribute';
 import AttributeGroup from '../models/AttributeGroup';
 import historyService from '../services/historyService';
 import entityService from '../services/entityService';
+import notificationService from '../services/notificationService';
 import { ActionType } from '../models/History';
 import { EntityType } from '../models/Entity';
 
@@ -403,12 +404,51 @@ export const updateAttribute = async (req: Request, res: Response, next: NextFun
         action: ActionType.UPDATE,
         userId: userId,
         previousData,
-        newData
+        newData,
+        comment: req.body.comment // Comment'i history'ye ekle
       });
 
       // Translation değişiklikleri için ayrı history kayıtları
       for (const translationChange of changedTranslations) {
         // Translation değişiklikleri artık localizationController'da handle ediliyor
+      }
+
+      // Bildirim sistemi - onUpdate true ise bildirim gönder
+      if (updatedAttribute?.notificationSettings?.onUpdate) {
+        try {
+          // Değişen alanları belirle
+          const changes: string[] = [];
+          const fieldsToCheck: (keyof typeof previousData)[] = ['code', 'type', 'isRequired', 'isActive'];
+          
+          fieldsToCheck.forEach(field => {
+            if (previousData[field] !== newData[field]) {
+              changes.push(`${field}: ${previousData[field]} → ${newData[field]}`);
+            }
+          });
+
+          // Translation değişiklikleri de ekle
+          changedTranslations.forEach(translationChange => {
+            changes.push(`${translationChange.field} translations updated`);
+          });
+
+          if (changes.length > 0) {
+            const userName = (req.user as any)?.name || (req.user as any)?.username || 'Bilinmeyen Kullanıcı';
+            const comment = req.body.comment || '';
+            
+            await notificationService.sendEntityUpdateNotification(
+              'attribute',
+              id,
+              getEntityNameFromTranslation(updatedAttribute.name),
+              changes,
+              comment,
+              userId,
+              userName
+            );
+          }
+        } catch (notificationError) {
+          console.error('Notification error:', notificationError);
+          // Bildirim hatası ana işlemi engellemez
+        }
       }
     }
     
@@ -477,6 +517,24 @@ export const deleteAttribute = async (req: Request, res: Response, next: NextFun
         },
         affectedEntities
       });
+
+      // Bildirim sistemi - onDelete true ise bildirim gönder
+      if (attribute.notificationSettings?.onDelete) {
+        try {
+          const userName = (req.user as any)?.name || (req.user as any)?.username || 'Bilinmeyen Kullanıcı';
+          
+          await notificationService.sendEntityDeleteNotification(
+            'attribute',
+            id,
+            getEntityNameFromTranslation(attribute.name),
+            userId,
+            userName
+          );
+        } catch (notificationError) {
+          console.error('Notification error:', notificationError);
+          // Bildirim hatası ana işlemi engellemez
+        }
+      }
     }
     
     // Entity'nin tüm history kayıtlarını sil

@@ -94,6 +94,17 @@ export interface IValidation {
   defaultValue?: any; // varsayılan değer
 }
 
+// Notification ayarları için interface
+export interface INotificationSettings {
+  onUpdate?: boolean;      // Güncelleme bildirimi
+  onDelete?: boolean;      // Silme bildirimi
+  onUsedInCategory?: boolean;    // Kategori'de kullanım bildirimi
+  onUsedInFamily?: boolean;      // Family'de kullanım bildirimi
+  onUsedInAttributeGroup?: boolean; // Attribute Group'ta kullanım bildirimi
+  onUsedInItemType?: boolean;    // Item Type'da kullanım bildirimi
+  onUsedInItem?: boolean;        // Item'da kullanım bildirimi
+}
+
 // Attribute interface'i
 export interface IAttribute extends Document {
   name: mongoose.Types.ObjectId; // Translation ID
@@ -103,6 +114,7 @@ export interface IAttribute extends Document {
   isRequired: boolean;
   options: string[];
   validations?: IValidation;
+  notificationSettings?: INotificationSettings;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -144,6 +156,18 @@ const AttributeSchema: Schema = new Schema(
       default: []
     },
     validations: ValidationSchema,
+    notificationSettings: {
+      type: {
+        onUpdate: { type: Boolean, default: false },
+        onDelete: { type: Boolean, default: false },
+        onUsedInCategory: { type: Boolean, default: false },
+        onUsedInFamily: { type: Boolean, default: false },
+        onUsedInAttributeGroup: { type: Boolean, default: false },
+        onUsedInItemType: { type: Boolean, default: false },
+        onUsedInItem: { type: Boolean, default: false }
+      },
+      default: {}
+    },
     isActive: {
       type: Boolean,
       default: true
