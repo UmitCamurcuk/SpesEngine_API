@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/User';
 import Role from '../models/Role';
 import Permission from '../models/Permission';
+import PermissionGroup from '../models/PermissionGroup';
 
 interface DecodedToken {
   id: string;
@@ -82,23 +83,49 @@ export const checkAccess = (requiredPermissions: string[] = []) => {
     }
 
     try {
-      const userRole = req.user.role as any; // Tip dönüşümü için
+      // System admin kontrolü - eğer isAdmin:true ise tüm izinleri var
+      if (req.user.isAdmin) {
+        console.log('System admin kullanıcısı - tüm izinler veriliyor');
+        next();
+        return;
+      }
+
+      const userRole = req.user.role as any;
+      console.log('User role:', userRole ? 'Mevcut' : 'Yok');
       
-      // Yeni yapıya göre kullanıcının permission'larını topla
+      if (!userRole) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Kullanıcıya rol atanmamış' 
+        });
+      }
+
+      // Role'un permissionGroups'u var mı kontrol et
+      if (!userRole.permissionGroups || !Array.isArray(userRole.permissionGroups)) {
+        console.log('PermissionGroups bulunamadı, role ID:', userRole._id || userRole);
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Kullanıcı rolü düzgün yapılandırılmamış' 
+        });
+      }
+      
+      // Kullanıcının permission'larını topla
       const userPermissions: string[] = [];
       
-      if (userRole.permissionGroups && Array.isArray(userRole.permissionGroups)) {
-        for (const permissionGroup of userRole.permissionGroups) {
-          if (permissionGroup.permissions && Array.isArray(permissionGroup.permissions)) {
-            for (const permissionItem of permissionGroup.permissions) {
-              // Sadece granted:true olan permission'ları ekle
-              if (permissionItem.granted && permissionItem.permission && permissionItem.permission.code) {
-                userPermissions.push(permissionItem.permission.code);
-              }
+      for (const permissionGroup of userRole.permissionGroups) {
+        if (permissionGroup.permissions && Array.isArray(permissionGroup.permissions)) {
+          for (const permissionItem of permissionGroup.permissions) {
+            // Sadece granted:true olan permission'ları ekle
+            if (permissionItem.granted && permissionItem.permission && permissionItem.permission.code) {
+              userPermissions.push(permissionItem.permission.code);
             }
           }
         }
       }
+      
+      console.log('Kullanıcının izinleri:', userPermissions.length, 'adet');
+      console.log('Gereken izinler:', requiredPermissions);
+      
       // İzin kontrolü
       if (requiredPermissions.length > 0) {
         const hasPermission = requiredPermissions.some(permission => 
@@ -108,7 +135,7 @@ export const checkAccess = (requiredPermissions: string[] = []) => {
         if (!hasPermission) {
           return res.status(403).json({ 
             success: false, 
-            message: 'Bu kaynağa erişmek için gerekli izinlere sahip değilsiniz' 
+            message: `Bu kaynağa erişmek için gerekli izinlere sahip değilsiniz. Gereken: ${requiredPermissions.join(', ')}` 
           });
         }
       }

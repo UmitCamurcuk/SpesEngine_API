@@ -331,6 +331,10 @@ const updateItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                             previousData[key] = String(oldItemType[key]);
                             newData[key] = String(req.body[key]);
                         }
+                        else if (key === 'settings') {
+                            previousData[key] = oldItemType[key] || {};
+                            newData[key] = req.body[key];
+                        }
                         else {
                             previousData[key] = oldItemType[key];
                             newData[key] = req.body[key];

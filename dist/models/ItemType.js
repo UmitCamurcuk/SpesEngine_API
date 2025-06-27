@@ -70,6 +70,76 @@ const ItemTypeSchema = new mongoose_1.Schema({
             required: false
         }
     ],
+    settings: {
+        type: {
+            notifications: {
+                type: {
+                    settings: {
+                        type: {
+                            onUpdate: { type: Boolean, default: false },
+                            onDelete: { type: Boolean, default: false },
+                            onUsedInCategory: { type: Boolean, default: false },
+                            onUsedInFamily: { type: Boolean, default: false },
+                            onUsedInAttributeGroup: { type: Boolean, default: false },
+                            onUsedInItemType: { type: Boolean, default: false },
+                            onUsedInItem: { type: Boolean, default: false }
+                        },
+                        required: false
+                    },
+                    channels: {
+                        type: {
+                            slack: {
+                                type: {
+                                    enabled: { type: Boolean, default: false },
+                                    webhook: { type: String, required: false },
+                                    channel: { type: String, required: false }
+                                },
+                                required: false
+                            },
+                            email: {
+                                type: {
+                                    enabled: { type: Boolean, default: false },
+                                    recipients: [{ type: String, required: false }]
+                                },
+                                required: false
+                            },
+                            whatsapp: {
+                                type: {
+                                    enabled: { type: Boolean, default: false },
+                                    phoneNumbers: [{ type: String, required: false }]
+                                },
+                                required: false
+                            },
+                            teams: {
+                                type: {
+                                    enabled: { type: Boolean, default: false },
+                                    webhook: { type: String, required: false }
+                                },
+                                required: false
+                            }
+                        },
+                        required: false
+                    }
+                },
+                required: false
+            },
+            permissions: {
+                type: {
+                    allowPublicAccess: { type: Boolean, default: false },
+                    restrictedFields: [{ type: String, required: false }]
+                },
+                required: false
+            },
+            workflow: {
+                type: {
+                    requireApproval: { type: Boolean, default: false },
+                    autoPublish: { type: Boolean, default: true }
+                },
+                required: false
+            }
+        },
+        required: false
+    },
     isActive: {
         type: Boolean,
         default: true

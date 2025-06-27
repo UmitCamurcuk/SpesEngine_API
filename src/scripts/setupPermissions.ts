@@ -104,6 +104,7 @@ async function setupDatabase() {
       // Sistem Ayarları İzinleri
       { code: 'SETTINGS_VIEW', name: { tr: 'Ayar Görüntüleme', en: 'View Settings' }, description: { tr: 'Sistem ayarlarını görüntüleme izni', en: 'Permission to view system settings' } },
       { code: 'SETTINGS_UPDATE', name: { tr: 'Ayar Güncelleme', en: 'Update Settings' }, description: { tr: 'Sistem ayarlarını güncelleme izni', en: 'Permission to update system settings' } },
+      { code: 'SETTINGS_MANAGE', name: { tr: 'Ayar Yönetimi', en: 'Manage Settings' }, description: { tr: 'Sistem ayarlarını tam yönetme izni', en: 'Full permission to manage system settings' } },
       { code: 'SYSTEM_ADMIN', name: { tr: 'Sistem Yönetimi', en: 'System Administration' }, description: { tr: 'Tam sistem yönetimi izni', en: 'Full system administration permission' } }
     ];
 
@@ -201,7 +202,7 @@ async function setupDatabase() {
         name: 'Sistem Ayarları',
         code: 'SYSTEM',
         description: 'Sistem ayarları yönetimi için izinler',
-        permissionCodes: ['SETTINGS_VIEW', 'SETTINGS_UPDATE', 'SYSTEM_ADMIN']
+        permissionCodes: ['SETTINGS_VIEW', 'SETTINGS_UPDATE', 'SETTINGS_MANAGE', 'SYSTEM_ADMIN']
       }
     ];
 

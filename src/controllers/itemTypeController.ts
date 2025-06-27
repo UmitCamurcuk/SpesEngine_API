@@ -341,6 +341,9 @@ export const updateItemType = async (req: Request, res: Response, next: NextFunc
             } else if (key === 'name' || key === 'description' || key === 'category') {
               previousData[key] = String((oldItemType as any)[key]);
               newData[key] = String(req.body[key]);
+            } else if (key === 'settings') {
+              previousData[key] = (oldItemType as any)[key] || {};
+              newData[key] = req.body[key];
             } else {
               previousData[key] = (oldItemType as any)[key];
               newData[key] = req.body[key];
