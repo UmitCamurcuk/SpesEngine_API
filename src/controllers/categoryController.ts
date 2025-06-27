@@ -489,4 +489,55 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
       message: error.message || 'Kategori silinirken bir hata oluştu'
     });
   }
+};
+
+// GET ItemType'a göre kategorileri getir
+export const getCategoriesByItemType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { itemTypeId } = req.params;
+    console.log(`Categories by ItemType request received: ${itemTypeId}`);
+    
+    // Family modeli üzerinden ItemType'ın kategorilerini bul
+    const Family = await import('../models/Family');
+    
+    // Bu ItemType'a ait tüm aileleri getir
+    const families = await Family.default.find({ 
+      itemType: itemTypeId,
+      isActive: true 
+    }).select('category').populate('category');
+    
+    if (!families || families.length === 0) {
+      res.status(200).json({
+        success: true,
+        data: [],
+        message: 'Bu öğe tipi için kategori bulunamadı'
+      });
+      return;
+    }
+    
+    // Kategorileri unique yap ve tree format'a çevir
+    const categoryIds = [...new Set(families.map(f => f.category?._id?.toString()).filter(Boolean))];
+    
+    const categories = await Category.find({ 
+      _id: { $in: categoryIds },
+      isActive: true 
+    })
+    .populate('name', 'key namespace translations')
+    .populate('description', 'key namespace translations')
+    .populate('parent')
+    .sort('name');
+    
+    console.log(`Found ${categories.length} categories for ItemType: ${itemTypeId}`);
+    
+    res.status(200).json({
+      success: true,
+      data: categories
+    });
+  } catch (error: any) {
+    console.error('Error fetching categories by ItemType:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'ItemType kategorileri getirilirken bir hata oluştu'
+    });
+  }
 }; 

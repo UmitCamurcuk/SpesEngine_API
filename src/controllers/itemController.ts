@@ -21,14 +21,8 @@ export const getItems = async (req: Request, res: Response, next: NextFunction):
       filterParams.isActive = req.query.isActive === 'true';
     }
     
-    // Arama parametresi (name ve code alanlarında)
-    if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search as string, 'i');
-      filterParams.$or = [
-        { name: searchRegex },
-        { code: searchRegex }
-      ];
-    }
+    // Arama parametresi artık attributes'larda aranabilir
+    // TODO: Attributes içinde arama yapılacaksa burada implement edilebilir
     
     // ItemType, Family ve Category filtreleme
     if (req.query.itemType) {
@@ -44,7 +38,7 @@ export const getItems = async (req: Request, res: Response, next: NextFunction):
     }
     
     // Sıralama parametreleri
-    const sortBy = req.query.sortBy || 'name';
+    const sortBy = req.query.sortBy || 'createdAt';
     const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
     const sortOptions: any = {};
     sortOptions[sortBy as string] = sortOrder;
@@ -54,9 +48,9 @@ export const getItems = async (req: Request, res: Response, next: NextFunction):
     
     // Verileri getir
     const items = await Item.find(filterParams)
-      .populate('itemType', 'name code')
-      .populate('family', 'name code')
-      .populate('category', 'name code')
+      .populate('itemType')
+      .populate('family')
+      .populate('category')
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
@@ -84,9 +78,9 @@ export const getItems = async (req: Request, res: Response, next: NextFunction):
 export const getItemById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const item = await Item.findById(req.params.id)
-      .populate('itemType', 'name code attributes')
-      .populate('family', 'name code')
-      .populate('category', 'name code');
+      .populate('itemType')
+      .populate('family')
+      .populate('category');
     
     if (!item) {
       res.status(404).json({
@@ -157,7 +151,7 @@ async function getRequiredAttributes(itemTypeId: string, categoryId: string) {
 // POST yeni öğe oluştur
 export const createItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { name, code, itemType, family, category, attributeValues, isActive } = req.body;
+    const { itemType, family, category, attributeValues, isActive } = req.body;
 
     // Zorunlu attribute kontrolü
     const requiredAttributes = await getRequiredAttributes(itemType, category);
@@ -185,8 +179,6 @@ export const createItem = async (req: Request, res: Response, next: NextFunction
 
     // Öğe oluştur
     const item = await Item.create({
-      name,
-      code,
       itemType,
       family,
       category,
@@ -202,7 +194,7 @@ export const createItem = async (req: Request, res: Response, next: NextFunction
       // Duplicate key error
       res.status(400).json({
         success: false,
-        message: 'Bu kod veya ad ile kayıtlı bir öğe zaten mevcut'
+        message: 'Tekrarlayan veri hatası'
       });
       return;
     }
@@ -259,7 +251,7 @@ export const updateItem = async (req: Request, res: Response, next: NextFunction
       // Duplicate key error
       res.status(400).json({
         success: false,
-        message: 'Bu kod veya ad ile kayıtlı bir öğe zaten mevcut'
+        message: 'Tekrarlayan veri hatası'
       });
       return;
     }

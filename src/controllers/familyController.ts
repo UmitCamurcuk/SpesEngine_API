@@ -451,4 +451,35 @@ export const deleteFamily = async (req: Request, res: Response, next: NextFuncti
       message: error.message || 'Aile silinirken bir hata oluştu'
     });
   }
+};
+
+// GET kategoriye göre aileleri getir
+export const getFamiliesByCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { categoryId } = req.params;
+    console.log(`Families by Category request received: ${categoryId}`);
+    
+    // Bu kategoriye ait tüm aileleri getir
+    const families = await Family.find({ 
+      category: categoryId,
+      isActive: true 
+    })
+    .populate('itemType')
+    .populate('category')
+    .populate('parent')
+    .sort('name');
+    
+    console.log(`Found ${families.length} families for Category: ${categoryId}`);
+    
+    res.status(200).json({
+      success: true,
+      data: families
+    });
+  } catch (error: any) {
+    console.error('Error fetching families by Category:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Kategori aileleri getirilirken bir hata oluştu'
+    });
+  }
 }; 

@@ -5,7 +5,8 @@ import {
   getCategoryById,
   createCategory,
   updateCategory,
-  deleteCategory
+  deleteCategory,
+  getCategoriesByItemType
 } from '../controllers/categoryController';
 
 const router = express.Router();
@@ -17,6 +18,11 @@ router
   .route('/')
   .get(checkAccess(['CATEGORIES_VIEW']), getCategories)
   .post(checkAccess(['CATEGORIES_CREATE']), createCategory);
+
+// ItemType'a göre kategorileri getir
+router
+  .route('/by-itemtype/:itemTypeId')
+  .get(checkAccess(['CATEGORIES_VIEW']), getCategoriesByItemType);
 
 router
   .route('/:id')

@@ -5,7 +5,8 @@ import {
   getFamilyById,
   createFamily,
   updateFamily,
-  deleteFamily
+  deleteFamily,
+  getFamiliesByCategory
 } from '../controllers/familyController';
 
 const router = express.Router();
@@ -17,6 +18,11 @@ router
   .route('/')
   .get(checkAccess(['FAMILIES_VIEW']), getFamilies)
   .post(checkAccess(['FAMILIES_CREATE']), createFamily);
+
+// Kategoriye göre aileleri getir
+router
+  .route('/by-category/:categoryId')
+  .get(checkAccess(['FAMILIES_VIEW']), getFamiliesByCategory);
 
 router
   .route('/:id')

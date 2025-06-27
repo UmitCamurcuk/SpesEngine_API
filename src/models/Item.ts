@@ -4,8 +4,6 @@ import { IFamily } from './Family';
 import { ICategory } from './Category';
 
 export interface IItem extends Document {
-  name: string;
-  code: string;
   itemType: IItemType['_id'] | IItemType;
   family: IFamily['_id'] | IFamily;
   category: ICategory['_id'] | ICategory;
@@ -17,19 +15,6 @@ export interface IItem extends Document {
 
 const ItemSchema: Schema = new Schema(
   {
-    name: {
-      type: String,
-      required: [true, 'Ad alanı zorunludur'],
-      trim: true,
-      maxlength: [100, 'Ad alanı en fazla 100 karakter olabilir']
-    },
-    code: {
-      type: String,
-      required: [true, 'Kod alanı zorunludur'],
-      trim: true,
-      unique: true,
-      maxlength: [20, 'Kod alanı en fazla 20 karakter olabilir']
-    },
     itemType: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ItemType',
