@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteFamily = exports.updateFamily = exports.createFamily = exports.getFamilyById = exports.getFamilies = void 0;
+exports.getFamiliesByCategory = exports.deleteFamily = exports.updateFamily = exports.createFamily = exports.getFamilyById = exports.getFamilies = void 0;
 const Family_1 = __importDefault(require("../models/Family"));
 const historyService_1 = __importDefault(require("../services/historyService"));
 const History_1 = require("../models/History");
@@ -457,3 +457,32 @@ const deleteFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.deleteFamily = deleteFamily;
+// GET kategoriye göre aileleri getir
+const getFamiliesByCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { categoryId } = req.params;
+        console.log(`Families by Category request received: ${categoryId}`);
+        // Bu kategoriye ait tüm aileleri getir
+        const families = yield Family_1.default.find({
+            category: categoryId,
+            isActive: true
+        })
+            .populate('itemType')
+            .populate('category')
+            .populate('parent')
+            .sort('name');
+        console.log(`Found ${families.length} families for Category: ${categoryId}`);
+        res.status(200).json({
+            success: true,
+            data: families
+        });
+    }
+    catch (error) {
+        console.error('Error fetching families by Category:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Kategori aileleri getirilirken bir hata oluştu'
+        });
+    }
+});
+exports.getFamiliesByCategory = getFamiliesByCategory;

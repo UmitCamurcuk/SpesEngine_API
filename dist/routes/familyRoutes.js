@@ -13,6 +13,10 @@ router
     .route('/')
     .get((0, auth_middleware_1.checkAccess)(['FAMILIES_VIEW']), familyController_1.getFamilies)
     .post((0, auth_middleware_1.checkAccess)(['FAMILIES_CREATE']), familyController_1.createFamily);
+// Kategoriye göre aileleri getir
+router
+    .route('/by-category/:categoryId')
+    .get((0, auth_middleware_1.checkAccess)(['FAMILIES_VIEW']), familyController_1.getFamiliesByCategory);
 router
     .route('/:id')
     .get((0, auth_middleware_1.checkAccess)(['FAMILIES_VIEW']), familyController_1.getFamilyById)

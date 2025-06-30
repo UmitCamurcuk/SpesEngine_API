@@ -30,14 +30,8 @@ const getItems = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         if (req.query.isActive !== undefined) {
             filterParams.isActive = req.query.isActive === 'true';
         }
-        // Arama parametresi (name ve code alanlarında)
-        if (req.query.search) {
-            const searchRegex = new RegExp(req.query.search, 'i');
-            filterParams.$or = [
-                { name: searchRegex },
-                { code: searchRegex }
-            ];
-        }
+        // Arama parametresi artık attributes'larda aranabilir
+        // TODO: Attributes içinde arama yapılacaksa burada implement edilebilir
         // ItemType, Family ve Category filtreleme
         if (req.query.itemType) {
             filterParams.itemType = new mongoose_1.default.Types.ObjectId(req.query.itemType);
@@ -49,7 +43,7 @@ const getItems = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
             filterParams.category = new mongoose_1.default.Types.ObjectId(req.query.category);
         }
         // Sıralama parametreleri
-        const sortBy = req.query.sortBy || 'name';
+        const sortBy = req.query.sortBy || 'createdAt';
         const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
         const sortOptions = {};
         sortOptions[sortBy] = sortOrder;
@@ -57,9 +51,9 @@ const getItems = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         const total = yield Item_1.default.countDocuments(filterParams);
         // Verileri getir
         const items = yield Item_1.default.find(filterParams)
-            .populate('itemType', 'name code')
-            .populate('family', 'name code')
-            .populate('category', 'name code')
+            .populate('itemType')
+            .populate('family')
+            .populate('category')
             .sort(sortOptions)
             .skip(skip)
             .limit(limit);
@@ -86,9 +80,9 @@ exports.getItems = getItems;
 const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const item = yield Item_1.default.findById(req.params.id)
-            .populate('itemType', 'name code attributes')
-            .populate('family', 'name code')
-            .populate('category', 'name code');
+            .populate('itemType')
+            .populate('family')
+            .populate('category');
         if (!item) {
             res.status(404).json({
                 success: false,
@@ -155,7 +149,7 @@ function getRequiredAttributes(itemTypeId, categoryId) {
 // POST yeni öğe oluştur
 const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, code, itemType, family, category, attributeValues, isActive } = req.body;
+        const { itemType, family, category, attributeValues, isActive } = req.body;
         // Zorunlu attribute kontrolü
         const requiredAttributes = yield getRequiredAttributes(itemType, category);
         // AttributeValues array'i varsa bir nesneye çevirelim
@@ -179,8 +173,6 @@ const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         }
         // Öğe oluştur
         const item = yield Item_1.default.create({
-            name,
-            code,
             itemType,
             family,
             category,
@@ -197,7 +189,7 @@ const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             // Duplicate key error
             res.status(400).json({
                 success: false,
-                message: 'Bu kod veya ad ile kayıtlı bir öğe zaten mevcut'
+                message: 'Tekrarlayan veri hatası'
             });
             return;
         }
@@ -252,7 +244,7 @@ const updateItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             // Duplicate key error
             res.status(400).json({
                 success: false,
-                message: 'Bu kod veya ad ile kayıtlı bir öğe zaten mevcut'
+                message: 'Tekrarlayan veri hatası'
             });
             return;
         }
