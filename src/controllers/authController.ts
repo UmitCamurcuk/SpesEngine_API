@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import User, { IUser } from '../models/User';
 import mongoose from 'mongoose';
 import Role from '../models/Role';
+import jwt, { SignOptions } from 'jsonwebtoken';
 
 // Kullanıcı kaydı
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -30,48 +31,105 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Kullanıcı girişi
-export const login = async (req: Request, res: Response): Promise<void> => {
+// @desc    Kullanıcı girişi
+// @route   POST /api/auth/login
+// @access  Public
+export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
     // Email ve şifre kontrolü
     if (!email || !password) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
-        message: 'Email ve şifre giriniz'
+        message: 'Lütfen email ve şifre giriniz'
       });
-      return;
     }
 
-    // Kullanıcıyı kontrol et
-    const user = await User.findOne({ email }).select('+password');
+    // Kullanıcıyı bul ve role bilgilerini populate et
+    const user = await User.findOne({ email })
+      .select('+password')
+      .populate({
+        path: 'role',
+        populate: {
+          path: 'permissionGroups',
+          populate: [
+            {
+              path: 'permissionGroup',
+              select: 'name code description'
+            },
+            {
+              path: 'permissions.permission',
+              select: 'name description code'
+            }
+          ]
+        }
+      });
 
     if (!user) {
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
-        message: 'Geçersiz kimlik bilgileri'
+        message: 'Geçersiz email veya şifre'
       });
-      return;
     }
 
     // Şifre kontrolü
     const isMatch = await user.matchPassword(password);
-
     if (!isMatch) {
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
-        message: 'Geçersiz kimlik bilgileri'
+        message: 'Geçersiz email veya şifre'
       });
-      return;
     }
 
     // Token oluştur
-    sendTokenResponse(user, 200, res);
+    const jwtOptions: SignOptions = { expiresIn: 86400 }; // 24 saat (saniye cinsinden)
+    const accessToken = jwt.sign(
+      { id: user._id.toString() },
+      process.env.JWT_SECRET || 'default-secret-key',
+      jwtOptions
+    );
+
+    // User nesnesini düz objeye çevir ve password'ü çıkar
+    const userObject: any = user.toObject();
+    delete userObject.password;
+
+    // Admin kullanıcısı için özel durum
+    if (userObject.isAdmin && (!userObject.role || !userObject.role.permissionGroups)) {
+      userObject.role = {
+        _id: 'admin',
+        name: 'System Admin',
+        description: 'System Administrator with all permissions',
+        permissionGroups: [{
+          permissionGroup: {
+            _id: 'admin',
+            name: 'All Permissions',
+            code: '*',
+            description: 'All system permissions'
+          },
+          permissions: [{
+            permission: {
+              _id: 'admin',
+              name: { tr: 'Tüm İzinler', en: 'All Permissions' },
+              code: '*',
+              description: { tr: 'Tüm sistem izinleri', en: 'All system permissions' }
+            },
+            granted: true
+          }]
+        }],
+        isActive: true
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      accessToken,
+      user: userObject
+    });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: 'Giriş başarısız',
+      message: 'Giriş yapılamadı',
       error: error.message
     });
   }

@@ -13,4 +13,5 @@ router.post('/login', authController_1.login);
 // Korumalı rotalar
 router.get('/me', auth_middleware_1.authenticateToken, authController_1.getMe);
 router.post('/logout', auth_middleware_1.authenticateToken, authController_1.logout);
+router.get('/refresh-permissions', auth_middleware_1.authenticateToken, authController_1.refreshPermissions);
 exports.default = router;

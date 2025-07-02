@@ -12,9 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logout = exports.getMe = exports.login = exports.register = void 0;
+exports.refreshPermissions = exports.logout = exports.getMe = exports.login = exports.register = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const mongoose_1 = __importDefault(require("mongoose"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 // Kullanıcı kaydı
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -40,43 +41,94 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.register = register;
-// Kullanıcı girişi
+// @desc    Kullanıcı girişi
+// @route   POST /api/auth/login
+// @access  Public
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
         // Email ve şifre kontrolü
         if (!email || !password) {
-            res.status(400).json({
+            return res.status(400).json({
                 success: false,
-                message: 'Email ve şifre giriniz'
+                message: 'Lütfen email ve şifre giriniz'
             });
-            return;
         }
-        // Kullanıcıyı kontrol et
-        const user = yield User_1.default.findOne({ email }).select('+password');
+        // Kullanıcıyı bul ve role bilgilerini populate et
+        const user = yield User_1.default.findOne({ email })
+            .select('+password')
+            .populate({
+            path: 'role',
+            populate: {
+                path: 'permissionGroups',
+                populate: [
+                    {
+                        path: 'permissionGroup',
+                        select: 'name code description'
+                    },
+                    {
+                        path: 'permissions.permission',
+                        select: 'name description code'
+                    }
+                ]
+            }
+        });
         if (!user) {
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
-                message: 'Geçersiz kimlik bilgileri'
+                message: 'Geçersiz email veya şifre'
             });
-            return;
         }
         // Şifre kontrolü
         const isMatch = yield user.matchPassword(password);
         if (!isMatch) {
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
-                message: 'Geçersiz kimlik bilgileri'
+                message: 'Geçersiz email veya şifre'
             });
-            return;
         }
         // Token oluştur
-        sendTokenResponse(user, 200, res);
+        const jwtOptions = { expiresIn: 86400 }; // 24 saat (saniye cinsinden)
+        const accessToken = jsonwebtoken_1.default.sign({ id: user._id.toString() }, process.env.JWT_SECRET || 'default-secret-key', jwtOptions);
+        // User nesnesini düz objeye çevir ve password'ü çıkar
+        const userObject = user.toObject();
+        delete userObject.password;
+        // Admin kullanıcısı için özel durum
+        if (userObject.isAdmin && (!userObject.role || !userObject.role.permissionGroups)) {
+            userObject.role = {
+                _id: 'admin',
+                name: 'System Admin',
+                description: 'System Administrator with all permissions',
+                permissionGroups: [{
+                        permissionGroup: {
+                            _id: 'admin',
+                            name: 'All Permissions',
+                            code: '*',
+                            description: 'All system permissions'
+                        },
+                        permissions: [{
+                                permission: {
+                                    _id: 'admin',
+                                    name: { tr: 'Tüm İzinler', en: 'All Permissions' },
+                                    code: '*',
+                                    description: { tr: 'Tüm sistem izinleri', en: 'All system permissions' }
+                                },
+                                granted: true
+                            }]
+                    }],
+                isActive: true
+            };
+        }
+        res.status(200).json({
+            success: true,
+            accessToken,
+            user: userObject
+        });
     }
     catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Giriş başarısız',
+            message: 'Giriş yapılamadı',
             error: error.message
         });
     }
@@ -134,3 +186,50 @@ const sendTokenResponse = (user, statusCode, res) => {
         }
     });
 };
+// @desc    Kullanıcı izinlerini yenile
+// @route   GET /api/auth/refresh-permissions
+// @access  Private
+const refreshPermissions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+        }
+        // Kullanıcıyı tüm izin bilgileriyle birlikte yeniden çek
+        const updatedUser = yield User_1.default.findById(req.user._id)
+            .populate({
+            path: 'role',
+            populate: [
+                {
+                    path: 'permissionGroups.permissionGroup',
+                    select: 'name code description'
+                },
+                {
+                    path: 'permissionGroups.permissions.permission',
+                    select: 'name description code'
+                }
+            ]
+        })
+            .select('-password');
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            user: updatedUser
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'İzinler yenilenemedi',
+            error: error.message
+        });
+    }
+});
+exports.refreshPermissions = refreshPermissions;
