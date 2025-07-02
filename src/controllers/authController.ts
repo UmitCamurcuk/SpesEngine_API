@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/User';
 import mongoose from 'mongoose';
+import Role from '../models/Role';
 
 // Kullanıcı kaydı
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -130,4 +131,53 @@ const sendTokenResponse = (user: IUser, statusCode: number, res: Response): void
       role: 'user'
     }
   });
+};
+
+// @desc    Kullanıcı izinlerini yenile
+// @route   GET /api/auth/refresh-permissions
+// @access  Private
+export const refreshPermissions = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      });
+    }
+
+    // Kullanıcıyı tüm izin bilgileriyle birlikte yeniden çek
+    const updatedUser = await User.findById(req.user._id)
+      .populate({
+        path: 'role',
+        populate: [
+          {
+            path: 'permissionGroups.permissionGroup',
+            select: 'name code description'
+          },
+          {
+            path: 'permissionGroups.permissions.permission',
+            select: 'name description code'
+          }
+        ]
+      })
+      .select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user: updatedUser
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'İzinler yenilenemedi',
+      error: error.message
+    });
+  }
 }; 
