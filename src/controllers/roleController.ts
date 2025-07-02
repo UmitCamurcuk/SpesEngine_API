@@ -218,33 +218,38 @@ export const updateRole = async (req: Request, res: Response) => {
     // Eğer permissions array'i geliyorsa, bunu permissionGroups formatına çevir
     if (permissions && Array.isArray(permissions)) {
       try {
-        // Tüm izinleri getir
-        const allPermissions = await Permission.find().lean();
+        // Tüm permission group'ları al (içlerindeki permission'lar ile birlikte)
+        const allPermissionGroups = await PermissionGroup.find()
+          .populate('permissions', '_id name code')
+          .lean();
         
-        // Önce mevcut permission group'ları al
-        const allPermissionGroups = await PermissionGroup.find().lean();
+        console.log('Permission Groups with their permissions:');
+        allPermissionGroups.forEach(pg => {
+          console.log(`- ${pg.name} (${pg.code}):`, pg.permissions.map((p: any) => ({ id: p._id, code: p.code })));
+        });
         
-        // İzinleri code prefix'ine göre grupla
-        const permissionsByGroupCode = allPermissions.reduce((acc: { [key: string]: any[] }, permission: any) => {
-          const codePrefix = permission.code.split('.')[0] || 'other';
-          if (!acc[codePrefix]) {
-            acc[codePrefix] = [];
-          }
-          acc[codePrefix].push(permission);
-          return acc;
-        }, {});
+        console.log('Incoming permissions to grant:', permissions);
 
         // Her permission group için finalPermissionGroups oluştur
         finalPermissionGroups = allPermissionGroups.map(permGroup => {
-          const groupCode = permGroup.code;
-          const groupPermissions = permissionsByGroupCode[groupCode] || [];
+          const groupPermissions = permGroup.permissions || [];
+          
+          const permissionsWithGrant = groupPermissions.map((permission: any) => ({
+            permission: permission._id,
+            granted: permissions.includes(permission._id.toString())
+          }));
+          
+          const grantedCount = permissionsWithGrant.filter(p => p.granted).length;
+          
+          console.log(`Processing group ${permGroup.name} (code: ${permGroup.code}):`, {
+            totalPermissions: groupPermissions.length,
+            grantedCount: grantedCount,
+            grantedPermissions: permissionsWithGrant.filter(p => p.granted).map(p => p.permission.toString())
+          });
           
           return {
             permissionGroup: permGroup._id,
-            permissions: groupPermissions.map((permission: any) => ({
-              permission: permission._id,
-              granted: permissions.includes(permission._id.toString())
-            }))
+            permissions: permissionsWithGrant
           };
         });
 
