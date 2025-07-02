@@ -16,6 +16,9 @@ exports.deleteRole = exports.removePermissionGroupFromRole = exports.addPermissi
 const Role_1 = __importDefault(require("../models/Role"));
 const PermissionGroup_1 = __importDefault(require("../models/PermissionGroup"));
 const Permission_1 = __importDefault(require("../models/Permission"));
+const historyService_1 = __importDefault(require("../services/historyService"));
+const Entity_1 = require("../models/Entity");
+const History_1 = require("../models/History");
 // @desc    Tüm rolleri getir
 // @route   GET /api/roles
 // @access  Private
@@ -180,9 +183,22 @@ exports.getRoleById = getRoleById;
 // @access  Private
 const updateRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, description, permissionGroups, isActive } = req.body;
+        const { name, description, permissions, permissionGroups, isActive, comment } = req.body;
+        const userId = req.user._id;
+        // Mevcut rolü al
+        const currentRole = yield Role_1.default.findById(req.params.id)
+            .populate({
+            path: 'permissionGroups.permissions.permission',
+            select: 'name description code group'
+        });
+        if (!currentRole) {
+            return res.status(404).json({
+                success: false,
+                message: 'Rol bulunamadı'
+            });
+        }
         // İsim değiştiriliyorsa, başka bir rol ile çakışıyor mu kontrol et
-        if (name) {
+        if (name && name !== currentRole.name) {
             const existingRole = yield Role_1.default.findOne({
                 name,
                 _id: { $ne: req.params.id }
@@ -194,8 +210,48 @@ const updateRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 });
             }
         }
-        // Permission Groups validasyonu
-        if (permissionGroups) {
+        let finalPermissionGroups;
+        // Eğer permissions array'i geliyorsa, bunu permissionGroups formatına çevir
+        if (permissions && Array.isArray(permissions)) {
+            try {
+                // Tüm izinleri getir
+                const allPermissions = yield Permission_1.default.find().lean();
+                // Önce mevcut permission group'ları al
+                const allPermissionGroups = yield PermissionGroup_1.default.find().lean();
+                // İzinleri code prefix'ine göre grupla
+                const permissionsByGroupCode = allPermissions.reduce((acc, permission) => {
+                    const codePrefix = permission.code.split('.')[0] || 'other';
+                    if (!acc[codePrefix]) {
+                        acc[codePrefix] = [];
+                    }
+                    acc[codePrefix].push(permission);
+                    return acc;
+                }, {});
+                // Her permission group için finalPermissionGroups oluştur
+                finalPermissionGroups = allPermissionGroups.map(permGroup => {
+                    const groupCode = permGroup.code;
+                    const groupPermissions = permissionsByGroupCode[groupCode] || [];
+                    return {
+                        permissionGroup: permGroup._id,
+                        permissions: groupPermissions.map((permission) => ({
+                            permission: permission._id,
+                            granted: permissions.includes(permission._id.toString())
+                        }))
+                    };
+                });
+                console.log('Created permission groups:', JSON.stringify(finalPermissionGroups, null, 2));
+            }
+            catch (error) {
+                console.error('Permission grouping hatası:', error);
+                return res.status(500).json({
+                    success: false,
+                    message: 'İzin gruplama işlemi sırasında hata oluştu',
+                    error: error.message
+                });
+            }
+        }
+        else if (permissionGroups) {
+            // Direkt permissionGroups geliyorsa validation yap
             for (const pg of permissionGroups) {
                 // Permission Group var mı kontrol et
                 const permissionGroup = yield PermissionGroup_1.default.findById(pg.permissionGroup);
@@ -229,15 +285,28 @@ const updateRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                     }
                 }
             }
+            finalPermissionGroups = permissionGroups;
         }
+        // Önceki durumu kaydet (history için)
+        const previousData = {
+            name: currentRole.name,
+            description: currentRole.description,
+            isActive: currentRole.isActive,
+            permissions: currentRole.permissionGroups.reduce((acc, pg) => {
+                const grantedPermissions = pg.permissions
+                    .filter(p => p.granted)
+                    .map(p => p.permission._id.toString());
+                return [...acc, ...grantedPermissions];
+            }, [])
+        };
         // Rolü güncelle
         const updateData = {};
-        if (name)
+        if (name !== undefined)
             updateData.name = name;
-        if (description)
+        if (description !== undefined)
             updateData.description = description;
-        if (permissionGroups)
-            updateData.permissionGroups = permissionGroups;
+        if (finalPermissionGroups)
+            updateData.permissionGroups = finalPermissionGroups;
         if (isActive !== undefined)
             updateData.isActive = isActive;
         const role = yield Role_1.default.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true })
@@ -255,6 +324,36 @@ const updateRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 message: 'Rol bulunamadı'
             });
         }
+        // Yeni durumu hazırla (history için)
+        const newData = {
+            name: role.name,
+            description: role.description,
+            isActive: role.isActive,
+            permissions: permissions || role.permissionGroups.reduce((acc, pg) => {
+                const grantedPermissions = pg.permissions
+                    .filter(p => p.granted)
+                    .map(p => p.permission._id.toString());
+                return [...acc, ...grantedPermissions];
+            }, [])
+        };
+        // Değişiklik geçmişini kaydet
+        if (userId) {
+            try {
+                yield historyService_1.default.recordHistory({
+                    entityType: Entity_1.EntityType.ROLE,
+                    entityId: req.params.id,
+                    userId,
+                    action: History_1.ActionType.UPDATE,
+                    previousData,
+                    newData,
+                    comment: comment || 'Rol güncellendi'
+                });
+            }
+            catch (historyError) {
+                console.error('History kaydı oluşturulamadı:', historyError);
+                // History hatası ana işlemi durdurmaz
+            }
+        }
         res.status(200).json({
             success: true,
             message: 'Rol başarıyla güncellendi',
@@ -262,6 +361,7 @@ const updateRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         });
     }
     catch (error) {
+        console.error('Rol güncellenirken hata:', error);
         res.status(500).json({
             success: false,
             message: 'Rol güncellenemedi',

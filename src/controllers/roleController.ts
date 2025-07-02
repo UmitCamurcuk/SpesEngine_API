@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import Role from '../models/Role';
 import PermissionGroup from '../models/PermissionGroup';
 import Permission from '../models/Permission';
+import { Types } from 'mongoose';
+import historyService from '../services/historyService';
+import { EntityType } from '../models/Entity';
+import { ActionType } from '../models/History';
 
 // @desc    Tüm rolleri getir
 // @route   GET /api/roles
@@ -177,10 +181,25 @@ export const getRoleById = async (req: Request, res: Response) => {
 // @access  Private
 export const updateRole = async (req: Request, res: Response) => {
   try {
-    const { name, description, permissionGroups, isActive } = req.body;
+    const { name, description, permissions, permissionGroups, isActive, comment } = req.body;
+    const userId = (req.user as any)._id;
+
+    // Mevcut rolü al
+    const currentRole = await Role.findById(req.params.id)
+      .populate({
+        path: 'permissionGroups.permissions.permission',
+        select: 'name description code group'
+      });
+
+    if (!currentRole) {
+      return res.status(404).json({
+        success: false,
+        message: 'Rol bulunamadı'
+      });
+    }
 
     // İsim değiştiriliyorsa, başka bir rol ile çakışıyor mu kontrol et
-    if (name) {
+    if (name && name !== currentRole.name) {
       const existingRole = await Role.findOne({
         name,
         _id: { $ne: req.params.id }
@@ -194,8 +213,52 @@ export const updateRole = async (req: Request, res: Response) => {
       }
     }
 
-    // Permission Groups validasyonu
-    if (permissionGroups) {
+    let finalPermissionGroups;
+
+    // Eğer permissions array'i geliyorsa, bunu permissionGroups formatına çevir
+    if (permissions && Array.isArray(permissions)) {
+      try {
+        // Tüm izinleri getir
+        const allPermissions = await Permission.find().lean();
+        
+        // Önce mevcut permission group'ları al
+        const allPermissionGroups = await PermissionGroup.find().lean();
+        
+        // İzinleri code prefix'ine göre grupla
+        const permissionsByGroupCode = allPermissions.reduce((acc: { [key: string]: any[] }, permission: any) => {
+          const codePrefix = permission.code.split('.')[0] || 'other';
+          if (!acc[codePrefix]) {
+            acc[codePrefix] = [];
+          }
+          acc[codePrefix].push(permission);
+          return acc;
+        }, {});
+
+        // Her permission group için finalPermissionGroups oluştur
+        finalPermissionGroups = allPermissionGroups.map(permGroup => {
+          const groupCode = permGroup.code;
+          const groupPermissions = permissionsByGroupCode[groupCode] || [];
+          
+          return {
+            permissionGroup: permGroup._id,
+            permissions: groupPermissions.map((permission: any) => ({
+              permission: permission._id,
+              granted: permissions.includes(permission._id.toString())
+            }))
+          };
+        });
+
+        console.log('Created permission groups:', JSON.stringify(finalPermissionGroups, null, 2));
+      } catch (error: any) {
+        console.error('Permission grouping hatası:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'İzin gruplama işlemi sırasında hata oluştu',
+          error: error.message
+        });
+      }
+    } else if (permissionGroups) {
+      // Direkt permissionGroups geliyorsa validation yap
       for (const pg of permissionGroups) {
         // Permission Group var mı kontrol et
         const permissionGroup = await PermissionGroup.findById(pg.permissionGroup);
@@ -232,13 +295,27 @@ export const updateRole = async (req: Request, res: Response) => {
           }
         }
       }
+      finalPermissionGroups = permissionGroups;
     }
+
+    // Önceki durumu kaydet (history için)
+    const previousData = {
+      name: currentRole.name,
+      description: currentRole.description,
+      isActive: currentRole.isActive,
+      permissions: currentRole.permissionGroups.reduce((acc: string[], pg) => {
+        const grantedPermissions = pg.permissions
+          .filter(p => p.granted)
+          .map(p => (p.permission as any)._id.toString());
+        return [...acc, ...grantedPermissions];
+      }, [])
+    };
 
     // Rolü güncelle
     const updateData: any = {};
-    if (name) updateData.name = name;
-    if (description) updateData.description = description;
-    if (permissionGroups) updateData.permissionGroups = permissionGroups;
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (finalPermissionGroups) updateData.permissionGroups = finalPermissionGroups;
     if (isActive !== undefined) updateData.isActive = isActive;
 
     const role = await Role.findByIdAndUpdate(
@@ -262,12 +339,44 @@ export const updateRole = async (req: Request, res: Response) => {
       });
     }
 
+    // Yeni durumu hazırla (history için)
+    const newData = {
+      name: role.name,
+      description: role.description,
+      isActive: role.isActive,
+      permissions: permissions || role.permissionGroups.reduce((acc: string[], pg) => {
+        const grantedPermissions = pg.permissions
+          .filter(p => p.granted)
+          .map(p => (p.permission as any)._id.toString());
+        return [...acc, ...grantedPermissions];
+      }, [])
+    };
+
+    // Değişiklik geçmişini kaydet
+    if (userId) {
+      try {
+        await historyService.recordHistory({
+          entityType: EntityType.ROLE,
+          entityId: req.params.id,
+          userId,
+          action: ActionType.UPDATE,
+          previousData,
+          newData,
+          comment: comment || 'Rol güncellendi'
+        });
+      } catch (historyError) {
+        console.error('History kaydı oluşturulamadı:', historyError);
+        // History hatası ana işlemi durdurmaz
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: 'Rol başarıyla güncellendi',
       role
     });
   } catch (error: any) {
+    console.error('Rol güncellenirken hata:', error);
     res.status(500).json({
       success: false,
       message: 'Rol güncellenemedi',
