@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshPermissions = exports.logout = exports.getMe = exports.login = exports.register = void 0;
+exports.refreshPermissions = exports.logout = exports.getMe = exports.refreshToken = exports.login = exports.register = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -87,9 +87,12 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 message: 'Geçersiz email veya şifre'
             });
         }
-        // Token oluştur
-        const jwtOptions = { expiresIn: 86400 }; // 24 saat (saniye cinsinden)
-        const accessToken = jsonwebtoken_1.default.sign({ id: user._id.toString() }, process.env.JWT_SECRET || 'default-secret-key', jwtOptions);
+        // Access token oluştur (kısa süreli)
+        const accessTokenOptions = { expiresIn: '15m' }; // 15 dakika
+        const accessToken = jsonwebtoken_1.default.sign({ id: user._id.toString() }, process.env.JWT_SECRET || 'default-secret-key', accessTokenOptions);
+        // Refresh token oluştur (uzun süreli)
+        const refreshTokenOptions = { expiresIn: '7d' }; // 7 gün
+        const refreshToken = jsonwebtoken_1.default.sign({ id: user._id.toString(), type: 'refresh' }, process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key', refreshTokenOptions);
         // User nesnesini düz objeye çevir ve password'ü çıkar
         const userObject = user.toObject();
         delete userObject.password;
@@ -122,6 +125,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(200).json({
             success: true,
             accessToken,
+            refreshToken,
             user: userObject
         });
     }
@@ -134,6 +138,71 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.login = login;
+// @desc    Token yenileme
+// @route   POST /api/auth/refresh-token
+// @access  Public
+const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            return res.status(401).json({
+                success: false,
+                message: 'Refresh token bulunamadı'
+            });
+        }
+        // Refresh token'ı doğrula
+        const decoded = jsonwebtoken_1.default.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key');
+        if (decoded.type !== 'refresh') {
+            return res.status(401).json({
+                success: false,
+                message: 'Geçersiz refresh token'
+            });
+        }
+        // Kullanıcıyı bul
+        const user = yield User_1.default.findById(decoded.id)
+            .populate({
+            path: 'role',
+            populate: {
+                path: 'permissionGroups',
+                populate: [
+                    {
+                        path: 'permissionGroup',
+                        select: 'name code description'
+                    },
+                    {
+                        path: 'permissions.permission',
+                        select: 'name description code'
+                    }
+                ]
+            }
+        });
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+        }
+        // Yeni access token oluştur
+        const accessTokenOptions = { expiresIn: '15m' };
+        const newAccessToken = jsonwebtoken_1.default.sign({ id: user._id.toString() }, process.env.JWT_SECRET || 'default-secret-key', accessTokenOptions);
+        // Yeni refresh token oluştur
+        const refreshTokenOptions = { expiresIn: '7d' };
+        const newRefreshToken = jsonwebtoken_1.default.sign({ id: user._id.toString(), type: 'refresh' }, process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key', refreshTokenOptions);
+        res.status(200).json({
+            success: true,
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken
+        });
+    }
+    catch (error) {
+        return res.status(401).json({
+            success: false,
+            message: 'Geçersiz refresh token',
+            error: error.message
+        });
+    }
+});
+exports.refreshToken = refreshToken;
 // Mevcut kullanıcıyı getir
 const getMe = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -163,10 +232,12 @@ const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.logout = logout;
 // Token oluştur ve cookie olarak gönder
 const sendTokenResponse = (user, statusCode, res) => {
-    // Token oluştur
-    const accessToken = user.getSignedJwtToken();
-    // Refresh token için de bir token oluştur (yaşam süresi daha uzun olabilir)
-    const refreshToken = user.getSignedJwtToken();
+    // Access token oluştur (kısa süreli)
+    const accessTokenOptions = { expiresIn: '15m' };
+    const accessToken = jsonwebtoken_1.default.sign({ id: user._id.toString() }, process.env.JWT_SECRET || 'default-secret-key', accessTokenOptions);
+    // Refresh token oluştur (uzun süreli)
+    const refreshTokenOptions = { expiresIn: '7d' };
+    const refreshToken = jsonwebtoken_1.default.sign({ id: user._id.toString(), type: 'refresh' }, process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key', refreshTokenOptions);
     const options = {
         expires: new Date(Date.now() + (process.env.JWT_COOKIE_EXPIRE ?
             parseInt(process.env.JWT_COOKIE_EXPIRE) * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000)),
