@@ -131,6 +131,22 @@ export const getAttributeById = async (req: Request, res: Response, next: NextFu
     const attribute = await Attribute.findById(id)
       .populate('name','key namespace translations')
       .populate('description','key namespace translations')
+      .populate({
+        path: 'options',
+        select: 'name code type',
+        populate: {
+          path: 'name',
+          select: 'key namespace translations'
+        }
+      })
+      .populate({
+        path: 'optionType',
+        select: 'name code type',
+        populate: {
+          path: 'name',
+          select: 'key namespace translations'
+        }
+      });
     
     if (!attribute) {
       res.status(404).json({
@@ -155,10 +171,52 @@ export const getAttributeById = async (req: Request, res: Response, next: NextFu
 // POST yeni öznitelik oluştur
 export const createAttribute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    
     // AttributeGroup bilgisini ayır
-    const { attributeGroup, ...attributeData } = req.body;
-    
+    const { attributeGroup, options, optionType, ...attributeData } = req.body;
+
+    // SELECT veya MULTISELECT için options ve optionType kontrolü
+    if (attributeData.type === 'select' || attributeData.type === 'multiselect') {
+      if (!optionType) {
+        res.status(400).json({
+          success: false,
+          message: 'SELECT veya MULTISELECT için optionType zorunludur'
+        });
+        return;
+      }
+
+      // optionType'ın geçerli bir attribute olduğunu kontrol et
+      const optionTypeAttribute = await Attribute.findById(optionType);
+      if (!optionTypeAttribute) {
+        res.status(400).json({
+          success: false,
+          message: 'Geçersiz optionType'
+        });
+        return;
+      }
+
+      // options dizisindeki her bir ID'nin geçerli bir attribute olduğunu kontrol et
+      if (options && options.length > 0) {
+        const optionAttributes = await Attribute.find({ 
+          _id: { $in: options },
+          type: optionTypeAttribute.type // Seçeneklerin tipi optionType ile aynı olmalı
+        });
+
+        if (optionAttributes.length !== options.length) {
+          res.status(400).json({
+            success: false,
+            message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
+          });
+          return;
+        }
+
+        attributeData.options = options;
+      } else {
+        attributeData.options = [];
+      }
+
+      attributeData.optionType = optionType;
+    }
+
     // Validasyon verilerini kontrol et
     if (attributeData.validations) {
       
@@ -304,7 +362,7 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
 export const updateAttribute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { nameTranslations, descriptionTranslations, ...otherData } = req.body;
+    const { nameTranslations, descriptionTranslations, options, optionType, ...otherData } = req.body;
     
     // Güncelleme öncesi mevcut veriyi al (geçmiş için)
     const previousAttribute = await Attribute.findById(id)
@@ -320,6 +378,83 @@ export const updateAttribute = async (req: Request, res: Response, next: NextFun
     }
 
     let updateData = { ...otherData };
+
+    // SELECT veya MULTISELECT için options ve optionType kontrolü
+    if (updateData.type === 'select' || updateData.type === 'multiselect' || 
+        previousAttribute.type === 'select' || previousAttribute.type === 'multiselect') {
+      
+      // Tip değişiyorsa ve yeni tip select/multiselect değilse, options ve optionType'ı temizle
+      if (updateData.type && 
+          updateData.type !== 'select' && 
+          updateData.type !== 'multiselect') {
+        updateData.options = [];
+        updateData.optionType = undefined;
+      }
+      // Tip select/multiselect ise veya olacaksa
+      else {
+        // optionType kontrolü
+        if (optionType) {
+          const optionTypeAttribute = await Attribute.findById(optionType);
+          if (!optionTypeAttribute) {
+            res.status(400).json({
+              success: false,
+              message: 'Geçersiz optionType'
+            });
+            return;
+          }
+          updateData.optionType = optionType;
+
+          // options kontrolü
+          if (options && options.length > 0) {
+            const optionAttributes = await Attribute.find({ 
+              _id: { $in: options },
+              type: optionTypeAttribute.type
+            });
+
+            if (optionAttributes.length !== options.length) {
+              res.status(400).json({
+                success: false,
+                message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
+              });
+              return;
+            }
+            updateData.options = options;
+          } else {
+            updateData.options = [];
+          }
+        }
+        // optionType gönderilmemişse ve tip değişmiyorsa, mevcut optionType'ı koru
+        else if (!updateData.type || 
+                 updateData.type === 'select' || 
+                 updateData.type === 'multiselect') {
+          updateData.optionType = previousAttribute.optionType;
+          
+          // options gönderilmişse kontrol et
+          if (options) {
+            if (options.length > 0) {
+              const optionAttributes = await Attribute.find({ 
+                _id: { $in: options },
+                type: previousAttribute.optionType 
+                  ? (await Attribute.findById(previousAttribute.optionType))?.type 
+                  : undefined
+              });
+
+              if (optionAttributes.length !== options.length) {
+                res.status(400).json({
+                  success: false,
+                  message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
+                });
+                return;
+              }
+              updateData.options = options;
+            } else {
+              updateData.options = [];
+            }
+          }
+        }
+      }
+    }
+
     const changedTranslations: any[] = [];
 
     // Name translations'ını güncelle

@@ -88,7 +88,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         // Access token oluştur (kısa süreli)
-        const accessTokenOptions = { expiresIn: '15m' }; // 15 dakika
+        const accessTokenOptions = { expiresIn: '1h' }; // 15 dakika
         const accessToken = jsonwebtoken_1.default.sign({ id: user._id.toString() }, process.env.JWT_SECRET || 'default-secret-key', accessTokenOptions);
         // Refresh token oluştur (uzun süreli)
         const refreshTokenOptions = { expiresIn: '7d' }; // 7 gün
@@ -183,7 +183,7 @@ const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             });
         }
         // Yeni access token oluştur
-        const accessTokenOptions = { expiresIn: '15m' };
+        const accessTokenOptions = { expiresIn: '1h' };
         const newAccessToken = jsonwebtoken_1.default.sign({ id: user._id.toString() }, process.env.JWT_SECRET || 'default-secret-key', accessTokenOptions);
         // Yeni refresh token oluştur
         const refreshTokenOptions = { expiresIn: '7d' };
@@ -233,7 +233,7 @@ exports.logout = logout;
 // Token oluştur ve cookie olarak gönder
 const sendTokenResponse = (user, statusCode, res) => {
     // Access token oluştur (kısa süreli)
-    const accessTokenOptions = { expiresIn: '15m' };
+    const accessTokenOptions = { expiresIn: '1d' };
     const accessToken = jsonwebtoken_1.default.sign({ id: user._id.toString() }, process.env.JWT_SECRET || 'default-secret-key', accessTokenOptions);
     // Refresh token oluştur (uzun süreli)
     const refreshTokenOptions = { expiresIn: '7d' };

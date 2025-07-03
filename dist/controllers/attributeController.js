@@ -101,7 +101,6 @@ const getAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         const direction = req.query.direction === 'desc' ? -1 : 1;
         const sortOptions = {};
         sortOptions[sort] = direction;
-        console.log('Sorting with:', { sort, direction, sortOptions });
         // Verileri getir
         const attributes = yield Attribute_1.default.find(filterParams)
             .populate('name', 'key namespace translations')
@@ -136,7 +135,23 @@ const getAttributeById = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         const { id } = req.params;
         const attribute = yield Attribute_1.default.findById(id)
             .populate('name', 'key namespace translations')
-            .populate('description', 'key namespace translations');
+            .populate('description', 'key namespace translations')
+            .populate({
+            path: 'options',
+            select: 'name code type',
+            populate: {
+                path: 'name',
+                select: 'key namespace translations'
+            }
+        })
+            .populate({
+            path: 'optionType',
+            select: 'name code type',
+            populate: {
+                path: 'name',
+                select: 'key namespace translations'
+            }
+        });
         if (!attribute) {
             res.status(404).json({
                 success: false,
@@ -162,7 +177,45 @@ const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     var _a, _b, _c, _d;
     try {
         // AttributeGroup bilgisini ayır
-        const _e = req.body, { attributeGroup } = _e, attributeData = __rest(_e, ["attributeGroup"]);
+        const _e = req.body, { attributeGroup, options, optionType } = _e, attributeData = __rest(_e, ["attributeGroup", "options", "optionType"]);
+        // SELECT veya MULTISELECT için options ve optionType kontrolü
+        if (attributeData.type === 'select' || attributeData.type === 'multiselect') {
+            if (!optionType) {
+                res.status(400).json({
+                    success: false,
+                    message: 'SELECT veya MULTISELECT için optionType zorunludur'
+                });
+                return;
+            }
+            // optionType'ın geçerli bir attribute olduğunu kontrol et
+            const optionTypeAttribute = yield Attribute_1.default.findById(optionType);
+            if (!optionTypeAttribute) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Geçersiz optionType'
+                });
+                return;
+            }
+            // options dizisindeki her bir ID'nin geçerli bir attribute olduğunu kontrol et
+            if (options && options.length > 0) {
+                const optionAttributes = yield Attribute_1.default.find({
+                    _id: { $in: options },
+                    type: optionTypeAttribute.type // Seçeneklerin tipi optionType ile aynı olmalı
+                });
+                if (optionAttributes.length !== options.length) {
+                    res.status(400).json({
+                        success: false,
+                        message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
+                    });
+                    return;
+                }
+                attributeData.options = options;
+            }
+            else {
+                attributeData.options = [];
+            }
+            attributeData.optionType = optionType;
+        }
         // Validasyon verilerini kontrol et
         if (attributeData.validations) {
             // Validasyon objesi boş ise undefined yap
@@ -291,10 +344,10 @@ const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 exports.createAttribute = createAttribute;
 // PUT özniteliği güncelle
 const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     try {
         const { id } = req.params;
-        const _h = req.body, { nameTranslations, descriptionTranslations } = _h, otherData = __rest(_h, ["nameTranslations", "descriptionTranslations"]);
+        const _j = req.body, { nameTranslations, descriptionTranslations, options, optionType } = _j, otherData = __rest(_j, ["nameTranslations", "descriptionTranslations", "options", "optionType"]);
         // Güncelleme öncesi mevcut veriyi al (geçmiş için)
         const previousAttribute = yield Attribute_1.default.findById(id)
             .populate('name', 'key namespace translations')
@@ -307,10 +360,82 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             return;
         }
         let updateData = Object.assign({}, otherData);
+        // SELECT veya MULTISELECT için options ve optionType kontrolü
+        if (updateData.type === 'select' || updateData.type === 'multiselect' ||
+            previousAttribute.type === 'select' || previousAttribute.type === 'multiselect') {
+            // Tip değişiyorsa ve yeni tip select/multiselect değilse, options ve optionType'ı temizle
+            if (updateData.type &&
+                updateData.type !== 'select' &&
+                updateData.type !== 'multiselect') {
+                updateData.options = [];
+                updateData.optionType = undefined;
+            }
+            // Tip select/multiselect ise veya olacaksa
+            else {
+                // optionType kontrolü
+                if (optionType) {
+                    const optionTypeAttribute = yield Attribute_1.default.findById(optionType);
+                    if (!optionTypeAttribute) {
+                        res.status(400).json({
+                            success: false,
+                            message: 'Geçersiz optionType'
+                        });
+                        return;
+                    }
+                    updateData.optionType = optionType;
+                    // options kontrolü
+                    if (options && options.length > 0) {
+                        const optionAttributes = yield Attribute_1.default.find({
+                            _id: { $in: options },
+                            type: optionTypeAttribute.type
+                        });
+                        if (optionAttributes.length !== options.length) {
+                            res.status(400).json({
+                                success: false,
+                                message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
+                            });
+                            return;
+                        }
+                        updateData.options = options;
+                    }
+                    else {
+                        updateData.options = [];
+                    }
+                }
+                // optionType gönderilmemişse ve tip değişmiyorsa, mevcut optionType'ı koru
+                else if (!updateData.type ||
+                    updateData.type === 'select' ||
+                    updateData.type === 'multiselect') {
+                    updateData.optionType = previousAttribute.optionType;
+                    // options gönderilmişse kontrol et
+                    if (options) {
+                        if (options.length > 0) {
+                            const optionAttributes = yield Attribute_1.default.find({
+                                _id: { $in: options },
+                                type: previousAttribute.optionType
+                                    ? (_a = (yield Attribute_1.default.findById(previousAttribute.optionType))) === null || _a === void 0 ? void 0 : _a.type
+                                    : undefined
+                            });
+                            if (optionAttributes.length !== options.length) {
+                                res.status(400).json({
+                                    success: false,
+                                    message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
+                                });
+                                return;
+                            }
+                            updateData.options = options;
+                        }
+                        else {
+                            updateData.options = [];
+                        }
+                    }
+                }
+            }
+        }
         const changedTranslations = [];
         // Name translations'ını güncelle
         if (nameTranslations && typeof nameTranslations === 'object') {
-            const nameTranslationKey = (_a = previousAttribute.name) === null || _a === void 0 ? void 0 : _a.key;
+            const nameTranslationKey = (_b = previousAttribute.name) === null || _b === void 0 ? void 0 : _b.key;
             if (nameTranslationKey) {
                 const localizationService = require('../services/localizationService').default;
                 yield localizationService.upsertTranslation({
@@ -321,14 +446,14 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 changedTranslations.push({
                     field: 'name',
                     translationKey: nameTranslationKey,
-                    oldValues: ((_b = previousAttribute.name) === null || _b === void 0 ? void 0 : _b.translations) || {},
+                    oldValues: ((_c = previousAttribute.name) === null || _c === void 0 ? void 0 : _c.translations) || {},
                     newValues: nameTranslations
                 });
             }
         }
         // Description translations'ını güncelle
         if (descriptionTranslations && typeof descriptionTranslations === 'object') {
-            const descriptionTranslationKey = (_c = previousAttribute.description) === null || _c === void 0 ? void 0 : _c.key;
+            const descriptionTranslationKey = (_d = previousAttribute.description) === null || _d === void 0 ? void 0 : _d.key;
             if (descriptionTranslationKey) {
                 const localizationService = require('../services/localizationService').default;
                 yield localizationService.upsertTranslation({
@@ -339,7 +464,7 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 changedTranslations.push({
                     field: 'description',
                     translationKey: descriptionTranslationKey,
-                    oldValues: ((_d = previousAttribute.description) === null || _d === void 0 ? void 0 : _d.translations) || {},
+                    oldValues: ((_e = previousAttribute.description) === null || _e === void 0 ? void 0 : _e.translations) || {},
                     newValues: descriptionTranslations
                 });
             }
@@ -385,7 +510,7 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 // Translation değişiklikleri artık localizationController'da handle ediliyor
             }
             // Bildirim sistemi - onUpdate true ise bildirim gönder
-            if ((_e = updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.notificationSettings) === null || _e === void 0 ? void 0 : _e.onUpdate) {
+            if ((_f = updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.notificationSettings) === null || _f === void 0 ? void 0 : _f.onUpdate) {
                 try {
                     // Değişen alanları belirle
                     const changes = [];
@@ -400,7 +525,7 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                         changes.push(`${translationChange.field} translations updated`);
                     });
                     if (changes.length > 0) {
-                        const userName = ((_f = req.user) === null || _f === void 0 ? void 0 : _f.name) || ((_g = req.user) === null || _g === void 0 ? void 0 : _g.username) || 'Bilinmeyen Kullanıcı';
+                        const userName = ((_g = req.user) === null || _g === void 0 ? void 0 : _g.name) || ((_h = req.user) === null || _h === void 0 ? void 0 : _h.username) || 'Bilinmeyen Kullanıcı';
                         const comment = req.body.comment || '';
                         yield notificationService_1.default.sendEntityUpdateNotification('attribute', id, getEntityNameFromTranslation(updatedAttribute.name), changes, comment, userId, userName);
                     }

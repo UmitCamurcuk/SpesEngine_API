@@ -112,7 +112,8 @@ export interface IAttribute extends Document {
   type: AttributeType;
   description: mongoose.Types.ObjectId; // Translation ID
   isRequired: boolean;
-  options: string[];
+  options: mongoose.Types.ObjectId[]; // Artık attribute referansları
+  optionType?: mongoose.Types.ObjectId; // Seçeneklerin attribute tipi
   validations?: IValidation;
   notificationSettings?: INotificationSettings;
   isActive: boolean;
@@ -151,9 +152,15 @@ const AttributeSchema: Schema = new Schema(
       type: Boolean,
       default: false
     },
-    options: {
-      type: [String],
+    options: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Attribute',
       default: []
+    }],
+    optionType: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Attribute',
+      required: false
     },
     validations: ValidationSchema,
     notificationSettings: {

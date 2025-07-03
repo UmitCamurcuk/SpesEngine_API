@@ -83,7 +83,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Access token oluştur (kısa süreli)
-    const accessTokenOptions: SignOptions = { expiresIn: '15m' }; // 15 dakika
+    const accessTokenOptions: SignOptions = { expiresIn: '1h' }; // 15 dakika
     const accessToken = jwt.sign(
       { id: user._id.toString() },
       process.env.JWT_SECRET || 'default-secret-key',
@@ -198,7 +198,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     }
 
     // Yeni access token oluştur
-    const accessTokenOptions: SignOptions = { expiresIn: '15m' };
+    const accessTokenOptions: SignOptions = { expiresIn: '1h' };
     const newAccessToken = jwt.sign(
       { id: user._id.toString() },
       process.env.JWT_SECRET || 'default-secret-key',
@@ -256,7 +256,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
 // Token oluştur ve cookie olarak gönder
 const sendTokenResponse = (user: IUser, statusCode: number, res: Response): void => {
   // Access token oluştur (kısa süreli)
-  const accessTokenOptions: SignOptions = { expiresIn: '15m' };
+  const accessTokenOptions: SignOptions = { expiresIn: '1d' };
   const accessToken = jwt.sign(
     { id: user._id.toString() },
     process.env.JWT_SECRET || 'default-secret-key',

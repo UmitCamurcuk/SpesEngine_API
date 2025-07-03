@@ -95,9 +95,15 @@ const AttributeSchema = new mongoose_1.Schema({
         type: Boolean,
         default: false
     },
-    options: {
-        type: [String],
-        default: []
+    options: [{
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: 'Attribute',
+            default: []
+        }],
+    optionType: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Attribute',
+        required: false
     },
     validations: ValidationSchema,
     notificationSettings: {
