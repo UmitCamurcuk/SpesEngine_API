@@ -5,7 +5,8 @@ import {
   login,
   getMe,
   logout,
-  refreshPermissions
+  refreshPermissions,
+  refreshToken
 } from '../controllers/authController';
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 // Açık rotalar
 router.post('/register', register);
 router.post('/login', login);
+router.post('/refresh-token', refreshToken);
 
 // Korumalı rotalar
 router.get('/me', authenticateToken, getMe);

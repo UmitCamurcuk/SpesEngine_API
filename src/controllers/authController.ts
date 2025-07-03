@@ -82,12 +82,20 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Token oluştur
-    const jwtOptions: SignOptions = { expiresIn: 86400 }; // 24 saat (saniye cinsinden)
+    // Access token oluştur (kısa süreli)
+    const accessTokenOptions: SignOptions = { expiresIn: '15m' }; // 15 dakika
     const accessToken = jwt.sign(
       { id: user._id.toString() },
       process.env.JWT_SECRET || 'default-secret-key',
-      jwtOptions
+      accessTokenOptions
+    );
+
+    // Refresh token oluştur (uzun süreli)
+    const refreshTokenOptions: SignOptions = { expiresIn: '7d' }; // 7 gün
+    const refreshToken = jwt.sign(
+      { id: user._id.toString(), type: 'refresh' },
+      process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key',
+      refreshTokenOptions
     );
 
     // User nesnesini düz objeye çevir ve password'ü çıkar
@@ -124,12 +132,96 @@ export const login = async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       accessToken,
+      refreshToken,
       user: userObject
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
       message: 'Giriş yapılamadı',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Token yenileme
+// @route   POST /api/auth/refresh-token
+// @access  Public
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token bulunamadı'
+      });
+    }
+
+    // Refresh token'ı doğrula
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key'
+    ) as any;
+
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({
+        success: false,
+        message: 'Geçersiz refresh token'
+      });
+    }
+
+    // Kullanıcıyı bul
+    const user = await User.findById(decoded.id)
+      .populate({
+        path: 'role',
+        populate: {
+          path: 'permissionGroups',
+          populate: [
+            {
+              path: 'permissionGroup',
+              select: 'name code description'
+            },
+            {
+              path: 'permissions.permission',
+              select: 'name description code'
+            }
+          ]
+        }
+      });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      });
+    }
+
+    // Yeni access token oluştur
+    const accessTokenOptions: SignOptions = { expiresIn: '15m' };
+    const newAccessToken = jwt.sign(
+      { id: user._id.toString() },
+      process.env.JWT_SECRET || 'default-secret-key',
+      accessTokenOptions
+    );
+
+    // Yeni refresh token oluştur
+    const refreshTokenOptions: SignOptions = { expiresIn: '7d' };
+    const newRefreshToken = jwt.sign(
+      { id: user._id.toString(), type: 'refresh' },
+      process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key',
+      refreshTokenOptions
+    );
+
+    res.status(200).json({
+      success: true,
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken
+    });
+  } catch (error: any) {
+    return res.status(401).json({
+      success: false,
+      message: 'Geçersiz refresh token',
       error: error.message
     });
   }
@@ -163,10 +255,21 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
 
 // Token oluştur ve cookie olarak gönder
 const sendTokenResponse = (user: IUser, statusCode: number, res: Response): void => {
-  // Token oluştur
-  const accessToken = user.getSignedJwtToken();
-  // Refresh token için de bir token oluştur (yaşam süresi daha uzun olabilir)
-  const refreshToken = user.getSignedJwtToken();
+  // Access token oluştur (kısa süreli)
+  const accessTokenOptions: SignOptions = { expiresIn: '15m' };
+  const accessToken = jwt.sign(
+    { id: user._id.toString() },
+    process.env.JWT_SECRET || 'default-secret-key',
+    accessTokenOptions
+  );
+
+  // Refresh token oluştur (uzun süreli)
+  const refreshTokenOptions: SignOptions = { expiresIn: '7d' };
+  const refreshToken = jwt.sign(
+    { id: user._id.toString(), type: 'refresh' },
+    process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key',
+    refreshTokenOptions
+  );
 
   const options = {
     expires: new Date(

@@ -13,6 +13,16 @@ router.use(auth_middleware_1.authenticateToken);
 router.route('/')
     .get((0, auth_middleware_1.checkAccess)(['USERS_VIEW']), userController_1.getUsers)
     .post((0, auth_middleware_1.checkAccess)(['USERS_CREATE']), userController_1.createUser);
+// Role bazlı kullanıcı sorguları
+router.route('/by-role/:roleId')
+    .get((0, auth_middleware_1.checkAccess)(['USERS_VIEW']), userController_1.getUsersByRole);
+router.route('/not-in-role/:roleId')
+    .get((0, auth_middleware_1.checkAccess)(['USERS_VIEW']), userController_1.getUsersNotInRole);
+// Kullanıcı rol yönetimi
+router.route('/:userId/assign-role')
+    .post((0, auth_middleware_1.checkAccess)(['ROLES_UPDATEUSERS']), userController_1.assignRoleToUser);
+router.route('/:userId/remove-role/:roleId')
+    .delete((0, auth_middleware_1.checkAccess)(['ROLES_UPDATEUSERS']), userController_1.removeRoleFromUser);
 router.route('/:id')
     .get((0, auth_middleware_1.checkAccess)(['USERS_VIEW']), userController_1.getUser)
     .put((0, auth_middleware_1.checkAccess)(['USERS_UPDATE']), userController_1.updateUser)

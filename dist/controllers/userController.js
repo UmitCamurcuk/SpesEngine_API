@@ -12,16 +12,39 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUser = exports.createUser = exports.getUser = exports.getUsers = void 0;
+exports.deleteUser = exports.updateUser = exports.createUser = exports.getUser = exports.removeRoleFromUser = exports.assignRoleToUser = exports.getUsersNotInRole = exports.getUsersByRole = exports.getUsers = void 0;
 const User_1 = __importDefault(require("../models/User"));
+const Role_1 = __importDefault(require("../models/Role"));
 // Tüm kullanıcıları getir
 const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const users = yield User_1.default.find().populate('role');
+        const { page = 1, limit = 20, search } = req.query;
+        const skip = (Number(page) - 1) * Number(limit);
+        let query = {};
+        if (search) {
+            query = {
+                $or: [
+                    { name: { $regex: search, $options: 'i' } },
+                    { email: { $regex: search, $options: 'i' } }
+                ]
+            };
+        }
+        const users = yield User_1.default.find(query)
+            .populate('role', 'name description')
+            .skip(skip)
+            .limit(Number(limit))
+            .sort({ createdAt: -1 });
+        const total = yield User_1.default.countDocuments(query);
         res.status(200).json({
             success: true,
             count: users.length,
-            data: users
+            total,
+            users: users,
+            pagination: {
+                currentPage: Number(page),
+                totalPages: Math.ceil(total / Number(limit)),
+                limit: Number(limit)
+            }
         });
     }
     catch (error) {
@@ -33,6 +56,189 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getUsers = getUsers;
+// Belirli bir role atanmış kullanıcıları getir
+const getUsersByRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { roleId } = req.params;
+        // Role'ün var olup olmadığını kontrol et
+        const role = yield Role_1.default.findById(roleId);
+        if (!role) {
+            res.status(404).json({
+                success: false,
+                message: 'Rol bulunamadı'
+            });
+            return;
+        }
+        const users = yield User_1.default.find({ role: roleId })
+            .populate('role', 'name description')
+            .sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            count: users.length,
+            users: users,
+            role: {
+                _id: role._id,
+                name: role.name,
+                description: role.description
+            }
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Role kullanıcıları getirilemedi',
+            error: error.message
+        });
+    }
+});
+exports.getUsersByRole = getUsersByRole;
+// Belirli bir role atanmamış kullanıcıları getir
+const getUsersNotInRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { roleId } = req.params;
+        // Role'ün var olup olmadığını kontrol et
+        const role = yield Role_1.default.findById(roleId);
+        if (!role) {
+            res.status(404).json({
+                success: false,
+                message: 'Rol bulunamadı'
+            });
+            return;
+        }
+        const users = yield User_1.default.find({
+            role: { $ne: roleId },
+            isActive: true // Sadece aktif kullanıcıları göster
+        })
+            .populate('role', 'name description')
+            .sort({ name: 1 });
+        res.status(200).json({
+            success: true,
+            count: users.length,
+            users: users,
+            role: {
+                _id: role._id,
+                name: role.name,
+                description: role.description
+            }
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Kullanılabilir kullanıcılar getirilemedi',
+            error: error.message
+        });
+    }
+});
+exports.getUsersNotInRole = getUsersNotInRole;
+// Kullanıcıya rol ata
+const assignRoleToUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userId } = req.params;
+        const { roleId, comment } = req.body;
+        // Kullanıcıyı kontrol et
+        const user = yield User_1.default.findById(userId).populate('role');
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+            return;
+        }
+        // Role'ü kontrol et
+        const role = yield Role_1.default.findById(roleId);
+        if (!role) {
+            res.status(404).json({
+                success: false,
+                message: 'Rol bulunamadı'
+            });
+            return;
+        }
+        // Kullanıcının zaten bu role sahip olup olmadığını kontrol et
+        if (user.role && user.role._id.toString() === roleId) {
+            res.status(400).json({
+                success: false,
+                message: 'Kullanıcı zaten bu role sahip'
+            });
+            return;
+        }
+        const previousRole = user.role;
+        // Kullanıcıya yeni rolü ata
+        user.role = roleId;
+        yield user.save();
+        // Güncellenen kullanıcıyı populate et
+        yield user.populate('role');
+        // History kaydı oluşturma işlemi ilerleyen dönemde eklenecek
+        console.log(`[User Role Assignment] User ${user.name} (${user._id}) assigned role ${role.name} (${role._id}). Comment: ${comment}`);
+        res.status(200).json({
+            success: true,
+            message: 'Kullanıcıya rol başarıyla atandı',
+            user: user
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Rol atama işlemi başarısız',
+            error: error.message
+        });
+    }
+});
+exports.assignRoleToUser = assignRoleToUser;
+// Kullanıcıdan rol kaldır
+const removeRoleFromUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userId, roleId } = req.params;
+        const { comment } = req.body;
+        // Kullanıcıyı kontrol et
+        const user = yield User_1.default.findById(userId).populate('role');
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+            return;
+        }
+        // Kullanıcının bu role sahip olup olmadığını kontrol et
+        if (!user.role || user.role._id.toString() !== roleId) {
+            res.status(400).json({
+                success: false,
+                message: 'Kullanıcı bu role sahip değil'
+            });
+            return;
+        }
+        const previousRole = user.role;
+        // Varsayılan bir rol bulalım (örneğin "User" rolü)
+        const defaultRole = yield Role_1.default.findOne({ name: 'User' });
+        if (!defaultRole) {
+            res.status(500).json({
+                success: false,
+                message: 'Varsayılan rol bulunamadı. Lütfen sistem yöneticisi ile iletişime geçin.'
+            });
+            return;
+        }
+        // Kullanıcıya varsayılan rolü ata
+        user.role = defaultRole._id;
+        yield user.save();
+        // Güncellenen kullanıcıyı populate et
+        yield user.populate('role');
+        // History kaydı oluşturma işlemi ilerleyen dönemde eklenecek
+        console.log(`[User Role Removal] User ${user.name} (${user._id}) removed from role ${previousRole.name}. Comment: ${comment}`);
+        res.status(200).json({
+            success: true,
+            message: 'Kullanıcı rolü başarıyla kaldırıldı',
+            user: user
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Rol kaldırma işlemi başarısız',
+            error: error.message
+        });
+    }
+});
+exports.removeRoleFromUser = removeRoleFromUser;
 // Tek bir kullanıcıyı getir
 const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
