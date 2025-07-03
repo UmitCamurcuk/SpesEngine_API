@@ -108,17 +108,11 @@ const getFamilies = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
 exports.getFamilies = getFamilies;
 // GET tek bir aileyi getir
 const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     try {
         // Query parametrelerini al
         const includeAttributes = req.query.includeAttributes === 'true';
         const includeAttributeGroups = req.query.includeAttributeGroups === 'true';
         const populateAttributeGroupsAttributes = req.query.populateAttributeGroupsAttributes === 'true';
-        console.log(`[getFamilyById] ID: ${req.params.id}, Parametreler:`, {
-            includeAttributes,
-            includeAttributeGroups,
-            populateAttributeGroupsAttributes
-        });
         // AttributeGroup modelini içe aktar
         const AttributeGroup = yield Promise.resolve().then(() => __importStar(require('../models/AttributeGroup')));
         // Önce temel Family verisini getir
@@ -141,7 +135,6 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             // Grupları manuel olarak doldur
             if (family.attributeGroups && family.attributeGroups.length > 0) {
                 const groupIds = family.attributeGroups.map((g) => g.toString());
-                console.log(`[getFamilyById] AttributeGroup IDs:`, groupIds);
                 // AttributeGroup'ları ve içindeki öznitelikleri getir
                 const groups = yield AttributeGroup.default.find({ _id: { $in: groupIds } })
                     .populate('name', 'key namespace translations')
@@ -153,7 +146,6 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                         { path: 'description', select: 'key namespace translations' }
                     ]
                 } : []);
-                console.log(`[getFamilyById] ${groups.length} AttributeGroup bulundu`);
                 // Yanıta ekle
                 response.attributeGroups = groups.map(g => g.toJSON());
             }
@@ -198,7 +190,6 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 }
             }
         }
-        console.log(`[getFamilyById] Yanıt hazırlandı. AttributeGroups: ${((_a = response.attributeGroups) === null || _a === void 0 ? void 0 : _a.length) || 'yok'}`);
         // Sonucu gönder
         res.status(200).json({
             success: true,
@@ -255,7 +246,6 @@ const createFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                         isActive: family.isActive
                     }
                 });
-                console.log('Family creation history saved successfully');
             }
             catch (historyError) {
                 console.error('History creation failed for family:', historyError);
@@ -377,7 +367,6 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                         isActive: family.isActive
                     }
                 });
-                console.log('Family update history saved successfully');
             }
             catch (historyError) {
                 console.error('History update failed for family:', historyError);
@@ -428,7 +417,6 @@ const deleteFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                         isActive: family.isActive
                     }
                 });
-                console.log('Family deletion history saved successfully');
             }
             catch (historyError) {
                 console.error('History deletion failed for family:', historyError);
@@ -438,7 +426,6 @@ const deleteFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         // Entity'nin tüm history kayıtlarını sil
         try {
             const deletedHistoryCount = yield historyService_1.default.deleteEntityHistory(req.params.id);
-            console.log(`Deleted ${deletedHistoryCount} history records for family ${req.params.id}`);
         }
         catch (historyError) {
             console.error('Error deleting family history:', historyError);
@@ -461,7 +448,6 @@ exports.deleteFamily = deleteFamily;
 const getFamiliesByCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { categoryId } = req.params;
-        console.log(`Families by Category request received: ${categoryId}`);
         // Bu kategoriye ait tüm aileleri getir
         const families = yield Family_1.default.find({
             category: categoryId,
@@ -471,14 +457,12 @@ const getFamiliesByCategory = (req, res, next) => __awaiter(void 0, void 0, void
             .populate('category')
             .populate('parent')
             .sort('name');
-        console.log(`Found ${families.length} families for Category: ${categoryId}`);
         res.status(200).json({
             success: true,
             data: families
         });
     }
     catch (error) {
-        console.error('Error fetching families by Category:', error);
         res.status(500).json({
             success: false,
             message: error.message || 'Kategori aileleri getirilirken bir hata oluştu'

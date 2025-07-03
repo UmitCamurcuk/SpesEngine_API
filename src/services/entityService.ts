@@ -59,8 +59,6 @@ class EntityService {
           setDefaultsOnInsert: true
         }
       );
-      
-      console.log(`[EntityService] Entity upserted: ${entityType}:${entityId}`);
       return entity;
     } catch (error) {
       console.error('[EntityService] Entity upsert error:', error);
@@ -83,7 +81,6 @@ class EntityService {
         { isActive: false }
       );
       
-      console.log(`[EntityService] Entity deactivated: ${entityType}:${entityId}`);
     } catch (error) {
       console.error('[EntityService] Entity deactivation error:', error);
       throw error;
@@ -220,7 +217,6 @@ class EntityService {
       const objectId = typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId;
       
       await Entity.findOneAndDelete({ entityId: objectId, entityType });
-      console.log(`[EntityService] Entity deleted: ${entityType}:${entityId}`);
     } catch (error) {
       console.error('[EntityService] Entity deletion error:', error);
       throw error;

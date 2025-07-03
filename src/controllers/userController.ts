@@ -169,8 +169,6 @@ export const assignRoleToUser = async (req: Request, res: Response): Promise<voi
     // Güncellenen kullanıcıyı populate et
     await user.populate('role');
 
-    // History kaydı oluşturma işlemi ilerleyen dönemde eklenecek
-    console.log(`[User Role Assignment] User ${user.name} (${user._id}) assigned role ${role.name} (${role._id}). Comment: ${comment}`);
 
     res.status(200).json({
       success: true,
@@ -230,8 +228,6 @@ export const removeRoleFromUser = async (req: Request, res: Response): Promise<v
     // Güncellenen kullanıcıyı populate et
     await user.populate('role');
 
-    // History kaydı oluşturma işlemi ilerleyen dönemde eklenecek
-    console.log(`[User Role Removal] User ${user.name} (${user._id}) removed from role ${(previousRole as any).name}. Comment: ${comment}`);
 
     res.status(200).json({
       success: true,

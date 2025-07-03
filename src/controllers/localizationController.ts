@@ -58,7 +58,6 @@ export const upsertTranslation = async (req: Request, res: Response, next: NextF
           }
         });
         
-        console.log(`Localization ${isUpdate ? 'update' : 'create'} history saved successfully`);
         
         // İlişkili entity'lere history kaydı yap
         await recordRelatedEntityHistory(namespace, key, userId, isUpdate);
@@ -195,7 +194,6 @@ export const updateTranslationById = async (req: Request, res: Response, next: N
           newData: updatedTranslation?.toObject()
         });
         
-        console.log('Localization update history saved successfully');
         
         // İlişkili entity'lere history kaydı yap
         await recordRelatedEntityHistory(

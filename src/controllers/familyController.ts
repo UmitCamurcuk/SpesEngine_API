@@ -75,12 +75,6 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
     const includeAttributeGroups = req.query.includeAttributeGroups === 'true';
     const populateAttributeGroupsAttributes = req.query.populateAttributeGroupsAttributes === 'true';
     
-    console.log(`[getFamilyById] ID: ${req.params.id}, Parametreler:`, {
-      includeAttributes,
-      includeAttributeGroups,
-      populateAttributeGroupsAttributes
-    });
-    
     // AttributeGroup modelini içe aktar
     const AttributeGroup = await import('../models/AttributeGroup');
     
@@ -107,7 +101,6 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
       // Grupları manuel olarak doldur
       if (family.attributeGroups && family.attributeGroups.length > 0) {
         const groupIds = family.attributeGroups.map((g: any) => g.toString());
-        console.log(`[getFamilyById] AttributeGroup IDs:`, groupIds);
         
         // AttributeGroup'ları ve içindeki öznitelikleri getir
         const groups = await AttributeGroup.default.find({ _id: { $in: groupIds } })
@@ -120,8 +113,6 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
               { path: 'description', select: 'key namespace translations' }
             ]
           } : []);
-        
-        console.log(`[getFamilyById] ${groups.length} AttributeGroup bulundu`);
         
         // Yanıta ekle
         response.attributeGroups = groups.map(g => g.toJSON());
@@ -171,8 +162,6 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
         }
       }
     }
-    
-    console.log(`[getFamilyById] Yanıt hazırlandı. AttributeGroups: ${response.attributeGroups?.length || 'yok'}`);
     
     // Sonucu gönder
     res.status(200).json({
@@ -236,7 +225,6 @@ export const createFamily = async (req: Request, res: Response, next: NextFuncti
             isActive: family.isActive
           }
         });
-        console.log('Family creation history saved successfully');
       } catch (historyError) {
         console.error('History creation failed for family:', historyError);
         // History hatası aile oluşturmayı engellemesin
@@ -371,7 +359,6 @@ export const updateFamily = async (req: Request, res: Response, next: NextFuncti
             isActive: family.isActive
           }
         });
-        console.log('Family update history saved successfully');
       } catch (historyError) {
         console.error('History update failed for family:', historyError);
         // History hatası güncellemeyi engellemesin
@@ -425,7 +412,6 @@ export const deleteFamily = async (req: Request, res: Response, next: NextFuncti
             isActive: family.isActive
           }
         });
-        console.log('Family deletion history saved successfully');
       } catch (historyError) {
         console.error('History deletion failed for family:', historyError);
         // History hatası silme işlemini engellemesin
@@ -435,7 +421,6 @@ export const deleteFamily = async (req: Request, res: Response, next: NextFuncti
     // Entity'nin tüm history kayıtlarını sil
     try {
       const deletedHistoryCount = await historyService.deleteEntityHistory(req.params.id);
-      console.log(`Deleted ${deletedHistoryCount} history records for family ${req.params.id}`);
     } catch (historyError) {
       console.error('Error deleting family history:', historyError);
       // History silme hatası ana işlemi engellemesin
@@ -457,7 +442,6 @@ export const deleteFamily = async (req: Request, res: Response, next: NextFuncti
 export const getFamiliesByCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { categoryId } = req.params;
-    console.log(`Families by Category request received: ${categoryId}`);
     
     // Bu kategoriye ait tüm aileleri getir
     const families = await Family.find({ 
@@ -469,14 +453,11 @@ export const getFamiliesByCategory = async (req: Request, res: Response, next: N
     .populate('parent')
     .sort('name');
     
-    console.log(`Found ${families.length} families for Category: ${categoryId}`);
-    
     res.status(200).json({
       success: true,
       data: families
     });
   } catch (error: any) {
-    console.error('Error fetching families by Category:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Kategori aileleri getirilirken bir hata oluştu'

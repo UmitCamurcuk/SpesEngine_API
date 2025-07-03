@@ -382,7 +382,6 @@ export const deleteAttributeGroup = async (req: Request, res: Response, next: Ne
     // Entity'nin tüm history kayıtlarını sil
     try {
       const deletedHistoryCount = await historyService.deleteEntityHistory(req.params.id);
-      console.log(`Deleted ${deletedHistoryCount} history records for attribute group ${req.params.id}`);
     } catch (historyError) {
       console.error('Error deleting attribute group history:', historyError);
       // History silme hatası ana işlemi engellemesin

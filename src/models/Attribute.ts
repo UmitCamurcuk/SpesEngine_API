@@ -180,12 +180,11 @@ const AttributeSchema: Schema = new Schema(
 
 // Pre-save hook ekleyerek validasyon verilerini düzenle
 AttributeSchema.pre('save', function(next) {
-  console.log('[Attribute Model] pre-save hook çalıştı');
-  console.log('[Attribute Model] validations:', this.validations);
+    
   
   // Eğer validasyonlar tanımlıysa ancak boşsa, undefined yaparak MongoDB'den kaldır
   if (this.validations && Object.keys(this.validations).length === 0) {
-    console.log('[Attribute Model] Boş validasyon objesi undefined yapılıyor');
+    
     this.validations = undefined;
   }
   
@@ -195,7 +194,7 @@ AttributeSchema.pre('save', function(next) {
     
     // NUMBER tipi için validasyonları işle
     if (this.type === AttributeType.NUMBER) {
-      console.log('[Attribute Model] Sayısal tip için validasyonlar işleniyor:', validations);
+      
       
       if (validations.min !== undefined) validations.min = Number(validations.min);
       if (validations.max !== undefined) validations.max = Number(validations.max);
@@ -207,7 +206,7 @@ AttributeSchema.pre('save', function(next) {
     
     // TEXT tipi için validasyonları işle
     if (this.type === AttributeType.TEXT || this.type === AttributeType.RICH_TEXT) {
-      console.log('[Attribute Model] Text tipi için validasyonlar işleniyor:', validations);
+      
       
       if (validations.minLength !== undefined) validations.minLength = Number(validations.minLength);
       if (validations.maxLength !== undefined) validations.maxLength = Number(validations.maxLength);
@@ -216,7 +215,7 @@ AttributeSchema.pre('save', function(next) {
     
     // SELECT/MULTISELECT tipi için validasyonları işle
     if (this.type === AttributeType.SELECT || this.type === AttributeType.MULTISELECT) {
-      console.log('[Attribute Model] Select/MultiSelect tipi için validasyonlar işleniyor:', validations);
+      
       
       if (validations.minSelections !== undefined) validations.minSelections = Number(validations.minSelections);
       if (validations.maxSelections !== undefined) validations.maxSelections = Number(validations.maxSelections);
@@ -224,7 +223,7 @@ AttributeSchema.pre('save', function(next) {
     
     // FILE/IMAGE/ATTACHMENT tipi için validasyonları işle
     if (this.type === AttributeType.FILE || this.type === AttributeType.IMAGE || this.type === AttributeType.ATTACHMENT) {
-      console.log('[Attribute Model] File tipi için validasyonlar işleniyor:', validations);
+      
       
       if (validations.maxFileSize !== undefined) validations.maxFileSize = Number(validations.maxFileSize);
       if (validations.maxFiles !== undefined) validations.maxFiles = Number(validations.maxFiles);
@@ -234,15 +233,14 @@ AttributeSchema.pre('save', function(next) {
     
     // ARRAY tipi için validasyonları işle
     if (this.type === AttributeType.ARRAY) {
-      console.log('[Attribute Model] Array tipi için validasyonlar işleniyor:', validations);
+      
       
       if (validations.minItems !== undefined) validations.minItems = Number(validations.minItems);
       if (validations.maxItems !== undefined) validations.maxItems = Number(validations.maxItems);
     }
     
     // RATING tipi için validasyonları işle
-    if (this.type === AttributeType.RATING) {
-      console.log('[Attribute Model] Rating tipi için validasyonlar işleniyor:', validations);
+    if (this.type === AttributeType.RATING) {     
       
       if (validations.minRating !== undefined) validations.minRating = Number(validations.minRating);
       if (validations.maxRating !== undefined) validations.maxRating = Number(validations.maxRating);
@@ -256,15 +254,12 @@ AttributeSchema.pre('save', function(next) {
 // Güncelleme operasyonları için de validasyon verilerini işlemek
 // Burada updateOne, findOneAndUpdate gibi metodlar için kontrol ekliyoruz
 function processValidations(update: any) {
-  console.log('[Attribute Model] processValidations çağrıldı, update:', JSON.stringify(update, null, 2));
   
   // $set operatörü ile gelen güncelleme verileri
   if (update.$set && update.$set.validations) {
-    console.log('[Attribute Model] $set.validations işleniyor:', JSON.stringify(update.$set.validations, null, 2));
     
     // Boş validasyon objesi kontrolü
     if (Object.keys(update.$set.validations).length === 0) {
-      console.log('[Attribute Model] Boş $set.validations objesi undefined yapılıyor');
       update.$set.validations = undefined;
       return;
     }
@@ -273,7 +268,6 @@ function processValidations(update: any) {
     if (update.$set.type === AttributeType.NUMBER || 
         (update.type === AttributeType.NUMBER)) {
       const validations = update.$set.validations;
-      console.log('[Attribute Model] Sayısal tip için $set.validations işleniyor');
       
       // min/max sayısal değerlerin işlenmesi
       if (validations.min !== undefined) {
@@ -302,7 +296,6 @@ function processValidations(update: any) {
     if (update.$set.type === AttributeType.TEXT || 
         (update.type === AttributeType.TEXT)) {
       const validations = update.$set.validations;
-      console.log('[Attribute Model] Text tipi için $set.validations işleniyor');
       
       if (validations.minLength !== undefined) {
         validations.minLength = Number(validations.minLength);
@@ -316,14 +309,12 @@ function processValidations(update: any) {
     if (update.$set.type === AttributeType.DATE || 
         (update.type === AttributeType.DATE)) {
       // Date validasyonları için özel işlem gerekmeyebilir
-      console.log('[Attribute Model] Date tipi için $set.validations işleniyor');
     }
     
     // Select/MultiSelect tipi kontrolü
     if ((update.$set.type === AttributeType.SELECT || update.$set.type === AttributeType.MULTISELECT) || 
         (update.type === AttributeType.SELECT || update.type === AttributeType.MULTISELECT)) {
       const validations = update.$set.validations;
-      console.log('[Attribute Model] Select/MultiSelect tipi için $set.validations işleniyor');
       
       if (validations.minSelections !== undefined) {
         validations.minSelections = Number(validations.minSelections);
@@ -336,19 +327,16 @@ function processValidations(update: any) {
   
   // Direkt update objesinde gelen validasyon verileri
   if (update.validations) {
-    console.log('[Attribute Model] update.validations işleniyor:', JSON.stringify(update.validations, null, 2));
     
     // Boş validasyon objesi kontrolü
     if (Object.keys(update.validations).length === 0) {
-      console.log('[Attribute Model] Boş update.validations objesi undefined yapılıyor');
       update.validations = undefined;
       return;
     }
     
     // Sayı tipi kontrolü
     if (update.type === AttributeType.NUMBER) {
-      const validations = update.validations;
-      console.log('[Attribute Model] Sayısal tip için update.validations işleniyor');
+      const validations = update.validations; 
       
       // min/max sayısal değerlerin işlenmesi
       if (validations.min !== undefined) {
@@ -375,8 +363,7 @@ function processValidations(update: any) {
     
     // Text tipi kontrolü
     if (update.type === AttributeType.TEXT) {
-      const validations = update.validations;
-      console.log('[Attribute Model] Text tipi için update.validations işleniyor');
+      const validations = update.validations; 
       
       if (validations.minLength !== undefined) {
         validations.minLength = Number(validations.minLength);
@@ -386,16 +373,10 @@ function processValidations(update: any) {
       }
     }
     
-    // Date tipi kontrolü
-    if (update.type === AttributeType.DATE) {
-      // Date validasyonları için özel işlem gerekmeyebilir
-      console.log('[Attribute Model] Date tipi için update.validations işleniyor');
-    }
     
     // Select/MultiSelect tipi kontrolü
     if (update.type === AttributeType.SELECT || update.type === AttributeType.MULTISELECT) {
       const validations = update.validations;
-      console.log('[Attribute Model] Select/MultiSelect tipi için update.validations işleniyor');
       
       if (validations.minSelections !== undefined) {
         validations.minSelections = Number(validations.minSelections);

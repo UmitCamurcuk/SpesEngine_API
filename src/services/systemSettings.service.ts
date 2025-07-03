@@ -29,7 +29,6 @@ class SystemSettingsService {
   // Belirli bir bölümü güncelle
   async updateSection(section: string, data: any, userId: Types.ObjectId): Promise<ISystemSettings> {
     const existingSettings = await SystemSettings.findOne();
-    console.log(`${section} bölümü için gelen veri:`, data);  
     
     if (existingSettings) {
       // Genel ayarlar için özel işlem
@@ -39,7 +38,6 @@ class SystemSettingsService {
         // Diğer bölümler için alt obje güncelleme
         if (section === 'theme') {
           // Tema ayarları için özel işlem
-          console.log('Önceki tema ayarları:', existingSettings.theme);
           
           // Veriyi güvenli şekilde işle
           const sanitizedData = { ...data };
@@ -54,7 +52,6 @@ class SystemSettingsService {
             ...sanitizedData
           };
           
-          console.log('Güncellenen tema ayarları:', existingSettings.theme);
         } else {
           // Diğer bölümler için alt obje güncelleme
           existingSettings[section] = {
@@ -69,7 +66,6 @@ class SystemSettingsService {
       
       // Kaydet
       const savedSettings = await existingSettings.save();
-      console.log(`${section} bölümü güncellendi. Yeni durum:`, savedSettings[section]);
       return savedSettings;
     } else {
       // Yeni ayar kaydı oluştur
@@ -79,7 +75,6 @@ class SystemSettingsService {
         updatedAt: new Date()
       });
       const savedSettings = await newSettings.save();
-      console.log(`Yeni ${section} bölümü oluşturuldu:`, savedSettings[section]);
       return savedSettings;
     }
   }

@@ -97,7 +97,6 @@ const upsertTranslation = (req, res, next) => __awaiter(void 0, void 0, void 0, 
                         translations
                     }
                 });
-                console.log(`Localization ${isUpdate ? 'update' : 'create'} history saved successfully`);
                 // İlişkili entity'lere history kaydı yap
                 yield recordRelatedEntityHistory(namespace, key, userId, isUpdate);
             }
@@ -221,7 +220,6 @@ const updateTranslationById = (req, res, next) => __awaiter(void 0, void 0, void
                     previousData: existingTranslation.toObject(),
                     newData: updatedTranslation === null || updatedTranslation === void 0 ? void 0 : updatedTranslation.toObject()
                 });
-                console.log('Localization update history saved successfully');
                 // İlişkili entity'lere history kaydı yap
                 yield recordRelatedEntityHistory((updatedTranslation === null || updatedTranslation === void 0 ? void 0 : updatedTranslation.namespace) || existingTranslation.namespace, (updatedTranslation === null || updatedTranslation === void 0 ? void 0 : updatedTranslation.key) || existingTranslation.key, userId, true);
             }

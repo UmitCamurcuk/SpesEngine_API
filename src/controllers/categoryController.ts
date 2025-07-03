@@ -7,8 +7,7 @@ import { EntityType } from '../models/Entity';
 // GET tüm kategorileri getir (filtreleme ve sayfalama ile)
 export const getCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    console.log('Categories fetch request received', req.query);
-    
+
     // Sayfalama parametreleri
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -83,8 +82,6 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
       .skip(skip)
       .limit(limit);
     
-    console.log(`Found ${categories.length} categories out of ${total}`);
-    
     res.status(200).json({
       success: true,
       count: categories.length,
@@ -106,7 +103,6 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
 export const getCategoryById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    console.log(`Category fetch by ID request received: ${id}`);
     
     // Query parametrelerini al
     const includeAttributes = req.query.includeAttributes === 'true';
@@ -184,15 +180,12 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
     const category = await query.exec();
     
     if (!category) {
-      console.log(`Category not found with ID: ${id}`);
       res.status(404).json({
         success: false,
         message: 'Kategori bulunamadı'
       });
       return;
     }
-    
-    console.log(`Found category: ${category.name}`);
     
     res.status(200).json({
       success: true,
@@ -210,7 +203,6 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
 // POST yeni kategori oluştur
 export const createCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    console.log('Create category request received:', req.body);
     
     // Field isimleri dönüşümü
     const categoryData = { ...req.body };
@@ -240,7 +232,6 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
       delete categoryData.attributeGroup;
     }
 
-    console.log('Processed category data:', categoryData);
     
     const category = await Category.create(categoryData);
     
@@ -265,14 +256,11 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
             attributeGroups: (category.attributeGroups || []).map(id => String(id))
           }
         });
-        console.log('Category creation history saved successfully');
       } catch (historyError) {
         console.error('History creation failed for category:', historyError);
         // History hatası kategori oluşturmayı engellemesin
       }
     }
-    
-    console.log(`Created category: ${category.name} with ID: ${category._id}`);
     
     res.status(201).json({
       success: true,
@@ -291,13 +279,11 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
 export const updateCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    console.log(`Update category request received for ID: ${id}`, req.body);
     
     // Güncellemeden önce mevcut veriyi al
     const oldCategory = await Category.findById(id);
     
     if (!oldCategory) {
-      console.log(`Category not found with ID: ${id}`);
       res.status(404).json({
         success: false,
         message: 'Kategori bulunamadı'
@@ -328,7 +314,6 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
       delete updateData.attributeGroup;
     }
 
-    console.log('Processed update data:', updateData);
     
     const category = await Category.findByIdAndUpdate(
       id,
@@ -352,8 +337,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
       select: 'name code type description'
     });
     
-    if (!category) {
-      console.log(`Category not found with ID: ${id}`);
+    if (!category) {    
       res.status(404).json({
         success: false,
         message: 'Kategori bulunamadı'
@@ -396,14 +380,11 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
           previousData,
           newData
         });
-        console.log('Category update history saved successfully');
       } catch (historyError) {
         console.error('History update failed for category:', historyError);
         // History hatası güncellemeyi engellemesin
       }
     }
-    
-    console.log(`Updated category: ${category.name}`);
     
     res.status(200).json({
       success: true,
@@ -422,13 +403,11 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
 export const deleteCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    console.log(`Delete category request received for ID: ${id}`);
     
     // Silinmeden önce veriyi al
     const category = await Category.findById(id);
     
     if (!category) {
-      console.log(`Category not found with ID: ${id}`);
       res.status(404).json({
         success: false,
         message: 'Kategori bulunamadı'
@@ -460,7 +439,6 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
             attributeGroups: (category.attributeGroups || []).map(id => String(id))
           }
         });
-        console.log('Category deletion history saved successfully');
       } catch (historyError) {
         console.error('History deletion failed for category:', historyError);
         // History hatası silme işlemini engellemesin
@@ -470,13 +448,10 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
     // Entity'nin tüm history kayıtlarını sil
     try {
       const deletedHistoryCount = await historyService.deleteEntityHistory(id);
-      console.log(`Deleted ${deletedHistoryCount} history records for category ${id}`);
     } catch (historyError) {
       console.error('Error deleting category history:', historyError);
       // History silme hatası ana işlemi engellemesin
     }
-    
-    console.log(`Deleted category with ID: ${id}`);
     
     res.status(200).json({
       success: true,
@@ -495,7 +470,6 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
 export const getCategoriesByItemType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { itemTypeId } = req.params;
-    console.log(`Categories by ItemType request received: ${itemTypeId}`);
     
     // Family modeli üzerinden ItemType'ın kategorilerini bul
     const Family = await import('../models/Family');
@@ -526,8 +500,6 @@ export const getCategoriesByItemType = async (req: Request, res: Response, next:
     .populate('description', 'key namespace translations')
     .populate('parent')
     .sort('name');
-    
-    console.log(`Found ${categories.length} categories for ItemType: ${itemTypeId}`);
     
     res.status(200).json({
       success: true,

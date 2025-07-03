@@ -364,7 +364,6 @@ const deleteAttributeGroup = (req, res, next) => __awaiter(void 0, void 0, void 
         // Entity'nin tüm history kayıtlarını sil
         try {
             const deletedHistoryCount = yield historyService_1.default.deleteEntityHistory(req.params.id);
-            console.log(`Deleted ${deletedHistoryCount} history records for attribute group ${req.params.id}`);
         }
         catch (historyError) {
             console.error('Error deleting attribute group history:', historyError);

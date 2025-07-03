@@ -198,9 +198,7 @@ class HistoryService {
                     createdBy: typeof userId === 'string' ? new mongoose_1.default.Types.ObjectId(userId) : userId
                 });
                 const savedHistory = yield historyRecord.save();
-                console.log(`[HistoryService] History recorded: ${action} on ${entityType}:${entityId} (${finalEntityName})`);
                 if (affectedEntities.length > 0) {
-                    console.log(`[HistoryService] Affected entities: ${affectedEntities.length}`);
                 }
                 return savedHistory;
             }
@@ -354,7 +352,6 @@ class HistoryService {
                         { 'affectedEntities.entityId': objectId }
                     ]
                 });
-                console.log(`[HistoryService] Deleted ${result.deletedCount} history records for entity ${entityId}`);
                 return result.deletedCount || 0;
             }
             catch (error) {

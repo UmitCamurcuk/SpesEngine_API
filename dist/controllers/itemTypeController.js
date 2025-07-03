@@ -200,7 +200,6 @@ const createItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                         isActive: itemType.isActive
                     }
                 });
-                console.log('ItemType creation history saved successfully');
             }
             catch (historyError) {
                 console.error('History creation failed for itemType:', historyError);
@@ -344,7 +343,6 @@ const updateItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 historyData.previousData = previousData;
                 historyData.newData = newData;
                 yield historyService_1.default.recordHistory(historyData);
-                console.log('ItemType update history saved successfully');
             }
             catch (historyError) {
                 console.error('History update failed for itemType:', historyError);
@@ -398,7 +396,6 @@ const deleteItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                         isActive: itemType.isActive
                     }
                 });
-                console.log('ItemType deletion history saved successfully');
             }
             catch (historyError) {
                 console.error('History deletion failed for itemType:', historyError);
@@ -408,7 +405,6 @@ const deleteItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         // Entity'nin tüm history kayıtlarını sil
         try {
             const deletedHistoryCount = yield historyService_1.default.deleteEntityHistory(req.params.id);
-            console.log(`Deleted ${deletedHistoryCount} history records for itemType ${req.params.id}`);
         }
         catch (historyError) {
             console.error('Error deleting itemType history:', historyError);

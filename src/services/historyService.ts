@@ -218,9 +218,7 @@ class HistoryService {
 
       const savedHistory = await historyRecord.save();
       
-      console.log(`[HistoryService] History recorded: ${action} on ${entityType}:${entityId} (${finalEntityName})`);
       if (affectedEntities.length > 0) {
-        console.log(`[HistoryService] Affected entities: ${affectedEntities.length}`);
       }
       
       return savedHistory;
@@ -425,7 +423,6 @@ class HistoryService {
         ]
       });
       
-      console.log(`[HistoryService] Deleted ${result.deletedCount} history records for entity ${entityId}`);
       return result.deletedCount || 0;
     } catch (error) {
       console.error('[HistoryService] Delete entity history error:', error);

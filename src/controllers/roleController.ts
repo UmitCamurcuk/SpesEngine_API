@@ -223,12 +223,7 @@ export const updateRole = async (req: Request, res: Response) => {
           .populate('permissions', '_id name code')
           .lean();
         
-        console.log('Permission Groups with their permissions:');
-        allPermissionGroups.forEach(pg => {
-          console.log(`- ${pg.name} (${pg.code}):`, pg.permissions.map((p: any) => ({ id: p._id, code: p.code })));
-        });
         
-        console.log('Incoming permissions to grant:', permissions);
 
         // Her permission group için finalPermissionGroups oluştur
         finalPermissionGroups = allPermissionGroups.map(permGroup => {
@@ -241,11 +236,6 @@ export const updateRole = async (req: Request, res: Response) => {
           
           const grantedCount = permissionsWithGrant.filter(p => p.granted).length;
           
-          console.log(`Processing group ${permGroup.name} (code: ${permGroup.code}):`, {
-            totalPermissions: groupPermissions.length,
-            grantedCount: grantedCount,
-            grantedPermissions: permissionsWithGrant.filter(p => p.granted).map(p => p.permission.toString())
-          });
           
           return {
             permissionGroup: permGroup._id,
@@ -253,7 +243,6 @@ export const updateRole = async (req: Request, res: Response) => {
           };
         });
 
-        console.log('Created permission groups:', JSON.stringify(finalPermissionGroups, null, 2));
       } catch (error: any) {
         console.error('Permission grouping hatası:', error);
         return res.status(500).json({

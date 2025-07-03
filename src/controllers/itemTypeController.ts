@@ -199,8 +199,7 @@ export const createItemType = async (req: Request, res: Response, next: NextFunc
             attributes: (itemType.attributes || []).map(id => String(id)),
             isActive: itemType.isActive
           }
-        });
-        console.log('ItemType creation history saved successfully');
+        }); 
       } catch (historyError) {
         console.error('History creation failed for itemType:', historyError);
         // History hatası oluşturma işlemini engellemesin
@@ -355,7 +354,6 @@ export const updateItemType = async (req: Request, res: Response, next: NextFunc
         historyData.newData = newData;
 
         await historyService.recordHistory(historyData);
-        console.log('ItemType update history saved successfully');
       } catch (historyError) {
         console.error('History update failed for itemType:', historyError);
         // History hatası güncelleme işlemini engellemesin
@@ -412,7 +410,6 @@ export const deleteItemType = async (req: Request, res: Response, next: NextFunc
             isActive: itemType.isActive
           }
         });
-        console.log('ItemType deletion history saved successfully');
       } catch (historyError) {
         console.error('History deletion failed for itemType:', historyError);
         // History hatası silme işlemini engellemesin
@@ -422,7 +419,6 @@ export const deleteItemType = async (req: Request, res: Response, next: NextFunc
     // Entity'nin tüm history kayıtlarını sil
     try {
       const deletedHistoryCount = await historyService.deleteEntityHistory(req.params.id);
-      console.log(`Deleted ${deletedHistoryCount} history records for itemType ${req.params.id}`);
     } catch (historyError) {
       console.error('Error deleting itemType history:', historyError);
       // History silme hatası ana işlemi engellemesin

@@ -93,7 +93,6 @@ export const getAttributes = async (req: Request, res: Response, next: NextFunct
     const sortOptions: any = {};
     sortOptions[sort as string] = direction;
     
-    console.log('Sorting with:', { sort, direction, sortOptions });
     
     // Verileri getir
     const attributes = await Attribute.find(filterParams)

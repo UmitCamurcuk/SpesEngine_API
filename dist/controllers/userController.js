@@ -168,8 +168,6 @@ const assignRoleToUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
         yield user.save();
         // Güncellenen kullanıcıyı populate et
         yield user.populate('role');
-        // History kaydı oluşturma işlemi ilerleyen dönemde eklenecek
-        console.log(`[User Role Assignment] User ${user.name} (${user._id}) assigned role ${role.name} (${role._id}). Comment: ${comment}`);
         res.status(200).json({
             success: true,
             message: 'Kullanıcıya rol başarıyla atandı',
@@ -222,8 +220,6 @@ const removeRoleFromUser = (req, res) => __awaiter(void 0, void 0, void 0, funct
         yield user.save();
         // Güncellenen kullanıcıyı populate et
         yield user.populate('role');
-        // History kaydı oluşturma işlemi ilerleyen dönemde eklenecek
-        console.log(`[User Role Removal] User ${user.name} (${user._id}) removed from role ${previousRole.name}. Comment: ${comment}`);
         res.status(200).json({
             success: true,
             message: 'Kullanıcı rolü başarıyla kaldırıldı',
