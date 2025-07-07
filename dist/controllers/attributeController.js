@@ -342,199 +342,113 @@ const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.createAttribute = createAttribute;
-// PUT özniteliği güncelle
+// PUT mevcut özniteliği güncelle
 const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
     try {
         const { id } = req.params;
-        const _j = req.body, { nameTranslations, descriptionTranslations, options, optionType } = _j, otherData = __rest(_j, ["nameTranslations", "descriptionTranslations", "options", "optionType"]);
-        // Güncelleme öncesi mevcut veriyi al (geçmiş için)
-        const previousAttribute = yield Attribute_1.default.findById(id)
-            .populate('name', 'key namespace translations')
-            .populate('description', 'key namespace translations');
-        if (!previousAttribute) {
+        const _a = req.body, { options, comment, attributeGroups } = _a, updateData = __rest(_a, ["options", "comment", "attributeGroups"]);
+        // Mevcut attribute'u bul
+        const existingAttribute = yield Attribute_1.default.findById(id);
+        if (!existingAttribute) {
             res.status(404).json({
                 success: false,
                 message: 'Öznitelik bulunamadı'
             });
             return;
         }
-        let updateData = Object.assign({}, otherData);
-        // SELECT veya MULTISELECT için options ve optionType kontrolü
-        if (updateData.type === 'select' || updateData.type === 'multiselect' ||
-            previousAttribute.type === 'select' || previousAttribute.type === 'multiselect') {
-            // Tip değişiyorsa ve yeni tip select/multiselect değilse, options ve optionType'ı temizle
-            if (updateData.type &&
-                updateData.type !== 'select' &&
-                updateData.type !== 'multiselect') {
-                updateData.options = [];
-                updateData.optionType = undefined;
+        // Sadece değişen alanları tespit et
+        const changedFields = {};
+        // Basit alanları kontrol et
+        Object.keys(updateData).forEach(key => {
+            if (existingAttribute[key] !== updateData[key]) {
+                changedFields[key] = updateData[key];
             }
-            // Tip select/multiselect ise veya olacaksa
+        });
+        // SELECT/MULTISELECT için options kontrolü
+        if (options && (existingAttribute.type === 'select' || existingAttribute.type === 'multiselect')) {
+            // Options ID'lerini kontrol et - hem string array hem de object array destekle
+            let optionIds;
+            if (Array.isArray(options)) {
+                optionIds = options.map((opt) => {
+                    // Eğer string ise direkt kullan, obje ise _id field'ını al
+                    return typeof opt === 'string' ? opt : opt._id;
+                }).filter(Boolean); // undefined/null değerleri filtrele
+            }
             else {
-                // optionType kontrolü
-                if (optionType) {
-                    const optionTypeAttribute = yield Attribute_1.default.findById(optionType);
-                    if (!optionTypeAttribute) {
+                optionIds = [];
+            }
+            // Mevcut options ile karşılaştır
+            const currentOptionIds = (existingAttribute.options || []).map(opt => opt.toString()).sort();
+            const newOptionIds = optionIds.sort();
+            if (JSON.stringify(currentOptionIds) !== JSON.stringify(newOptionIds)) {
+                if (optionIds.length > 0) {
+                    const foundOptions = yield Attribute_1.default.find({
+                        _id: { $in: optionIds },
+                        type: 'readonly'
+                    });
+                    if (foundOptions.length !== optionIds.length) {
                         res.status(400).json({
                             success: false,
-                            message: 'Geçersiz optionType'
+                            message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
                         });
                         return;
                     }
-                    updateData.optionType = optionType;
-                    // options kontrolü
-                    if (options && options.length > 0) {
-                        const optionAttributes = yield Attribute_1.default.find({
-                            _id: { $in: options },
-                            type: optionTypeAttribute.type
-                        });
-                        if (optionAttributes.length !== options.length) {
-                            res.status(400).json({
-                                success: false,
-                                message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
-                            });
-                            return;
-                        }
-                        updateData.options = options;
-                    }
-                    else {
-                        updateData.options = [];
-                    }
                 }
-                // optionType gönderilmemişse ve tip değişmiyorsa, mevcut optionType'ı koru
-                else if (!updateData.type ||
-                    updateData.type === 'select' ||
-                    updateData.type === 'multiselect') {
-                    updateData.optionType = previousAttribute.optionType;
-                    // options gönderilmişse kontrol et
-                    if (options) {
-                        if (options.length > 0) {
-                            const optionAttributes = yield Attribute_1.default.find({
-                                _id: { $in: options },
-                                type: previousAttribute.optionType
-                                    ? (_a = (yield Attribute_1.default.findById(previousAttribute.optionType))) === null || _a === void 0 ? void 0 : _a.type
-                                    : undefined
-                            });
-                            if (optionAttributes.length !== options.length) {
-                                res.status(400).json({
-                                    success: false,
-                                    message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
-                                });
-                                return;
-                            }
-                            updateData.options = options;
-                        }
-                        else {
-                            updateData.options = [];
-                        }
-                    }
-                }
+                changedFields.options = optionIds;
             }
         }
-        const changedTranslations = [];
-        // Name translations'ını güncelle
-        if (nameTranslations && typeof nameTranslations === 'object') {
-            const nameTranslationKey = (_b = previousAttribute.name) === null || _b === void 0 ? void 0 : _b.key;
-            if (nameTranslationKey) {
-                const localizationService = require('../services/localizationService').default;
-                yield localizationService.upsertTranslation({
-                    key: nameTranslationKey,
-                    namespace: 'attributes',
-                    translations: nameTranslations
-                });
-                changedTranslations.push({
-                    field: 'name',
-                    translationKey: nameTranslationKey,
-                    oldValues: ((_c = previousAttribute.name) === null || _c === void 0 ? void 0 : _c.translations) || {},
-                    newValues: nameTranslations
-                });
+        // Attribute Groups kontrolü
+        if (attributeGroups && Array.isArray(attributeGroups)) {
+            // Mevcut grupları al
+            const currentGroups = yield AttributeGroup_1.default.find({ attributes: id }).select('_id');
+            const currentGroupIds = currentGroups.map(g => String(g._id)).sort();
+            const newGroupIds = [...attributeGroups].sort();
+            if (JSON.stringify(currentGroupIds) !== JSON.stringify(newGroupIds)) {
+                changedFields.attributeGroups = attributeGroups;
             }
         }
-        // Description translations'ını güncelle
-        if (descriptionTranslations && typeof descriptionTranslations === 'object') {
-            const descriptionTranslationKey = (_d = previousAttribute.description) === null || _d === void 0 ? void 0 : _d.key;
-            if (descriptionTranslationKey) {
-                const localizationService = require('../services/localizationService').default;
-                yield localizationService.upsertTranslation({
-                    key: descriptionTranslationKey,
-                    namespace: 'attributes',
-                    translations: descriptionTranslations
-                });
-                changedTranslations.push({
-                    field: 'description',
-                    translationKey: descriptionTranslationKey,
-                    oldValues: ((_e = previousAttribute.description) === null || _e === void 0 ? void 0 : _e.translations) || {},
-                    newValues: descriptionTranslations
-                });
+        // Eğer hiçbir alan değişmemişse güncelleme yapma
+        if (Object.keys(changedFields).length === 0 && !changedFields.attributeGroups) {
+            res.status(200).json({
+                success: true,
+                message: 'Değişiklik bulunamadı',
+                data: existingAttribute
+            });
+            return;
+        }
+        // Attribute'u güncelle
+        const updatedAttribute = yield Attribute_1.default.findByIdAndUpdate(id, changedFields, { new: true }).populate('name', 'key namespace translations')
+            .populate('description', 'key namespace translations')
+            .populate({
+            path: 'options',
+            select: 'name code type',
+            populate: {
+                path: 'name',
+                select: 'key namespace translations'
+            }
+        });
+        // Attribute Groups güncelleme
+        if (changedFields.attributeGroups) {
+            // Önce tüm gruplardan bu attribute'ı kaldır
+            yield AttributeGroup_1.default.updateMany({ attributes: id }, { $pull: { attributes: id } });
+            // Sonra yeni gruplara ekle
+            if (attributeGroups.length > 0) {
+                yield AttributeGroup_1.default.updateMany({ _id: { $in: attributeGroups } }, { $addToSet: { attributes: id } });
             }
         }
-        // Güncelleme işlemi
-        const updatedAttribute = yield Attribute_1.default.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).populate('name', 'key namespace translations')
-            .populate('description', 'key namespace translations');
         // History kaydı oluştur
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);
-            // Ana attribute güncelleme history'si
-            const previousData = {
-                name: previousAttribute.name,
-                code: previousAttribute.code,
-                type: previousAttribute.type,
-                description: previousAttribute.description,
-                isRequired: previousAttribute.isRequired,
-                isActive: previousAttribute.isActive,
-                options: previousAttribute.options
-            };
-            const newData = {
-                name: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.name) || previousAttribute.name,
-                code: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.code) || previousAttribute.code,
-                type: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.type) || previousAttribute.type,
-                description: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.description) || previousAttribute.description,
-                isRequired: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.isRequired) !== undefined ? updatedAttribute.isRequired : previousAttribute.isRequired,
-                isActive: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.isActive) !== undefined ? updatedAttribute.isActive : previousAttribute.isActive,
-                options: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.options) || previousAttribute.options
-            };
             yield historyService_1.default.recordHistory({
-                entityId: id,
                 entityType: Entity_1.EntityType.ATTRIBUTE,
-                entityName: getEntityNameFromTranslation((updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.name) || previousAttribute.name),
-                entityCode: (updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.code) || previousAttribute.code,
+                entityId: id,
                 action: History_1.ActionType.UPDATE,
-                userId: userId,
-                previousData,
-                newData,
-                comment: req.body.comment // Comment'i history'ye ekle
+                changes: changedFields, // Sadece değişen alanları kaydet
+                comment: comment || undefined,
+                userId,
+                entityName: getEntityNameFromTranslation(existingAttribute.name),
+                entityCode: existingAttribute.code
             });
-            // Translation değişiklikleri için ayrı history kayıtları
-            for (const translationChange of changedTranslations) {
-                // Translation değişiklikleri artık localizationController'da handle ediliyor
-            }
-            // Bildirim sistemi - onUpdate true ise bildirim gönder
-            if ((_f = updatedAttribute === null || updatedAttribute === void 0 ? void 0 : updatedAttribute.notificationSettings) === null || _f === void 0 ? void 0 : _f.onUpdate) {
-                try {
-                    // Değişen alanları belirle
-                    const changes = [];
-                    const fieldsToCheck = ['code', 'type', 'isRequired', 'isActive'];
-                    fieldsToCheck.forEach(field => {
-                        if (previousData[field] !== newData[field]) {
-                            changes.push(`${field}: ${previousData[field]} → ${newData[field]}`);
-                        }
-                    });
-                    // Translation değişiklikleri de ekle
-                    changedTranslations.forEach(translationChange => {
-                        changes.push(`${translationChange.field} translations updated`);
-                    });
-                    if (changes.length > 0) {
-                        const userName = ((_g = req.user) === null || _g === void 0 ? void 0 : _g.name) || ((_h = req.user) === null || _h === void 0 ? void 0 : _h.username) || 'Bilinmeyen Kullanıcı';
-                        const comment = req.body.comment || '';
-                        yield notificationService_1.default.sendEntityUpdateNotification('attribute', id, getEntityNameFromTranslation(updatedAttribute.name), changes, comment, userId, userName);
-                    }
-                }
-                catch (notificationError) {
-                    console.error('Notification error:', notificationError);
-                    // Bildirim hatası ana işlemi engellemez
-                }
-            }
         }
         res.status(200).json({
             success: true,
@@ -542,7 +456,7 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         });
     }
     catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             success: false,
             message: error.message || 'Öznitelik güncellenirken bir hata oluştu'
         });

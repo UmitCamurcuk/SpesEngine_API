@@ -7,6 +7,7 @@ import entityService from '../services/entityService';
 import notificationService from '../services/notificationService';
 import { ActionType } from '../models/History';
 import { EntityType } from '../models/Entity';
+import localizationService from '../services/localizationService';
 
 // Translation object'inden metin çıkarmak için utility fonksiyon
 const getEntityNameFromTranslation = (translationObject: any, fallback: string = 'Unknown'): string => {
@@ -358,18 +359,15 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
   }
 };
 
-// PUT özniteliği güncelle
+// PUT mevcut özniteliği güncelle
 export const updateAttribute = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { nameTranslations, descriptionTranslations, options, optionType, ...otherData } = req.body;
-    
-    // Güncelleme öncesi mevcut veriyi al (geçmiş için)
-    const previousAttribute = await Attribute.findById(id)
-      .populate('name','key namespace translations')
-      .populate('description','key namespace translations');
-    
-    if (!previousAttribute) {
+    const { options, comment, attributeGroups, ...updateData } = req.body;
+
+    // Mevcut attribute'u bul
+    const existingAttribute = await Attribute.findById(id);
+    if (!existingAttribute) {
       res.status(404).json({
         success: false,
         message: 'Öznitelik bulunamadı'
@@ -377,221 +375,130 @@ export const updateAttribute = async (req: Request, res: Response, next: NextFun
       return;
     }
 
-    let updateData = { ...otherData };
-
-    // SELECT veya MULTISELECT için options ve optionType kontrolü
-    if (updateData.type === 'select' || updateData.type === 'multiselect' || 
-        previousAttribute.type === 'select' || previousAttribute.type === 'multiselect') {
-      
-      // Tip değişiyorsa ve yeni tip select/multiselect değilse, options ve optionType'ı temizle
-      if (updateData.type && 
-          updateData.type !== 'select' && 
-          updateData.type !== 'multiselect') {
-        updateData.options = [];
-        updateData.optionType = undefined;
+    // Sadece değişen alanları tespit et
+    const changedFields: any = {};
+    
+    // Basit alanları kontrol et
+    Object.keys(updateData).forEach(key => {
+      if ((existingAttribute as any)[key] !== updateData[key]) {
+        changedFields[key] = updateData[key];
       }
-      // Tip select/multiselect ise veya olacaksa
-      else {
-        // optionType kontrolü
-        if (optionType) {
-          const optionTypeAttribute = await Attribute.findById(optionType);
-          if (!optionTypeAttribute) {
+    });
+
+    // SELECT/MULTISELECT için options kontrolü
+    if (options && (existingAttribute.type === 'select' || existingAttribute.type === 'multiselect')) {
+      // Options ID'lerini kontrol et - hem string array hem de object array destekle
+      let optionIds: string[];
+      
+      if (Array.isArray(options)) {
+        optionIds = options.map((opt: any) => {
+          // Eğer string ise direkt kullan, obje ise _id field'ını al
+          return typeof opt === 'string' ? opt : opt._id;
+        }).filter(Boolean); // undefined/null değerleri filtrele
+      } else {
+        optionIds = [];
+      }
+
+      // Mevcut options ile karşılaştır
+      const currentOptionIds = (existingAttribute.options || []).map(opt => opt.toString()).sort();
+      const newOptionIds = optionIds.sort();
+      
+      if (JSON.stringify(currentOptionIds) !== JSON.stringify(newOptionIds)) {
+        if (optionIds.length > 0) {
+          const foundOptions = await Attribute.find({
+            _id: { $in: optionIds },
+            type: 'readonly'
+          });
+
+          if (foundOptions.length !== optionIds.length) {
             res.status(400).json({
               success: false,
-              message: 'Geçersiz optionType'
+              message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
             });
             return;
           }
-          updateData.optionType = optionType;
-
-          // options kontrolü
-          if (options && options.length > 0) {
-            const optionAttributes = await Attribute.find({ 
-              _id: { $in: options },
-              type: optionTypeAttribute.type
-            });
-
-            if (optionAttributes.length !== options.length) {
-              res.status(400).json({
-                success: false,
-                message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
-              });
-              return;
-            }
-            updateData.options = options;
-          } else {
-            updateData.options = [];
-          }
         }
-        // optionType gönderilmemişse ve tip değişmiyorsa, mevcut optionType'ı koru
-        else if (!updateData.type || 
-                 updateData.type === 'select' || 
-                 updateData.type === 'multiselect') {
-          updateData.optionType = previousAttribute.optionType;
-          
-          // options gönderilmişse kontrol et
-          if (options) {
-            if (options.length > 0) {
-              const optionAttributes = await Attribute.find({ 
-                _id: { $in: options },
-                type: previousAttribute.optionType 
-                  ? (await Attribute.findById(previousAttribute.optionType))?.type 
-                  : undefined
-              });
 
-              if (optionAttributes.length !== options.length) {
-                res.status(400).json({
-                  success: false,
-                  message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
-                });
-                return;
-              }
-              updateData.options = options;
-            } else {
-              updateData.options = [];
-            }
-          }
-        }
+        changedFields.options = optionIds;
       }
     }
 
-    const changedTranslations: any[] = [];
-
-    // Name translations'ını güncelle
-    if (nameTranslations && typeof nameTranslations === 'object') {
-      const nameTranslationKey = (previousAttribute.name as any)?.key;
-      if (nameTranslationKey) {
-        const localizationService = require('../services/localizationService').default;
-        await localizationService.upsertTranslation({
-          key: nameTranslationKey,
-          namespace: 'attributes',
-          translations: nameTranslations
-        });
-        
-        changedTranslations.push({
-          field: 'name',
-          translationKey: nameTranslationKey,
-          oldValues: (previousAttribute.name as any)?.translations || {},
-          newValues: nameTranslations
-        });
+    // Attribute Groups kontrolü
+    if (attributeGroups && Array.isArray(attributeGroups)) {
+      // Mevcut grupları al
+      const currentGroups = await AttributeGroup.find({ attributes: id }).select('_id');
+      const currentGroupIds = currentGroups.map(g => String(g._id)).sort();
+      const newGroupIds = [...attributeGroups].sort();
+      
+      if (JSON.stringify(currentGroupIds) !== JSON.stringify(newGroupIds)) {
+        changedFields.attributeGroups = attributeGroups;
       }
     }
 
-    // Description translations'ını güncelle
-    if (descriptionTranslations && typeof descriptionTranslations === 'object') {
-      const descriptionTranslationKey = (previousAttribute.description as any)?.key;
-      if (descriptionTranslationKey) {
-        const localizationService = require('../services/localizationService').default;
-        await localizationService.upsertTranslation({
-          key: descriptionTranslationKey,
-          namespace: 'attributes',
-          translations: descriptionTranslations
-        });
-        
-        changedTranslations.push({
-          field: 'description',
-          translationKey: descriptionTranslationKey,
-          oldValues: (previousAttribute.description as any)?.translations || {},
-          newValues: descriptionTranslations
-        });
-      }
+    // Eğer hiçbir alan değişmemişse güncelleme yapma
+    if (Object.keys(changedFields).length === 0 && !changedFields.attributeGroups) {
+      res.status(200).json({
+        success: true,
+        message: 'Değişiklik bulunamadı',
+        data: existingAttribute
+      });
+      return;
     }
-    
-    // Güncelleme işlemi
+
+    // Attribute'u güncelle
     const updatedAttribute = await Attribute.findByIdAndUpdate(
       id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate('name','key namespace translations')
-     .populate('description','key namespace translations');
-    
+      changedFields,
+      { new: true }
+    ).populate('name', 'key namespace translations')
+     .populate('description', 'key namespace translations')
+     .populate({
+       path: 'options',
+       select: 'name code type',
+       populate: {
+         path: 'name',
+         select: 'key namespace translations'
+       }
+     });
+
+    // Attribute Groups güncelleme
+    if (changedFields.attributeGroups) {
+      // Önce tüm gruplardan bu attribute'ı kaldır
+      await AttributeGroup.updateMany(
+        { attributes: id },
+        { $pull: { attributes: id } }
+      );
+
+      // Sonra yeni gruplara ekle
+      if (attributeGroups.length > 0) {
+        await AttributeGroup.updateMany(
+          { _id: { $in: attributeGroups } },
+          { $addToSet: { attributes: id } }
+        );
+      }
+    }
+
     // History kaydı oluştur
     if (req.user && typeof req.user === 'object' && '_id' in req.user) {
       const userId = String(req.user._id);
-      
-      // Ana attribute güncelleme history'si
-      const previousData = {
-        name: previousAttribute.name,
-        code: previousAttribute.code,
-        type: previousAttribute.type,
-        description: previousAttribute.description,
-        isRequired: previousAttribute.isRequired,
-        isActive: previousAttribute.isActive,
-        options: previousAttribute.options
-      };
-      
-      const newData = {
-        name: updatedAttribute?.name || previousAttribute.name,
-        code: updatedAttribute?.code || previousAttribute.code,
-        type: updatedAttribute?.type || previousAttribute.type,
-        description: updatedAttribute?.description || previousAttribute.description,
-        isRequired: updatedAttribute?.isRequired !== undefined ? updatedAttribute.isRequired : previousAttribute.isRequired,
-        isActive: updatedAttribute?.isActive !== undefined ? updatedAttribute.isActive : previousAttribute.isActive,
-        options: updatedAttribute?.options || previousAttribute.options
-      };
-      
       await historyService.recordHistory({
-        entityId: id,
         entityType: EntityType.ATTRIBUTE,
-        entityName: getEntityNameFromTranslation(updatedAttribute?.name || previousAttribute.name),
-        entityCode: updatedAttribute?.code || previousAttribute.code,
+        entityId: id,
         action: ActionType.UPDATE,
-        userId: userId,
-        previousData,
-        newData,
-        comment: req.body.comment // Comment'i history'ye ekle
+        changes: changedFields, // Sadece değişen alanları kaydet
+        comment: comment || undefined,
+        userId,
+        entityName: getEntityNameFromTranslation(existingAttribute.name),
+        entityCode: existingAttribute.code
       });
-
-      // Translation değişiklikleri için ayrı history kayıtları
-      for (const translationChange of changedTranslations) {
-        // Translation değişiklikleri artık localizationController'da handle ediliyor
-      }
-
-      // Bildirim sistemi - onUpdate true ise bildirim gönder
-      if (updatedAttribute?.notificationSettings?.onUpdate) {
-        try {
-          // Değişen alanları belirle
-          const changes: string[] = [];
-          const fieldsToCheck: (keyof typeof previousData)[] = ['code', 'type', 'isRequired', 'isActive'];
-          
-          fieldsToCheck.forEach(field => {
-            if (previousData[field] !== newData[field]) {
-              changes.push(`${field}: ${previousData[field]} → ${newData[field]}`);
-            }
-          });
-
-          // Translation değişiklikleri de ekle
-          changedTranslations.forEach(translationChange => {
-            changes.push(`${translationChange.field} translations updated`);
-          });
-
-          if (changes.length > 0) {
-            const userName = (req.user as any)?.name || (req.user as any)?.username || 'Bilinmeyen Kullanıcı';
-            const comment = req.body.comment || '';
-            
-            await notificationService.sendEntityUpdateNotification(
-              'attribute',
-              id,
-              getEntityNameFromTranslation(updatedAttribute.name),
-              changes,
-              comment,
-              userId,
-              userName
-            );
-          }
-        } catch (notificationError) {
-          console.error('Notification error:', notificationError);
-          // Bildirim hatası ana işlemi engellemez
-        }
-      }
     }
-    
+
     res.status(200).json({
       success: true,
       data: updatedAttribute
     });
   } catch (error: any) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: error.message || 'Öznitelik güncellenirken bir hata oluştu'
     });
