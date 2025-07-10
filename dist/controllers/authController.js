@@ -16,6 +16,26 @@ exports.refreshPermissions = exports.logout = exports.getMe = exports.refreshTok
 const User_1 = __importDefault(require("../models/User"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const jwt_1 = require("../utils/jwt");
+// Kullanıcının izinlerini topla
+const getUserPermissions = (user) => __awaiter(void 0, void 0, void 0, function* () {
+    const permissions = [];
+    if (user.isAdmin) {
+        return ['*']; // Admin tüm izinlere sahip
+    }
+    if (user.role && user.role.permissionGroups) {
+        for (const group of user.role.permissionGroups) {
+            if (group.permissions) {
+                for (const perm of group.permissions) {
+                    if (perm.granted && perm.permission && perm.permission.code) {
+                        permissions.push(perm.permission.code);
+                    }
+                }
+            }
+        }
+    }
+    return permissions;
+});
 // Kullanıcı kaydı
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -45,6 +65,7 @@ exports.register = register;
 // @route   POST /api/auth/login
 // @access  Public
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const { email, password } = req.body;
         // Email ve şifre kontrolü
@@ -87,12 +108,20 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 message: 'Geçersiz email veya şifre'
             });
         }
-        // Access token oluştur (kısa süreli)
-        const accessTokenOptions = { expiresIn: '1h' }; // 15 dakika
-        const accessToken = jsonwebtoken_1.default.sign({ id: user._id.toString() }, process.env.JWT_SECRET || 'default-secret-key', accessTokenOptions);
-        // Refresh token oluştur (uzun süreli)
-        const refreshTokenOptions = { expiresIn: '7d' }; // 7 gün
-        const refreshToken = jsonwebtoken_1.default.sign({ id: user._id.toString(), type: 'refresh' }, process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key', refreshTokenOptions);
+        // İzinleri topla
+        const permissions = yield getUserPermissions(user);
+        // Access token oluştur
+        const accessToken = jwt_1.JWTService.generateAccessToken({
+            userId: user._id.toString(),
+            email: user.email,
+            role: ((_a = user.role) === null || _a === void 0 ? void 0 : _a.name) || 'user',
+            permissions
+        });
+        // Refresh token oluştur
+        const refreshToken = jwt_1.JWTService.generateRefreshToken({
+            userId: user._id.toString(),
+            tokenVersion: user.tokenVersion
+        });
         // User nesnesini düz objeye çevir ve password'ü çıkar
         const userObject = user.toObject();
         delete userObject.password;
@@ -142,6 +171,7 @@ exports.login = login;
 // @route   POST /api/auth/refresh-token
 // @access  Public
 const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) {
@@ -151,15 +181,9 @@ const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             });
         }
         // Refresh token'ı doğrula
-        const decoded = jsonwebtoken_1.default.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key');
-        if (decoded.type !== 'refresh') {
-            return res.status(401).json({
-                success: false,
-                message: 'Geçersiz refresh token'
-            });
-        }
-        // Kullanıcıyı bul
-        const user = yield User_1.default.findById(decoded.id)
+        const decoded = jwt_1.JWTService.verifyRefreshToken(refreshToken);
+        // Kullanıcıyı bul ve token sürümünü kontrol et
+        const user = yield User_1.default.findById(decoded.userId)
             .populate({
             path: 'role',
             populate: {
@@ -182,12 +206,27 @@ const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 message: 'Kullanıcı bulunamadı'
             });
         }
+        // Token sürümünü kontrol et
+        if (user.tokenVersion !== decoded.tokenVersion) {
+            return res.status(401).json({
+                success: false,
+                message: 'Token sürümü geçersiz - yeniden giriş yapınız'
+            });
+        }
+        // İzinleri topla
+        const permissions = yield getUserPermissions(user);
         // Yeni access token oluştur
-        const accessTokenOptions = { expiresIn: '1h' };
-        const newAccessToken = jsonwebtoken_1.default.sign({ id: user._id.toString() }, process.env.JWT_SECRET || 'default-secret-key', accessTokenOptions);
+        const newAccessToken = jwt_1.JWTService.generateAccessToken({
+            userId: user._id.toString(),
+            email: user.email,
+            role: ((_a = user.role) === null || _a === void 0 ? void 0 : _a.name) || 'user',
+            permissions
+        });
         // Yeni refresh token oluştur
-        const refreshTokenOptions = { expiresIn: '7d' };
-        const newRefreshToken = jsonwebtoken_1.default.sign({ id: user._id.toString(), type: 'refresh' }, process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key', refreshTokenOptions);
+        const newRefreshToken = jwt_1.JWTService.generateRefreshToken({
+            userId: user._id.toString(),
+            tokenVersion: user.tokenVersion
+        });
         res.status(200).json({
             success: true,
             accessToken: newAccessToken,

@@ -3,6 +3,30 @@ import User, { IUser } from '../models/User';
 import mongoose from 'mongoose';
 import Role from '../models/Role';
 import jwt, { SignOptions } from 'jsonwebtoken';
+import { JWTService } from '../utils/jwt';
+
+// Kullanıcının izinlerini topla
+const getUserPermissions = async (user: any): Promise<string[]> => {
+  const permissions: string[] = [];
+  
+  if (user.isAdmin) {
+    return ['*']; // Admin tüm izinlere sahip
+  }
+  
+  if (user.role && user.role.permissionGroups) {
+    for (const group of user.role.permissionGroups) {
+      if (group.permissions) {
+        for (const perm of group.permissions) {
+          if (perm.granted && perm.permission && perm.permission.code) {
+            permissions.push(perm.permission.code);
+          }
+        }
+      }
+    }
+  }
+  
+  return permissions;
+};
 
 // Kullanıcı kaydı
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -82,21 +106,22 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Access token oluştur (kısa süreli)
-    const accessTokenOptions: SignOptions = { expiresIn: '1h' }; // 15 dakika
-    const accessToken = jwt.sign(
-      { id: user._id.toString() },
-      process.env.JWT_SECRET || 'default-secret-key',
-      accessTokenOptions
-    );
+    // İzinleri topla
+    const permissions = await getUserPermissions(user);
 
-    // Refresh token oluştur (uzun süreli)
-    const refreshTokenOptions: SignOptions = { expiresIn: '7d' }; // 7 gün
-    const refreshToken = jwt.sign(
-      { id: user._id.toString(), type: 'refresh' },
-      process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key',
-      refreshTokenOptions
-    );
+    // Access token oluştur
+    const accessToken = JWTService.generateAccessToken({
+      userId: user._id.toString(),
+      email: user.email,
+      role: (user.role as any)?.name || 'user',
+      permissions
+    });
+
+    // Refresh token oluştur
+    const refreshToken = JWTService.generateRefreshToken({
+      userId: user._id.toString(),
+      tokenVersion: user.tokenVersion
+    });
 
     // User nesnesini düz objeye çevir ve password'ü çıkar
     const userObject: any = user.toObject();
@@ -159,20 +184,10 @@ export const refreshToken = async (req: Request, res: Response) => {
     }
 
     // Refresh token'ı doğrula
-    const decoded = jwt.verify(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key'
-    ) as any;
+    const decoded = JWTService.verifyRefreshToken(refreshToken);
 
-    if (decoded.type !== 'refresh') {
-      return res.status(401).json({
-        success: false,
-        message: 'Geçersiz refresh token'
-      });
-    }
-
-    // Kullanıcıyı bul
-    const user = await User.findById(decoded.id)
+    // Kullanıcıyı bul ve token sürümünü kontrol et
+    const user = await User.findById(decoded.userId)
       .populate({
         path: 'role',
         populate: {
@@ -197,21 +212,30 @@ export const refreshToken = async (req: Request, res: Response) => {
       });
     }
 
+    // Token sürümünü kontrol et
+    if (user.tokenVersion !== decoded.tokenVersion) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token sürümü geçersiz - yeniden giriş yapınız'
+      });
+    }
+
+    // İzinleri topla
+    const permissions = await getUserPermissions(user);
+
     // Yeni access token oluştur
-    const accessTokenOptions: SignOptions = { expiresIn: '1h' };
-    const newAccessToken = jwt.sign(
-      { id: user._id.toString() },
-      process.env.JWT_SECRET || 'default-secret-key',
-      accessTokenOptions
-    );
+    const newAccessToken = JWTService.generateAccessToken({
+      userId: user._id.toString(),
+      email: user.email,
+      role: (user.role as any)?.name || 'user',
+      permissions
+    });
 
     // Yeni refresh token oluştur
-    const refreshTokenOptions: SignOptions = { expiresIn: '7d' };
-    const newRefreshToken = jwt.sign(
-      { id: user._id.toString(), type: 'refresh' },
-      process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-key',
-      refreshTokenOptions
-    );
+    const newRefreshToken = JWTService.generateRefreshToken({
+      userId: user._id.toString(),
+      tokenVersion: user.tokenVersion
+    });
 
     res.status(200).json({
       success: true,

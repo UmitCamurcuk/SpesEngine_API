@@ -11,6 +11,7 @@ export interface IUser extends Document {
   isActive: boolean;
   lastLogin: Date;
   role: mongoose.Types.ObjectId;
+  tokenVersion: number;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -53,6 +54,10 @@ const UserSchema: Schema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
     required: true
+  },
+  tokenVersion: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

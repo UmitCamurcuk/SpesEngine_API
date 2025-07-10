@@ -4,10 +4,7 @@ import User, { IUser } from '../models/User';
 import Role from '../models/Role';
 import Permission from '../models/Permission';
 import PermissionGroup from '../models/PermissionGroup';
-
-interface DecodedToken {
-  id: string;
-}
+import { JWTService, TokenPayload } from '../utils/jwt';
 
 // Kullanıcı tipini genişletme
 declare global {
@@ -37,8 +34,8 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
   }
   
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret-key') as DecodedToken;
-    const user = await User.findById(decoded.id)
+    const decoded = JWTService.verifyAccessToken(token);
+    const user = await User.findById(decoded.userId)
       .populate({
         path: 'role',
         populate: [
