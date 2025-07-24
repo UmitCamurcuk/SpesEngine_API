@@ -80,10 +80,35 @@ const getFamilies = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         const total = yield Family_1.default.countDocuments(filterParams);
         // Verileri getir
         const families = yield Family_1.default.find(filterParams)
+            .populate('name')
+            .populate('description')
             .populate('itemType')
             .populate('parent')
-            .populate('attributeGroups')
-            .populate('attributes')
+            .populate({
+            path: 'category',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
+            .populate({
+            path: 'attributeGroups',
+            populate: [
+                { path: 'name' },
+                { path: 'description' },
+                { path: 'attributes', populate: [
+                        { path: 'name' },
+                        { path: 'description' }
+                    ] }
+            ]
+        })
+            .populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
             .sort(sortOptions)
             .skip(skip)
             .limit(limit);
@@ -117,10 +142,24 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         const AttributeGroup = yield Promise.resolve().then(() => __importStar(require('../models/AttributeGroup')));
         // Önce temel Family verisini getir
         const family = yield Family_1.default.findById(req.params.id)
+            .populate('name')
+            .populate('description')
             .populate('itemType')
             .populate('parent')
-            .populate('category')
-            .populate(includeAttributes ? 'attributes' : []);
+            .populate({
+            path: 'category',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
+            .populate(includeAttributes ? {
+            path: 'attributes',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        } : []);
         if (!family) {
             res.status(404).json({
                 success: false,
@@ -236,13 +275,13 @@ const createFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 yield historyService_1.default.recordHistory({
                     entityType: Entity_1.EntityType.FAMILY,
                     entityId: String(family._id),
-                    entityName: family.name,
+                    entityName: String(family.name),
                     action: History_1.ActionType.CREATE,
                     userId: userId,
                     newData: {
-                        name: family.name,
+                        name: String(family.name),
                         code: family.code,
-                        description: family.description || '',
+                        description: String(family.description || ''),
                         isActive: family.isActive
                     }
                 });
@@ -254,20 +293,33 @@ const createFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         }
         // Oluşturulan aileyi itemType ve parent alanlarıyla birlikte getir
         const newFamily = yield Family_1.default.findById(family._id)
+            .populate('name')
+            .populate('description')
             .populate('itemType')
             .populate('parent')
             .populate({
+            path: 'category',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
+            .populate({
             path: 'attributeGroups',
             populate: [
-                { path: 'name', select: 'key namespace translations' },
-                { path: 'description', select: 'key namespace translations' }
+                { path: 'name' },
+                { path: 'description' },
+                { path: 'attributes', populate: [
+                        { path: 'name' },
+                        { path: 'description' }
+                    ] }
             ]
         })
             .populate({
             path: 'attributes',
             populate: [
-                { path: 'name', select: 'key namespace translations' },
-                { path: 'description', select: 'key namespace translations' }
+                { path: 'name' },
+                { path: 'description' }
             ]
         });
         res.status(201).json({
@@ -351,19 +403,19 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 yield historyService_1.default.recordHistory({
                     entityType: Entity_1.EntityType.FAMILY,
                     entityId: String(family._id),
-                    entityName: family.name,
+                    entityName: String(family.name),
                     action: History_1.ActionType.UPDATE,
                     userId: userId,
                     previousData: {
-                        name: oldFamily.name,
+                        name: String(oldFamily.name),
                         code: oldFamily.code,
-                        description: oldFamily.description || '',
+                        description: String(oldFamily.description || ''),
                         isActive: oldFamily.isActive
                     },
                     newData: {
-                        name: family.name,
+                        name: String(family.name),
                         code: family.code,
-                        description: family.description || '',
+                        description: String(family.description || ''),
                         isActive: family.isActive
                     }
                 });
@@ -407,13 +459,13 @@ const deleteFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 yield historyService_1.default.recordHistory({
                     entityType: Entity_1.EntityType.FAMILY,
                     entityId: String(family._id),
-                    entityName: family.name,
+                    entityName: String(family.name),
                     action: History_1.ActionType.DELETE,
                     userId: userId,
                     previousData: {
-                        name: family.name,
+                        name: String(family.name),
                         code: family.code,
-                        description: family.description || '',
+                        description: String(family.description || ''),
                         isActive: family.isActive
                     }
                 });
@@ -453,8 +505,16 @@ const getFamiliesByCategory = (req, res, next) => __awaiter(void 0, void 0, void
             category: categoryId,
             isActive: true
         })
+            .populate('name')
+            .populate('description')
             .populate('itemType')
-            .populate('category')
+            .populate({
+            path: 'category',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
             .populate('parent')
             .sort('name');
         res.status(200).json({

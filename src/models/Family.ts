@@ -1,9 +1,9 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IFamily extends Document {
-  name: string;
+  name: mongoose.Types.ObjectId;
   code: string;
-  description: string;
+  description: mongoose.Types.ObjectId;
   itemType?: mongoose.Types.ObjectId;
   category: mongoose.Types.ObjectId;
   parent?: mongoose.Types.ObjectId;
@@ -17,9 +17,9 @@ export interface IFamily extends Document {
 const FamilySchema: Schema = new Schema(
   {
     name: {
-      type: String,
-      required: [true, 'Aile adı zorunludur'],
-      trim: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Localization',
+      required: [true, 'Aile adı zorunludur']
     },
     code: {
       type: String,
@@ -28,7 +28,8 @@ const FamilySchema: Schema = new Schema(
       trim: true
     },
     description: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Localization',
       required: [true, 'Aile açıklaması zorunludur']
     },
     itemType: {

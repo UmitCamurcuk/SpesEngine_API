@@ -40,10 +40,41 @@ export const getFamilies = async (req: Request, res: Response, next: NextFunctio
     
     // Verileri getir
     const families = await Family.find(filterParams)
+      .populate('name')
+      .populate('description')
       .populate('itemType')
-      .populate('parent')
-      .populate('attributeGroups')
-      .populate('attributes')
+      .populate({
+        path: 'parent',
+        populate: [
+          { path: 'name' },
+          { path: 'description' }
+        ]
+      })
+      .populate({
+        path: 'category',
+        populate: [
+          { path: 'name' },
+          { path: 'description' }
+        ]
+      })
+      .populate({
+        path: 'attributeGroups',
+        populate: [
+          { path: 'name' },
+          { path: 'description' },
+          { path: 'attributes', populate: [
+            { path: 'name' },
+            { path: 'description' }
+          ]}
+        ]
+      })
+      .populate({
+        path: 'attributes',
+        populate: [
+          { path: 'name' },
+          { path: 'description' }
+        ]
+      })
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
@@ -80,10 +111,30 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
     
     // Önce temel Family verisini getir
     const family = await Family.findById(req.params.id)
+      .populate('name')
+      .populate('description')
       .populate('itemType')
-      .populate('parent')
-      .populate('category')
-      .populate(includeAttributes ? 'attributes' : []);
+      .populate({
+        path: 'parent',
+        populate: [
+          { path: 'name' },
+          { path: 'description' }
+        ]
+      })
+      .populate({
+        path: 'category',
+        populate: [
+          { path: 'name' },
+          { path: 'description' }
+        ]
+      })
+      .populate(includeAttributes ? {
+        path: 'attributes',
+        populate: [
+          { path: 'name' },
+          { path: 'description' }
+        ]
+      } : []);
       
     if (!family) {
       res.status(404).json({
@@ -215,13 +266,13 @@ export const createFamily = async (req: Request, res: Response, next: NextFuncti
         await historyService.recordHistory({
           entityType: EntityType.FAMILY,
           entityId: String(family._id),
-          entityName: family.name,
+          entityName: String(family.name),
           action: ActionType.CREATE,
           userId: userId,
           newData: {
-            name: family.name,
+            name: String(family.name),
             code: family.code,
-            description: family.description || '',
+            description: String(family.description || ''),
             isActive: family.isActive
           }
         });
@@ -233,20 +284,39 @@ export const createFamily = async (req: Request, res: Response, next: NextFuncti
     
     // Oluşturulan aileyi itemType ve parent alanlarıyla birlikte getir
     const newFamily = await Family.findById(family._id)
+      .populate('name')
+      .populate('description')
       .populate('itemType')
-      .populate('parent')
+      .populate({
+        path: 'parent',
+        populate: [
+          { path: 'name' },
+          { path: 'description' }
+        ]
+      })
+      .populate({
+        path: 'category',
+        populate: [
+          { path: 'name' },
+          { path: 'description' }
+        ]
+      })
       .populate({
         path: 'attributeGroups',
         populate: [
-          { path: 'name', select: 'key namespace translations' },
-          { path: 'description', select: 'key namespace translations' }
+          { path: 'name' },
+          { path: 'description' },
+          { path: 'attributes', populate: [
+            { path: 'name' },
+            { path: 'description' }
+          ]}
         ]
       })
       .populate({
         path: 'attributes',
         populate: [
-          { path: 'name', select: 'key namespace translations' },
-          { path: 'description', select: 'key namespace translations' }
+          { path: 'name' },
+          { path: 'description' }
         ]
       });
     
@@ -343,19 +413,19 @@ export const updateFamily = async (req: Request, res: Response, next: NextFuncti
         await historyService.recordHistory({
           entityType: EntityType.FAMILY,
           entityId: String(family._id),
-          entityName: family.name,
+          entityName: String(family.name),
           action: ActionType.UPDATE,
           userId: userId,
           previousData: {
-            name: oldFamily.name,
+            name: String(oldFamily.name),
             code: oldFamily.code,
-            description: oldFamily.description || '',
+            description: String(oldFamily.description || ''),
             isActive: oldFamily.isActive
           },
           newData: {
-            name: family.name,
+            name: String(family.name),
             code: family.code,
-            description: family.description || '',
+            description: String(family.description || ''),
             isActive: family.isActive
           }
         });
@@ -402,13 +472,13 @@ export const deleteFamily = async (req: Request, res: Response, next: NextFuncti
         await historyService.recordHistory({
           entityType: EntityType.FAMILY,
           entityId: String(family._id),
-          entityName: family.name,
+          entityName: String(family.name),
           action: ActionType.DELETE,
           userId: userId,
           previousData: {
-            name: family.name,
+            name: String(family.name),
             code: family.code,
-            description: family.description || '',
+            description: String(family.description || ''),
             isActive: family.isActive
           }
         });
@@ -448,9 +518,23 @@ export const getFamiliesByCategory = async (req: Request, res: Response, next: N
       category: categoryId,
       isActive: true 
     })
+    .populate('name')
+    .populate('description')
     .populate('itemType')
-    .populate('category')
-    .populate('parent')
+    .populate({
+      path: 'category',
+      populate: [
+        { path: 'name' },
+        { path: 'description' }
+      ]
+    })
+    .populate({
+      path: 'parent',
+      populate: [
+        { path: 'name' },
+        { path: 'description' }
+      ]
+    })
     .sort('name');
     
     res.status(200).json({

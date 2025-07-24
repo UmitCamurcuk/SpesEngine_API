@@ -36,9 +36,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const FamilySchema = new mongoose_1.Schema({
     name: {
-        type: String,
-        required: [true, 'Aile adı zorunludur'],
-        trim: true
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Localization',
+        required: [true, 'Aile adı zorunludur']
     },
     code: {
         type: String,
@@ -47,7 +47,8 @@ const FamilySchema = new mongoose_1.Schema({
         trim: true
     },
     description: {
-        type: String,
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Localization',
         required: [true, 'Aile açıklaması zorunludur']
     },
     itemType: {

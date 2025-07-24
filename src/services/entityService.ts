@@ -139,8 +139,8 @@ class EntityService {
           
         case EntityType.FAMILY:
           const Family = (await import('../models/Family')).default;
-          const family = await Family.findById(objectId);
-          return family?.name || `family_${entityId}`;
+          const family = await Family.findById(objectId).populate('name');
+          return getEntityNameFromTranslation(family?.name) || `family_${entityId}`;
           
         case EntityType.ITEM_TYPE:
           const ItemType = (await import('../models/ItemType')).default;
