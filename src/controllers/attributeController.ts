@@ -175,47 +175,59 @@ export const createAttribute = async (req: Request, res: Response, next: NextFun
     // AttributeGroup bilgisini ayır
     const { attributeGroup, options, optionType, ...attributeData } = req.body;
 
-    // SELECT veya MULTISELECT için options ve optionType kontrolü
+    // SELECT veya MULTISELECT için options kontrolü
     if (attributeData.type === 'select' || attributeData.type === 'multiselect') {
-      if (!optionType) {
-        res.status(400).json({
-          success: false,
-          message: 'SELECT veya MULTISELECT için optionType zorunludur'
-        });
-        return;
-      }
-
-      // optionType'ın geçerli bir attribute olduğunu kontrol et
-      const optionTypeAttribute = await Attribute.findById(optionType);
-      if (!optionTypeAttribute) {
-        res.status(400).json({
-          success: false,
-          message: 'Geçersiz optionType'
-        });
-        return;
-      }
-
       // options dizisindeki her bir ID'nin geçerli bir attribute olduğunu kontrol et
       if (options && options.length > 0) {
         const optionAttributes = await Attribute.find({ 
-          _id: { $in: options },
-          type: optionTypeAttribute.type // Seçeneklerin tipi optionType ile aynı olmalı
+          _id: { $in: options }
         });
 
         if (optionAttributes.length !== options.length) {
           res.status(400).json({
             success: false,
-            message: 'Bazı seçenekler bulunamadı veya yanlış tipte'
+            message: 'Bazı seçenekler bulunamadı'
           });
           return;
+        }
+
+        // optionType belirtilmişse, tüm seçeneklerin aynı tipte olmasını kontrol et
+        if (optionType) {
+          const optionTypeAttribute = await Attribute.findById(optionType);
+          if (!optionTypeAttribute) {
+            res.status(400).json({
+              success: false,
+              message: 'Geçersiz optionType'
+            });
+            return;
+          }
+
+          const wrongTypeOptions = optionAttributes.filter(attr => attr.type !== optionTypeAttribute.type);
+          if (wrongTypeOptions.length > 0) {
+            res.status(400).json({
+              success: false,
+              message: 'Bazı seçenekler optionType ile uyumlu değil'
+            });
+            return;
+          }
+
+          attributeData.optionType = optionType;
+        } else {
+          // optionType belirtilmemişse, tüm seçeneklerin READONLY tipinde olmasını kontrol et
+          const nonReadonlyOptions = optionAttributes.filter(attr => attr.type !== 'readonly');
+          if (nonReadonlyOptions.length > 0) {
+            res.status(400).json({
+              success: false,
+              message: 'optionType belirtilmediği durumda tüm seçeneklerin READONLY tipinde olması gerekir'
+            });
+            return;
+          }
         }
 
         attributeData.options = options;
       } else {
         attributeData.options = [];
       }
-
-      attributeData.optionType = optionType;
     }
 
     // Validasyon verilerini kontrol et

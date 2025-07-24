@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUser = exports.updateUser = exports.createUser = exports.getUser = exports.removeRoleFromUser = exports.assignRoleToUser = exports.getUsersNotInRole = exports.getUsersByRole = exports.getUsers = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Role_1 = __importDefault(require("../models/Role"));
+const permissionVersionService_1 = require("../services/permissionVersionService");
 // Tüm kullanıcıları getir
 const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -168,6 +169,15 @@ const assignRoleToUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
         yield user.save();
         // Güncellenen kullanıcıyı populate et
         yield user.populate('role');
+        // Kullanıcının permission version'ını güncelle
+        try {
+            yield permissionVersionService_1.PermissionVersionService.invalidateUserPermissions(userId);
+            console.log(`Permission version updated for user: ${userId}`);
+        }
+        catch (permissionError) {
+            console.error('Permission version güncelleme hatası:', permissionError);
+            // Permission version hatası ana işlemi durdurmaz
+        }
         res.status(200).json({
             success: true,
             message: 'Kullanıcıya rol başarıyla atandı',
@@ -220,6 +230,15 @@ const removeRoleFromUser = (req, res) => __awaiter(void 0, void 0, void 0, funct
         yield user.save();
         // Güncellenen kullanıcıyı populate et
         yield user.populate('role');
+        // Kullanıcının permission version'ını güncelle
+        try {
+            yield permissionVersionService_1.PermissionVersionService.invalidateUserPermissions(userId);
+            console.log(`Permission version updated for user: ${userId}`);
+        }
+        catch (permissionError) {
+            console.error('Permission version güncelleme hatası:', permissionError);
+            // Permission version hatası ana işlemi durdurmaz
+        }
         res.status(200).json({
             success: true,
             message: 'Kullanıcı rolü başarıyla kaldırıldı',

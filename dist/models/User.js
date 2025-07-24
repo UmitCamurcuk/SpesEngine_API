@@ -87,6 +87,10 @@ const UserSchema = new mongoose_1.Schema({
     tokenVersion: {
         type: Number,
         default: 0
+    },
+    permissionVersion: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true

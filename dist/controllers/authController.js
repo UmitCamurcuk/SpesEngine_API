@@ -115,7 +115,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             userId: user._id.toString(),
             email: user.email,
             role: ((_a = user.role) === null || _a === void 0 ? void 0 : _a.name) || 'user',
-            permissions
+            permissions,
+            permissionVersion: user.permissionVersion || 0
         });
         // Refresh token oluştur
         const refreshToken = jwt_1.JWTService.generateRefreshToken({
@@ -220,7 +221,8 @@ const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             userId: user._id.toString(),
             email: user.email,
             role: ((_a = user.role) === null || _a === void 0 ? void 0 : _a.name) || 'user',
-            permissions
+            permissions,
+            permissionVersion: user.permissionVersion || 0
         });
         // Yeni refresh token oluştur
         const newRefreshToken = jwt_1.JWTService.generateRefreshToken({

@@ -12,6 +12,7 @@ export interface IUser extends Document {
   lastLogin: Date;
   role: mongoose.Types.ObjectId;
   tokenVersion: number;
+  permissionVersion: number;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -56,6 +57,10 @@ const UserSchema: Schema = new Schema({
     required: true
   },
   tokenVersion: {
+    type: Number,
+    default: 0
+  },
+  permissionVersion: {
     type: Number,
     default: 0
   }

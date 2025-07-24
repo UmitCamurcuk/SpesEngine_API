@@ -6,6 +6,7 @@ import { Types } from 'mongoose';
 import historyService from '../services/historyService';
 import { EntityType } from '../models/Entity';
 import { ActionType } from '../models/History';
+import { PermissionVersionService } from '../services/permissionVersionService';
 
 // @desc    Tüm rolleri getir
 // @route   GET /api/roles
@@ -362,6 +363,15 @@ export const updateRole = async (req: Request, res: Response) => {
         console.error('History kaydı oluşturulamadı:', historyError);
         // History hatası ana işlemi durdurmaz
       }
+    }
+
+    // Bu role sahip tüm kullanıcıların permission version'ını güncelle
+    try {
+      await PermissionVersionService.invalidateRolePermissions(req.params.id);
+      console.log(`Permission versions invalidated for role: ${req.params.id}`);
+    } catch (permissionError) {
+      console.error('Permission version güncelleme hatası:', permissionError);
+      // Permission version hatası ana işlemi durdurmaz
     }
 
     res.status(200).json({

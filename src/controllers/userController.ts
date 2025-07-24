@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/User';
 import Role from '../models/Role';
+import { PermissionVersionService } from '../services/permissionVersionService';
 
 // Tüm kullanıcıları getir
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
@@ -169,6 +170,14 @@ export const assignRoleToUser = async (req: Request, res: Response): Promise<voi
     // Güncellenen kullanıcıyı populate et
     await user.populate('role');
 
+    // Kullanıcının permission version'ını güncelle
+    try {
+      await PermissionVersionService.invalidateUserPermissions(userId);
+      console.log(`Permission version updated for user: ${userId}`);
+    } catch (permissionError) {
+      console.error('Permission version güncelleme hatası:', permissionError);
+      // Permission version hatası ana işlemi durdurmaz
+    }
 
     res.status(200).json({
       success: true,
@@ -228,6 +237,14 @@ export const removeRoleFromUser = async (req: Request, res: Response): Promise<v
     // Güncellenen kullanıcıyı populate et
     await user.populate('role');
 
+    // Kullanıcının permission version'ını güncelle
+    try {
+      await PermissionVersionService.invalidateUserPermissions(userId);
+      console.log(`Permission version updated for user: ${userId}`);
+    } catch (permissionError) {
+      console.error('Permission version güncelleme hatası:', permissionError);
+      // Permission version hatası ana işlemi durdurmaz
+    }
 
     res.status(200).json({
       success: true,

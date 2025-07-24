@@ -19,6 +19,7 @@ const Permission_1 = __importDefault(require("../models/Permission"));
 const historyService_1 = __importDefault(require("../services/historyService"));
 const Entity_1 = require("../models/Entity");
 const History_1 = require("../models/History");
+const permissionVersionService_1 = require("../services/permissionVersionService");
 // @desc    Tüm rolleri getir
 // @route   GET /api/roles
 // @access  Private
@@ -344,6 +345,15 @@ const updateRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 console.error('History kaydı oluşturulamadı:', historyError);
                 // History hatası ana işlemi durdurmaz
             }
+        }
+        // Bu role sahip tüm kullanıcıların permission version'ını güncelle
+        try {
+            yield permissionVersionService_1.PermissionVersionService.invalidateRolePermissions(req.params.id);
+            console.log(`Permission versions invalidated for role: ${req.params.id}`);
+        }
+        catch (permissionError) {
+            console.error('Permission version güncelleme hatası:', permissionError);
+            // Permission version hatası ana işlemi durdurmaz
         }
         res.status(200).json({
             success: true,

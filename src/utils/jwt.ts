@@ -5,6 +5,7 @@ interface TokenPayload {
   email: string;
   role: string;
   permissions: string[];
+  permissionVersion: number;
   iat?: number;
   exp?: number;
 }

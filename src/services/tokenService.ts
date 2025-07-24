@@ -50,7 +50,8 @@ export class TokenService {
         userId: user._id.toString(),
         email: user.email,
         role: (user.role as any)?.name || 'user',
-        permissions
+        permissions,
+        permissionVersion: user.tokenVersion || 0
       });
 
       const refreshToken = JWTService.generateRefreshToken({

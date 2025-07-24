@@ -114,7 +114,8 @@ export const login = async (req: Request, res: Response) => {
       userId: user._id.toString(),
       email: user.email,
       role: (user.role as any)?.name || 'user',
-      permissions
+      permissions,
+      permissionVersion: user.permissionVersion || 0
     });
 
     // Refresh token oluştur
@@ -228,7 +229,8 @@ export const refreshToken = async (req: Request, res: Response) => {
       userId: user._id.toString(),
       email: user.email,
       role: (user.role as any)?.name || 'user',
-      permissions
+      permissions,
+      permissionVersion: user.permissionVersion || 0
     });
 
     // Yeni refresh token oluştur

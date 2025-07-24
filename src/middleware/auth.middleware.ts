@@ -5,6 +5,7 @@ import Role from '../models/Role';
 import Permission from '../models/Permission';
 import PermissionGroup from '../models/PermissionGroup';
 import { JWTService, TokenPayload } from '../utils/jwt';
+import { PermissionVersionService } from '../services/permissionVersionService';
 
 // Kullanıcı tipini genişletme
 declare global {
@@ -55,6 +56,27 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       return res.status(403).json({
         success: false,
         error: 'Kullanıcı bulunamadı'
+      });
+    }
+
+    // Permission version kontrolü
+    const tokenPermissionVersion = decoded.permissionVersion || 0;
+    const isVersionValid = await PermissionVersionService.isPermissionVersionValid(
+      decoded.userId, 
+      tokenPermissionVersion
+    );
+
+    if (!isVersionValid) {
+      // Permission version güncel değil - response header'a bilgi ekle
+      const versionHeaders = await PermissionVersionService.getPermissionVersionHeader(decoded.userId);
+      Object.keys(versionHeaders).forEach(key => {
+        res.setHeader(key, versionHeaders[key]);
+      });
+      
+      return res.status(401).json({
+        success: false,
+        error: 'Permission version geçersiz - izinler güncellenmiş',
+        needsPermissionRefresh: true
       });
     }
     
