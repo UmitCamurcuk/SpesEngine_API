@@ -3,6 +3,7 @@ import Category from '../models/Category';
 import historyService from '../services/historyService';
 import { ActionType } from '../models/History';
 import { EntityType } from '../models/Entity';
+import Family from '../models/Family';
 
 // GET tüm kategorileri getir (filtreleme ve sayfalama ile)
 export const getCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -275,127 +276,191 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-// PUT kategoriyi güncelle
+// Bidirectional relationship sync için helper fonksiyon
+const syncCategoryFamilyRelationship = async (categoryId: string, newFamilyId?: string, oldFamilyId?: string, comment?: string) => {
+  try {
+    // Eski family'den bu category'yi kaldır
+    if (oldFamilyId && oldFamilyId !== newFamilyId) {
+      await Family.findByIdAndUpdate(oldFamilyId, {
+        $unset: { category: 1 }
+      });
+      
+      // Eski family'nin history'sine yaz
+      await historyService.recordHistory({
+        entityType: EntityType.FAMILY,
+        entityId: oldFamilyId,
+        entityName: 'Family',
+        action: ActionType.UPDATE,
+        userId: 'system',
+        previousData: { category: categoryId },
+        newData: { category: null },
+        comment: comment || 'Kategori ilişkisi kaldırıldı (otomatik sync)'
+      });
+    }
+    
+    // Yeni family'ye bu category'yi ata
+    if (newFamilyId) {
+      // Önce yeni family'nin eski category'sini temizle
+      const existingFamily = await Family.findById(newFamilyId);
+      if (existingFamily?.category && existingFamily.category.toString() !== categoryId) {
+        await Category.findByIdAndUpdate(existingFamily.category, {
+          $unset: { family: 1 }
+        });
+        
+        // Eski category'nin history'sine yaz
+        await historyService.recordHistory({
+          entityType: EntityType.CATEGORY,
+          entityId: existingFamily.category.toString(),
+          entityName: 'Category',
+          action: ActionType.UPDATE,
+          userId: 'system',
+          previousData: { family: newFamilyId },
+          newData: { family: null },
+          comment: 'Aile ilişkisi kaldırıldı (otomatik sync)'
+        });
+      }
+      
+      // Yeni family'yi güncelle
+      await Family.findByIdAndUpdate(newFamilyId, {
+        category: categoryId
+      });
+      
+      // Yeni family'nin history'sine yaz
+      await historyService.recordHistory({
+        entityType: EntityType.FAMILY,
+        entityId: newFamilyId,
+        entityName: 'Family',
+        action: ActionType.UPDATE,
+        userId: 'system',
+        previousData: { category: existingFamily?.category || null },
+        newData: { category: categoryId },
+        comment: comment || 'Kategori ilişkisi eklendi (otomatik sync)'
+      });
+    }
+  } catch (error) {
+    console.error('Category-Family sync error:', error);
+  }
+};
+
+// updateCategory fonksiyonunu güncelle
 export const updateCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
     
-    // Güncellemeden önce mevcut veriyi al
-    const oldCategory = await Category.findById(id);
-    
-    if (!oldCategory) {
-      res.status(404).json({
-        success: false,
-        message: 'Kategori bulunamadı'
+    // Mevcut category'yi getir
+    const existingCategory = await Category.findById(id);
+    if (!existingCategory) {
+      res.status(404).json({ 
+        success: false, 
+        message: 'Kategori bulunamadı' 
       });
       return;
+    }
+    
+    // Family değişikliğini kontrol et
+    const oldFamilyId = existingCategory.family?.toString();
+    const newFamilyId = req.body.family;
+    
+    // Eğer family alanı boş string, null veya undefined ise bu alanı kaldır
+    if (!req.body.family || req.body.family === '' || req.body.family === null) {
+      delete req.body.family;
+    }
+    
+    // Eğer parent alanı boş string, null veya undefined ise bu alanı kaldır
+    if (!req.body.parent || req.body.parent === '' || req.body.parent === null) {
+      delete req.body.parent;
+    }
+    
+    // parentCategory -> parent dönüşümü
+    if (req.body.parentCategory) {
+      req.body.parent = req.body.parentCategory;
+      delete req.body.parentCategory;
     }
     
     // Field isimleri dönüşümü
     const updateData = { ...req.body };
     
-    // parentCategory -> parent dönüşümü
-    if (updateData.parentCategory) {
-      updateData.parent = updateData.parentCategory;
-      delete updateData.parentCategory;
-    }
-    
-    // attributeGroups kontrolü
-    if (updateData.attributeGroups) {
-      updateData.attributeGroups = Array.isArray(updateData.attributeGroups) 
-        ? updateData.attributeGroups 
-        : [updateData.attributeGroups];
-    }
-    // Eski attributeGroup -> attributeGroups dönüşümü
-    else if (updateData.attributeGroup) {
-      updateData.attributeGroups = Array.isArray(updateData.attributeGroup) 
-        ? updateData.attributeGroup 
-        : [updateData.attributeGroup];
-      delete updateData.attributeGroup;
-    }
-
-    
-    const category = await Category.findByIdAndUpdate(
+    // Kategoriyi güncelle
+    const updatedCategory = await Category.findByIdAndUpdate(
       id,
       updateData,
-      { new: true, runValidators: true }
-    )
-    .populate({
-      path: 'family',
-      select: 'name code description'
-    })
-    .populate({
-      path: 'parent',
-      select: 'name code description'
-    })
-    .populate({
-      path: 'attributeGroups',
-      select: 'name code description'
-    })
-    .populate({
-      path: 'attributes',
-      select: 'name code type description'
-    });
-    
-    if (!category) {    
-      res.status(404).json({
-        success: false,
-        message: 'Kategori bulunamadı'
+      { 
+        new: true, 
+        runValidators: true,
+        populate: [
+          { path: 'name', model: 'Localization' },
+          { path: 'description', model: 'Localization' },
+          { path: 'parent', populate: { path: 'name', model: 'Localization' } },
+          { path: 'family', populate: { path: 'name', model: 'Localization' } },
+          { path: 'attributes', populate: { path: 'name', model: 'Localization' } },
+          { path: 'attributeGroups', populate: { path: 'name', model: 'Localization' } }
+        ]
+      }
+    );
+
+    if (!updatedCategory) {
+      res.status(404).json({ 
+        success: false, 
+        message: 'Kategori bulunamadı' 
       });
       return;
     }
-    
-    // History kaydı oluştur
-    if (req.user && typeof req.user === 'object' && '_id' in req.user) {
-      const userId = String(req.user._id);
-      
-      try {
-        // Sadece temel alanları karşılaştır
-        const previousData = {
-          name: String(oldCategory.name),
-          code: oldCategory.code,
-          description: String(oldCategory.description),
-          isActive: oldCategory.isActive,
-          family: String(oldCategory.family || ''),
-          parent: String(oldCategory.parent || ''),
-          attributeGroups: (oldCategory.attributeGroups || []).map(id => String(id))
-        };
-        
-        const newData = {
-          name: String(category.name),
-          code: category.code,
-          description: String(category.description),
-          isActive: category.isActive,
-          family: String(category.family || ''),
-          parent: String(category.parent || ''),
-          attributeGroups: (category.attributeGroups || []).map(id => String(id))
-        };
-        
-        await historyService.recordHistory({
-          entityType: EntityType.CATEGORY,
-          entityId: String(category._id),
-          entityName: category.code,
-          action: ActionType.UPDATE,
-          userId: userId,
-          previousData,
-          newData
-        });
-      } catch (historyError) {
-        console.error('History update failed for category:', historyError);
-        // History hatası güncellemeyi engellemesin
-      }
+
+    // Bidirectional sync - Family değişikliği varsa
+    if (oldFamilyId !== newFamilyId) {
+      await syncCategoryFamilyRelationship(id, newFamilyId, oldFamilyId, req.body.comment);
     }
-    
+
+    // History kaydı oluştur
+    if (req.body.comment || Object.keys(updateData).length > 0) {
+      await historyService.recordHistory({
+        entityType: EntityType.CATEGORY,
+        entityId: id,
+        entityName: updatedCategory.code,
+        action: ActionType.UPDATE,
+        userId: String(req.user?._id),
+        previousData: {
+          name: String(existingCategory.name),
+          code: existingCategory.code,
+          description: String(existingCategory.description),
+          isActive: existingCategory.isActive,
+          family: String(existingCategory.family || ''),
+          parent: String(existingCategory.parent || ''),
+          attributeGroups: (existingCategory.attributeGroups || []).map(id => String(id))
+        },
+        newData: updateData,
+        comment: req.body.comment
+      });
+    }
+
     res.status(200).json({
       success: true,
-      data: category
+      message: 'Kategori başarıyla güncellendi',
+      data: updatedCategory
     });
+
   } catch (error: any) {
-    console.error('Error updating category:', error);
-    res.status(400).json({
-      success: false,
-      message: error.message || 'Kategori güncellenirken bir hata oluştu'
-    });
+    console.error('Category update error:', error);
+    
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+      res.status(400).json({
+        success: false,
+        message: 'Doğrulama hatası',
+        errors: validationErrors
+      });
+      return;
+    }
+
+    if (error.name === 'CastError') {
+      res.status(400).json({
+        success: false,
+        message: 'Geçersiz kategori ID formatı'
+      });
+      return;
+    }
+
+    next(error);
   }
 };
 
