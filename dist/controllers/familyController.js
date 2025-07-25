@@ -282,6 +282,7 @@ const createFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 ...allAttributes
             ]));
         }
+        // Eğer sadece attributes belirtilmişse ve attributeGroups belirtilmemişse, attributes'ı olduğu gibi bırak
         const family = yield Family_1.default.create(req.body);
         // History kaydı oluştur
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
@@ -368,6 +369,9 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             });
             return;
         }
+        // Comment'i al ve body'den çıkar
+        const comment = req.body.comment;
+        delete req.body.comment;
         // Eğer itemType alanı boş string ise bu alanı kaldır
         if (req.body.itemType === '') {
             delete req.body.itemType;
@@ -389,25 +393,41 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 ...allAttributes
             ]));
         }
-        else {
-            // AttributeGroups boşsa, attributes da boş olmalı
-            req.body.attributes = [];
-        }
+        // Eğer sadece attributes değişmişse ve attributeGroups değişmemişse, attributes'ı olduğu gibi bırak
         const family = yield Family_1.default.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+            .populate('name')
+            .populate('description')
             .populate('itemType')
-            .populate('parent')
+            .populate({
+            path: 'parent',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
+            .populate({
+            path: 'category',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
             .populate({
             path: 'attributeGroups',
             populate: [
-                { path: 'name', select: 'key namespace translations' },
-                { path: 'description', select: 'key namespace translations' }
+                { path: 'name' },
+                { path: 'description' },
+                { path: 'attributes', populate: [
+                        { path: 'name' },
+                        { path: 'description' }
+                    ] }
             ]
         })
             .populate({
             path: 'attributes',
             populate: [
-                { path: 'name', select: 'key namespace translations' },
-                { path: 'description', select: 'key namespace translations' }
+                { path: 'name' },
+                { path: 'description' }
             ]
         });
         if (!family) {
@@ -421,25 +441,44 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);
             try {
-                yield historyService_1.default.recordHistory({
-                    entityType: Entity_1.EntityType.FAMILY,
-                    entityId: String(family._id),
-                    entityName: String(family.name),
-                    action: History_1.ActionType.UPDATE,
-                    userId: userId,
-                    previousData: {
-                        name: String(oldFamily.name),
-                        code: oldFamily.code,
-                        description: String(oldFamily.description || ''),
-                        isActive: oldFamily.isActive
-                    },
-                    newData: {
-                        name: String(family.name),
-                        code: family.code,
-                        description: String(family.description || ''),
-                        isActive: family.isActive
-                    }
-                });
+                // Sadece değişen alanları belirle
+                const changes = {};
+                const previousData = {};
+                const newData = {};
+                if (req.body.name !== undefined && String(oldFamily.name) !== String(family.name)) {
+                    changes.name = { from: String(oldFamily.name), to: String(family.name) };
+                    previousData.name = String(oldFamily.name);
+                    newData.name = String(family.name);
+                }
+                if (req.body.code !== undefined && oldFamily.code !== family.code) {
+                    changes.code = { from: oldFamily.code, to: family.code };
+                    previousData.code = oldFamily.code;
+                    newData.code = family.code;
+                }
+                if (req.body.description !== undefined && String(oldFamily.description || '') !== String(family.description || '')) {
+                    changes.description = { from: String(oldFamily.description || ''), to: String(family.description || '') };
+                    previousData.description = String(oldFamily.description || '');
+                    newData.description = String(family.description || '');
+                }
+                if (req.body.isActive !== undefined && oldFamily.isActive !== family.isActive) {
+                    changes.isActive = { from: oldFamily.isActive, to: family.isActive };
+                    previousData.isActive = oldFamily.isActive;
+                    newData.isActive = family.isActive;
+                }
+                // Sadece değişiklik varsa history kaydı oluştur
+                if (Object.keys(changes).length > 0) {
+                    yield historyService_1.default.recordHistory({
+                        entityType: Entity_1.EntityType.FAMILY,
+                        entityId: String(family._id),
+                        entityName: String(family.name),
+                        action: History_1.ActionType.UPDATE,
+                        userId: userId,
+                        previousData,
+                        newData,
+                        comment: comment || undefined,
+                        changes: Object.keys(changes).length > 0 ? changes : undefined
+                    });
+                }
             }
             catch (historyError) {
                 console.error('History update failed for family:', historyError);

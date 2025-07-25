@@ -258,6 +258,7 @@ export const createFamily = async (req: Request, res: Response, next: NextFuncti
         ...allAttributes
       ]));
     }
+    // Eğer sadece attributes belirtilmişse ve attributeGroups belirtilmemişse, attributes'ı olduğu gibi bırak
     
     const family = await Family.create(req.body);
     
@@ -377,10 +378,8 @@ export const updateFamily = async (req: Request, res: Response, next: NextFuncti
         ...(req.body.attributes || []),
         ...allAttributes
       ]));
-    } else {
-      // AttributeGroups boşsa, attributes da boş olmalı
-      req.body.attributes = [];
     }
+    // Eğer sadece attributes değişmişse ve attributeGroups değişmemişse, attributes'ı olduğu gibi bırak
     
     const family = await Family.findByIdAndUpdate(
       req.params.id,
