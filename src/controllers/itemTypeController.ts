@@ -123,20 +123,36 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
           { path: 'description', select: 'key namespace translations' },
           {
             path: 'attributes',
-            select: 'name code type description isRequired isActive',
+            select: 'name code type description isRequired isActive options',
             populate: [
               { path: 'name', select: 'key namespace translations' },
-              { path: 'description', select: 'key namespace translations' }
+              { path: 'description', select: 'key namespace translations' },
+              {
+                path: 'options',
+                select: 'name code type description isActive',
+                populate: [
+                  { path: 'name', select: 'key namespace translations' },
+                  { path: 'description', select: 'key namespace translations' }
+                ]
+              }
             ]
           }
         ]
       })
       .populate({
         path: 'attributes',
-        select: 'name code type description isRequired isActive',
+        select: 'name code type description isRequired isActive options',
         populate: [
           { path: 'name', select: 'key namespace translations' },
-          { path: 'description', select: 'key namespace translations' }
+          { path: 'description', select: 'key namespace translations' },
+          {
+            path: 'options',
+            select: 'name code type description isActive',
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' }
+            ]
+          }
         ]
       })
       .lean();
@@ -169,10 +185,18 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
           { path: 'description', select: 'key namespace translations' },
           {
             path: 'attributes',
-            select: 'name code type description isRequired isActive',
+            select: 'name code type description isRequired isActive options',
             populate: [
               { path: 'name', select: 'key namespace translations' },
-              { path: 'description', select: 'key namespace translations' }
+              { path: 'description', select: 'key namespace translations' },
+              {
+                path: 'options',
+                select: 'name code type description isActive',
+                populate: [
+                  { path: 'name', select: 'key namespace translations' },
+                  { path: 'description', select: 'key namespace translations' }
+                ]
+              }
             ]
           }
         ]
@@ -189,10 +213,18 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
             { path: 'description', select: 'key namespace translations' },
             {
               path: 'attributes',
-              select: 'name code type description isRequired isActive',
+              select: 'name code type description isRequired isActive options',
               populate: [
                 { path: 'name', select: 'key namespace translations' },
-                { path: 'description', select: 'key namespace translations' }
+                { path: 'description', select: 'key namespace translations' },
+                {
+                  path: 'options',
+                  select: 'name code type description isActive',
+                  populate: [
+                    { path: 'name', select: 'key namespace translations' },
+                    { path: 'description', select: 'key namespace translations' }
+                  ]
+                }
               ]
             }
           ]
@@ -221,10 +253,18 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
             { path: 'description', select: 'key namespace translations' },
             {
               path: 'attributes',
-              select: 'name code type description isRequired isActive',
+              select: 'name code type description isRequired isActive options',
               populate: [
                 { path: 'name', select: 'key namespace translations' },
-                { path: 'description', select: 'key namespace translations' }
+                { path: 'description', select: 'key namespace translations' },
+                {
+                  path: 'options',
+                  select: 'name code type description isActive',
+                  populate: [
+                    { path: 'name', select: 'key namespace translations' },
+                    { path: 'description', select: 'key namespace translations' }
+                  ]
+                }
               ]
             }
           ]
@@ -243,10 +283,18 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
                 { path: 'description', select: 'key namespace translations' },
                 {
                   path: 'attributes',
-                  select: 'name code type description isRequired isActive',
+                  select: 'name code type description isRequired isActive options',
                   populate: [
                     { path: 'name', select: 'key namespace translations' },
-                    { path: 'description', select: 'key namespace translations' }
+                    { path: 'description', select: 'key namespace translations' },
+                    {
+                      path: 'options',
+                      select: 'name code type description isActive',
+                      populate: [
+                        { path: 'name', select: 'key namespace translations' },
+                        { path: 'description', select: 'key namespace translations' }
+                      ]
+                    }
                   ]
                 }
               ]
