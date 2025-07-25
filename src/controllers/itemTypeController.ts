@@ -141,14 +141,136 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
       })
       .lean();
     
-    if (!itemType) {
+        if (!itemType) {
       res.status(404).json({
         success: false,
         message: 'Öğe tipi bulunamadı'
       });
       return;
     }
-    
+
+    // Kategori hiyerarşisini ve family'leri populate et
+    if (itemType.category) {
+      const Category = require('../models/Category').default;
+      const Family = require('../models/Family').default;
+
+      // Alt kategorileri bul ve populate et
+      const subcategories = await Category.find({
+        parent: (itemType.category as any)._id,
+        isActive: true
+      })
+      .populate({ path: 'name', select: 'key namespace translations' })
+      .populate({ path: 'description', select: 'key namespace translations' })
+      .populate({
+        path: 'attributeGroups',
+        select: 'name code description attributes isActive',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' },
+          {
+            path: 'attributes',
+            select: 'name code type description isRequired isActive',
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' }
+            ]
+          }
+        ]
+      })
+      .lean();
+
+      // Ana kategorinin attribute groups'larını da populate et
+      const mainCategory = await Category.findById((itemType.category as any)._id)
+        .populate({
+          path: 'attributeGroups',
+          select: 'name code description attributes isActive',
+          populate: [
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' },
+            {
+              path: 'attributes',
+              select: 'name code type description isRequired isActive',
+              populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+              ]
+            }
+          ]
+        })
+        .lean();
+
+      if (mainCategory) {
+        (itemType as any).category = mainCategory;
+      }
+      (itemType as any).category.subcategories = subcategories;
+
+      // Recursive function to get families for a category, including subfamilies
+      const getAllFamiliesForCategory = async (categoryId: string): Promise<any[]> => {
+        const families = await Family.find({
+          category: categoryId,
+          isActive: true
+        })
+        .populate({ path: 'name', select: 'key namespace translations' })
+        .populate({ path: 'description', select: 'key namespace translations' })
+        .populate({ path: 'parent', select: 'name code description isActive' })
+        .populate({
+          path: 'attributeGroups',
+          select: 'name code description attributes isActive',
+          populate: [
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' },
+            {
+              path: 'attributes',
+              select: 'name code type description isRequired isActive',
+              populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+              ]
+            }
+          ]
+        })
+        .populate({
+          path: 'subFamilies',
+          select: 'name code description attributeGroups isActive',
+          populate: [
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' },
+            {
+              path: 'attributeGroups',
+              select: 'name code description attributes isActive',
+              populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' },
+                {
+                  path: 'attributes',
+                  select: 'name code type description isRequired isActive',
+                  populate: [
+                    { path: 'name', select: 'key namespace translations' },
+                    { path: 'description', select: 'key namespace translations' }
+                  ]
+                }
+              ]
+            }
+          ]
+        })
+        .lean();
+
+        return families;
+      };
+
+      // Ana kategorinin families'lerini bul ve populate et
+      const families = await getAllFamiliesForCategory(String((itemType.category as any)._id));
+      console.log(`Ana kategori ${(itemType.category as any)._id} için bulunan families:`, families.length);
+      (itemType as any).category.families = families;
+
+      // Alt kategorilerin families'lerini de bul
+      for (const subcat of subcategories) {
+        const subcatFamilies = await getAllFamiliesForCategory(String(subcat._id));
+        console.log(`Alt kategori ${subcat._id} (${subcat.code}) için bulunan families:`, subcatFamilies.length);
+        (subcat as any).families = subcatFamilies;
+      }
+    }
+
     res.status(200).json({
       success: true,
       data: itemType

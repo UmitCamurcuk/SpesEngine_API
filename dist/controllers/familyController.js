@@ -50,6 +50,47 @@ const Family_1 = __importDefault(require("../models/Family"));
 const historyService_1 = __importDefault(require("../services/historyService"));
 const History_1 = require("../models/History");
 const Entity_1 = require("../models/Entity");
+// Parent-Child ilişkisini senkronize et
+function syncParentChildRelationship(childId, parentId, action, userId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            if (action === 'add') {
+                // Parent'ın subFamilies listesine child'ı ekle
+                yield Family_1.default.findByIdAndUpdate(parentId, { $addToSet: { subFamilies: childId } }, { new: true });
+                // History kaydı
+                if (userId) {
+                    yield historyService_1.default.recordHistory({
+                        entityType: Entity_1.EntityType.FAMILY,
+                        entityId: parentId,
+                        action: History_1.ActionType.UPDATE,
+                        userId: String(userId),
+                        changes: { subFamilies: { action: 'add', value: childId } },
+                        comment: `Alt aile eklendi: ${childId}`
+                    });
+                }
+            }
+            else if (action === 'remove') {
+                // Parent'ın subFamilies listesinden child'ı çıkar
+                yield Family_1.default.findByIdAndUpdate(parentId, { $pull: { subFamilies: childId } }, { new: true });
+                // History kaydı
+                if (userId) {
+                    yield historyService_1.default.recordHistory({
+                        entityType: Entity_1.EntityType.FAMILY,
+                        entityId: parentId,
+                        action: History_1.ActionType.UPDATE,
+                        userId: String(userId),
+                        changes: { subFamilies: { action: 'remove', value: childId } },
+                        comment: `Alt aile çıkarıldı: ${childId}`
+                    });
+                }
+            }
+        }
+        catch (error) {
+            console.error('Parent-Child relationship sync error:', error);
+            // Hata family oluşturmayı engellemsin
+        }
+    });
+}
 const Category_1 = __importDefault(require("../models/Category"));
 // GET tüm aileleri getir
 const getFamilies = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -169,6 +210,27 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 { path: 'description' }
             ]
         })
+            .populate({
+            path: 'subFamilies',
+            populate: [
+                { path: 'name' },
+                { path: 'description' },
+                {
+                    path: 'attributeGroups',
+                    populate: [
+                        { path: 'name' },
+                        { path: 'description' },
+                        {
+                            path: 'attributes',
+                            populate: [
+                                { path: 'name' },
+                                { path: 'description' }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        })
             .populate(includeAttributes ? {
             path: 'attributes',
             populate: [
@@ -261,6 +323,7 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
 exports.getFamilyById = getFamilyById;
 // POST yeni aile oluştur
 const createFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         // Eğer itemType alanı boş string, null veya undefined ise bu alanı kaldır
         if (!req.body.itemType || req.body.itemType === '' || req.body.itemType === null) {
@@ -274,21 +337,15 @@ const createFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         if (!req.body.parent || req.body.parent === '' || req.body.parent === null) {
             delete req.body.parent;
         }
-        // AttributeGroups belirlenmişse, içindeki attribute'ları da ekle
-        if (req.body.attributeGroups && req.body.attributeGroups.length > 0) {
-            const attributeGroupIds = req.body.attributeGroups;
-            // AttributeGroup'lara ait tüm attribute'ları getir
-            const allAttributes = yield (yield Promise.resolve().then(() => __importStar(require('../models/AttributeGroup')))).default
-                .find({ _id: { $in: attributeGroupIds } })
-                .distinct('attributes');
-            // Body'ye attributes dizisini ekle veya güncelle
-            req.body.attributes = Array.from(new Set([
-                ...(req.body.attributes || []),
-                ...allAttributes
-            ]));
-        }
-        // Eğer sadece attributes belirtilmişse ve attributeGroups belirtilmemişse, attributes'ı olduğu gibi bırak
         const family = yield Family_1.default.create(req.body);
+        // Parent-Child ilişkisini senkronize et (YENİ)
+        if (family.parent) {
+            yield syncParentChildRelationship(String(family._id), String(family.parent), 'add', (_a = req.user) === null || _a === void 0 ? void 0 : _a._id);
+        }
+        // Kategori-Familie ilişkisini senkronize et
+        if (family.category) {
+            yield syncFamilyCategoryRelationship(String(family._id), String(family.category), undefined, 'Aile oluşturuldu');
+        }
         // History kaydı oluştur
         if (req.user && typeof req.user === 'object' && '_id' in req.user) {
             const userId = String(req.user._id);

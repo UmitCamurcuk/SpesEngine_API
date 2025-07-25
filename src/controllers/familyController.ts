@@ -3,6 +3,59 @@ import Family from '../models/Family';
 import historyService from '../services/historyService';
 import { ActionType } from '../models/History';
 import { EntityType } from '../models/Entity';
+
+// Parent-Child ilişkisini senkronize et
+async function syncParentChildRelationship(
+  childId: string, 
+  parentId: string, 
+  action: 'add' | 'remove', 
+  userId?: any
+): Promise<void> {
+  try {
+    if (action === 'add') {
+      // Parent'ın subFamilies listesine child'ı ekle
+      await Family.findByIdAndUpdate(
+        parentId,
+        { $addToSet: { subFamilies: childId } },
+        { new: true }
+      );
+      
+      // History kaydı
+      if (userId) {
+        await historyService.recordHistory({
+          entityType: EntityType.FAMILY,
+          entityId: parentId,
+          action: ActionType.UPDATE,
+          userId: String(userId),
+          changes: { subFamilies: { action: 'add', value: childId } },
+          comment: `Alt aile eklendi: ${childId}`
+        });
+      }
+    } else if (action === 'remove') {
+      // Parent'ın subFamilies listesinden child'ı çıkar
+      await Family.findByIdAndUpdate(
+        parentId,
+        { $pull: { subFamilies: childId } },
+        { new: true }
+      );
+      
+      // History kaydı
+      if (userId) {
+        await historyService.recordHistory({
+          entityType: EntityType.FAMILY,
+          entityId: parentId,
+          action: ActionType.UPDATE,
+          userId: String(userId),
+          changes: { subFamilies: { action: 'remove', value: childId } },
+          comment: `Alt aile çıkarıldı: ${childId}`
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Parent-Child relationship sync error:', error);
+    // Hata family oluşturmayı engellemsin
+  }
+}
 import Category from '../models/Category';
 
 // GET tüm aileleri getir
@@ -132,6 +185,27 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
           { path: 'description' }
         ]
       })
+      .populate({
+        path: 'subFamilies',
+        populate: [
+          { path: 'name' },
+          { path: 'description' },
+          {
+            path: 'attributeGroups',
+            populate: [
+              { path: 'name' },
+              { path: 'description' },
+              {
+                path: 'attributes',
+                populate: [
+                  { path: 'name' },
+                  { path: 'description' }
+                ]
+              }
+            ]
+          }
+        ]
+      })
       .populate(includeAttributes ? {
         path: 'attributes',
         populate: [
@@ -249,24 +323,17 @@ export const createFamily = async (req: Request, res: Response, next: NextFuncti
       delete req.body.parent;
     }
     
-    // AttributeGroups belirlenmişse, içindeki attribute'ları da ekle
-    if (req.body.attributeGroups && req.body.attributeGroups.length > 0) {
-      const attributeGroupIds = req.body.attributeGroups;
-      
-      // AttributeGroup'lara ait tüm attribute'ları getir
-      const allAttributes = await (await import('../models/AttributeGroup')).default
-        .find({ _id: { $in: attributeGroupIds } })
-        .distinct('attributes');
-      
-      // Body'ye attributes dizisini ekle veya güncelle
-      req.body.attributes = Array.from(new Set([
-        ...(req.body.attributes || []),
-        ...allAttributes
-      ]));
-    }
-    // Eğer sadece attributes belirtilmişse ve attributeGroups belirtilmemişse, attributes'ı olduğu gibi bırak
-    
     const family = await Family.create(req.body);
+    
+    // Parent-Child ilişkisini senkronize et (YENİ)
+    if (family.parent) {
+      await syncParentChildRelationship(String(family._id), String(family.parent), 'add', req.user?._id);
+    }
+    
+    // Kategori-Familie ilişkisini senkronize et
+    if (family.category) {
+      await syncFamilyCategoryRelationship(String(family._id), String(family.category), undefined, 'Aile oluşturuldu');
+    }
     
     // History kaydı oluştur
     if (req.user && typeof req.user === 'object' && '_id' in req.user) {

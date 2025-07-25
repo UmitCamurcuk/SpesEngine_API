@@ -36,50 +36,47 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const FamilySchema = new mongoose_1.Schema({
     name: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
+        type: mongoose_1.Schema.Types.ObjectId,
         ref: 'Localization',
-        required: [true, 'Aile adı zorunludur']
+        required: true
     },
     code: {
         type: String,
-        required: [true, 'Aile kodu zorunludur'],
+        required: true,
         unique: true,
         trim: true
     },
     description: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'Localization',
-        required: [true, 'Aile açıklaması zorunludur']
-    },
-    itemType: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'ItemType',
-        required: false
-    },
-    category: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'Category',
-        required: false
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Localization'
     },
     parent: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
+        type: mongoose_1.Schema.Types.ObjectId,
         ref: 'Family',
         required: false
     },
-    attributeGroups: [
-        {
-            type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: 'AttributeGroup',
-            required: false
-        }
-    ],
-    attributes: [
-        {
-            type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: 'Attribute',
-            required: false
-        }
-    ],
+    subFamilies: [{
+            type: mongoose_1.Schema.Types.ObjectId,
+            ref: 'Family'
+        }],
+    category: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: false
+    },
+    itemType: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'ItemType',
+        required: false
+    },
+    attributeGroups: [{
+            type: mongoose_1.Schema.Types.ObjectId,
+            ref: 'AttributeGroup'
+        }],
+    attributes: [{
+            type: mongoose_1.Schema.Types.ObjectId,
+            ref: 'Attribute'
+        }],
     isActive: {
         type: Boolean,
         default: true
@@ -87,4 +84,11 @@ const FamilySchema = new mongoose_1.Schema({
 }, {
     timestamps: true
 });
+// Indexes for performance
+FamilySchema.index({ parent: 1 });
+FamilySchema.index({ category: 1 });
+FamilySchema.index({ itemType: 1 });
+FamilySchema.index({ code: 1 });
+FamilySchema.index({ isActive: 1 });
+FamilySchema.index({ parent: 1, isActive: 1 }); // Compound index for subfamily queries
 exports.default = mongoose_1.default.model('Family', FamilySchema);

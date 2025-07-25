@@ -153,6 +153,120 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             });
             return;
         }
+        // Kategori hiyerarşisini ve family'leri populate et
+        if (itemType.category) {
+            const Category = require('../models/Category').default;
+            const Family = require('../models/Family').default;
+            // Alt kategorileri bul ve populate et
+            const subcategories = yield Category.find({
+                parent: itemType.category._id,
+                isActive: true
+            })
+                .populate({ path: 'name', select: 'key namespace translations' })
+                .populate({ path: 'description', select: 'key namespace translations' })
+                .populate({
+                path: 'attributeGroups',
+                select: 'name code description attributes isActive',
+                populate: [
+                    { path: 'name', select: 'key namespace translations' },
+                    { path: 'description', select: 'key namespace translations' },
+                    {
+                        path: 'attributes',
+                        select: 'name code type description isRequired isActive',
+                        populate: [
+                            { path: 'name', select: 'key namespace translations' },
+                            { path: 'description', select: 'key namespace translations' }
+                        ]
+                    }
+                ]
+            })
+                .lean();
+            // Ana kategorinin attribute groups'larını da populate et
+            const mainCategory = yield Category.findById(itemType.category._id)
+                .populate({
+                path: 'attributeGroups',
+                select: 'name code description attributes isActive',
+                populate: [
+                    { path: 'name', select: 'key namespace translations' },
+                    { path: 'description', select: 'key namespace translations' },
+                    {
+                        path: 'attributes',
+                        select: 'name code type description isRequired isActive',
+                        populate: [
+                            { path: 'name', select: 'key namespace translations' },
+                            { path: 'description', select: 'key namespace translations' }
+                        ]
+                    }
+                ]
+            })
+                .lean();
+            if (mainCategory) {
+                itemType.category = mainCategory;
+            }
+            itemType.category.subcategories = subcategories;
+            // Recursive function to get families for a category, including subfamilies
+            const getAllFamiliesForCategory = (categoryId) => __awaiter(void 0, void 0, void 0, function* () {
+                const families = yield Family.find({
+                    category: categoryId,
+                    isActive: true
+                })
+                    .populate({ path: 'name', select: 'key namespace translations' })
+                    .populate({ path: 'description', select: 'key namespace translations' })
+                    .populate({ path: 'parent', select: 'name code description isActive' })
+                    .populate({
+                    path: 'attributeGroups',
+                    select: 'name code description attributes isActive',
+                    populate: [
+                        { path: 'name', select: 'key namespace translations' },
+                        { path: 'description', select: 'key namespace translations' },
+                        {
+                            path: 'attributes',
+                            select: 'name code type description isRequired isActive',
+                            populate: [
+                                { path: 'name', select: 'key namespace translations' },
+                                { path: 'description', select: 'key namespace translations' }
+                            ]
+                        }
+                    ]
+                })
+                    .populate({
+                    path: 'subFamilies',
+                    select: 'name code description attributeGroups isActive',
+                    populate: [
+                        { path: 'name', select: 'key namespace translations' },
+                        { path: 'description', select: 'key namespace translations' },
+                        {
+                            path: 'attributeGroups',
+                            select: 'name code description attributes isActive',
+                            populate: [
+                                { path: 'name', select: 'key namespace translations' },
+                                { path: 'description', select: 'key namespace translations' },
+                                {
+                                    path: 'attributes',
+                                    select: 'name code type description isRequired isActive',
+                                    populate: [
+                                        { path: 'name', select: 'key namespace translations' },
+                                        { path: 'description', select: 'key namespace translations' }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                })
+                    .lean();
+                return families;
+            });
+            // Ana kategorinin families'lerini bul ve populate et
+            const families = yield getAllFamiliesForCategory(String(itemType.category._id));
+            console.log(`Ana kategori ${itemType.category._id} için bulunan families:`, families.length);
+            itemType.category.families = families;
+            // Alt kategorilerin families'lerini de bul
+            for (const subcat of subcategories) {
+                const subcatFamilies = yield getAllFamiliesForCategory(String(subcat._id));
+                console.log(`Alt kategori ${subcat._id} (${subcat.code}) için bulunan families:`, subcatFamilies.length);
+                subcat.families = subcatFamilies;
+            }
+        }
         res.status(200).json({
             success: true,
             data: itemType
