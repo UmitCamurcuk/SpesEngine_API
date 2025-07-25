@@ -74,13 +74,109 @@ export const getItems = async (req: Request, res: Response, next: NextFunction):
   }
 };
 
-// GET belirli bir öğeyi getir
+// GET belirli bir öğeyi getir - Modern full hierarchy approach
 export const getItemById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const Family = require('../models/Family').default;
+    
+    console.log('🔍 Fetching item with ID:', req.params.id);
+    
+    // 1. Temel item bilgilerini al
     const item = await Item.findById(req.params.id)
-      .populate('itemType')
-      .populate('family')
-      .populate('category');
+      .populate({
+        path: 'itemType',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' },
+          {
+            path: 'attributeGroups',
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' },
+              {
+                path: 'attributes',
+                select: 'name code type description isRequired isActive options',
+                populate: [
+                  { path: 'name', select: 'key namespace translations' },
+                  { path: 'description', select: 'key namespace translations' },
+                  {
+                    path: 'options',
+                    select: 'name code type description isActive',
+                    populate: [
+                      { path: 'name', select: 'key namespace translations' },
+                      { path: 'description', select: 'key namespace translations' }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      })
+      .populate({
+        path: 'category',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' },
+          { path: 'parent', select: 'name code description' },
+          {
+            path: 'attributeGroups',
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' },
+              {
+                path: 'attributes',
+                select: 'name code type description isRequired isActive options',
+                populate: [
+                  { path: 'name', select: 'key namespace translations' },
+                  { path: 'description', select: 'key namespace translations' },
+                  {
+                    path: 'options',
+                    select: 'name code type description isActive',
+                    populate: [
+                      { path: 'name', select: 'key namespace translations' },
+                      { path: 'description', select: 'key namespace translations' }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      })
+      .populate({
+        path: 'family',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' },
+          { path: 'parent', select: 'name code description' },
+          { path: 'category', select: 'name code description' },
+          {
+            path: 'attributeGroups',
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' },
+              {
+                path: 'attributes',
+                select: 'name code type description isRequired isActive options',
+                populate: [
+                  { path: 'name', select: 'key namespace translations' },
+                  { path: 'description', select: 'key namespace translations' },
+                  {
+                    path: 'options',
+                    select: 'name code type description isActive',
+                    populate: [
+                      { path: 'name', select: 'key namespace translations' },
+                      { path: 'description', select: 'key namespace translations' }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      })
+      .lean();
     
     if (!item) {
       res.status(404).json({
@@ -89,12 +185,177 @@ export const getItemById = async (req: Request, res: Response, next: NextFunctio
       });
       return;
     }
+
+    // 2. Category hierarchy'sini getir (parent categories)
+    if (item.category && (item.category as any)._id) {
+      const getCategoryHierarchy = async (categoryId: string): Promise<any[]> => {
+        const hierarchy: any[] = [];
+        let currentCategory = await Category.findById(categoryId)
+          .populate({ path: 'name', select: 'key namespace translations' })
+          .populate({ path: 'description', select: 'key namespace translations' })
+          .populate({
+            path: 'attributeGroups',
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' },
+              {
+                path: 'attributes',
+                select: 'name code type description isRequired isActive options',
+                populate: [
+                  { path: 'name', select: 'key namespace translations' },
+                  { path: 'description', select: 'key namespace translations' },
+                  {
+                    path: 'options',
+                    select: 'name code type description isActive',
+                    populate: [
+                      { path: 'name', select: 'key namespace translations' },
+                      { path: 'description', select: 'key namespace translations' }
+                    ]
+                  }
+                ]
+              }
+            ]
+          })
+          .populate('parent')
+          .lean();
+
+        while (currentCategory) {
+          hierarchy.unshift(currentCategory); // Beginning'e ekle
+          
+          if (currentCategory.parent) {
+            const parentId = typeof currentCategory.parent === 'string' 
+              ? currentCategory.parent 
+              : currentCategory.parent._id;
+            
+            currentCategory = await Category.findById(parentId)
+              .populate({ path: 'name', select: 'key namespace translations' })
+              .populate({ path: 'description', select: 'key namespace translations' })
+              .populate({
+                path: 'attributeGroups',
+                populate: [
+                  { path: 'name', select: 'key namespace translations' },
+                  { path: 'description', select: 'key namespace translations' },
+                  {
+                    path: 'attributes',
+                    select: 'name code type description isRequired isActive options',
+                    populate: [
+                      { path: 'name', select: 'key namespace translations' },
+                      { path: 'description', select: 'key namespace translations' },
+                      {
+                        path: 'options',
+                        select: 'name code type description isActive',
+                        populate: [
+                          { path: 'name', select: 'key namespace translations' },
+                          { path: 'description', select: 'key namespace translations' }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              })
+              .populate('parent')
+              .lean();
+          } else {
+            break;
+          }
+        }
+        
+        return hierarchy;
+      };
+
+      const categoryHierarchy = await getCategoryHierarchy(String((item.category as any)._id));
+      (item as any).categoryHierarchy = categoryHierarchy;
+    }
+
+    // 3. Family hierarchy'sini getir (parent families)
+    if (item.family && (item.family as any)._id) {
+      const getFamilyHierarchy = async (familyId: string): Promise<any[]> => {
+        const hierarchy: any[] = [];
+        let currentFamily = await Family.findById(familyId)
+          .populate({ path: 'name', select: 'key namespace translations' })
+          .populate({ path: 'description', select: 'key namespace translations' })
+          .populate({
+            path: 'attributeGroups',
+            populate: [
+              { path: 'name', select: 'key namespace translations' },
+              { path: 'description', select: 'key namespace translations' },
+              {
+                path: 'attributes',
+                select: 'name code type description isRequired isActive options',
+                populate: [
+                  { path: 'name', select: 'key namespace translations' },
+                  { path: 'description', select: 'key namespace translations' },
+                  {
+                    path: 'options',
+                    select: 'name code type description isActive',
+                    populate: [
+                      { path: 'name', select: 'key namespace translations' },
+                      { path: 'description', select: 'key namespace translations' }
+                    ]
+                  }
+                ]
+              }
+            ]
+          })
+          .populate('parent')
+          .lean();
+
+        while (currentFamily) {
+          hierarchy.unshift(currentFamily); // Beginning'e ekle
+          
+          if (currentFamily.parent) {
+            const parentId = typeof currentFamily.parent === 'string' 
+              ? currentFamily.parent 
+              : currentFamily.parent._id;
+            
+            currentFamily = await Family.findById(parentId)
+              .populate({ path: 'name', select: 'key namespace translations' })
+              .populate({ path: 'description', select: 'key namespace translations' })
+              .populate({
+                path: 'attributeGroups',
+                populate: [
+                  { path: 'name', select: 'key namespace translations' },
+                  { path: 'description', select: 'key namespace translations' },
+                  {
+                    path: 'attributes',
+                    select: 'name code type description isRequired isActive options',
+                    populate: [
+                      { path: 'name', select: 'key namespace translations' },
+                      { path: 'description', select: 'key namespace translations' },
+                      {
+                        path: 'options',
+                        select: 'name code type description isActive',
+                        populate: [
+                          { path: 'name', select: 'key namespace translations' },
+                          { path: 'description', select: 'key namespace translations' }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              })
+              .populate('parent')
+              .lean();
+          } else {
+            break;
+          }
+        }
+        
+        return hierarchy;
+      };
+
+      const familyHierarchy = await getFamilyHierarchy(String((item.family as any)._id));
+      (item as any).familyHierarchy = familyHierarchy;
+    }
+
+    console.log('✅ Item fetched successfully with full hierarchy');
     
     res.status(200).json({
       success: true,
       data: item
     });
   } catch (error: any) {
+    console.error('Item fetch error:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Öğe getirilirken bir hata oluştu'
@@ -102,22 +363,49 @@ export const getItemById = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
-// Yardımcı fonksiyon: itemType ve category'den zorunlu attribute'ları getir
-async function getRequiredAttributes(itemTypeId: string, categoryId: string) {
-  const itemType = await ItemType.findById(itemTypeId).populate({
-    path: 'attributes',
+// Modern yardımcı fonksiyon: Full hierarchy'den zorunlu attribute'ları getir
+async function getRequiredAttributesFromHierarchy(itemTypeId: string, categoryId: string, familyId: string) {
+  const Family = require('../models/Family').default;
+  let requiredAttributes: any[] = [];
+
+  // 1. ItemType'dan zorunlu attribute'ları al
+  const itemTypeIdStr = typeof itemTypeId === 'string' ? itemTypeId : String(itemTypeId);
+  
+  console.log('🔍 Looking for itemType with ID:', itemTypeIdStr);
+  
+  const itemType = await ItemType.findById(itemTypeIdStr).populate({
+    path: 'attributeGroups',
     populate: [
       { path: 'name', select: 'key namespace translations' },
-      { path: 'description', select: 'key namespace translations' }
+      { path: 'description', select: 'key namespace translations' },
+      {
+        path: 'attributes',
+        select: 'name code type description isRequired isActive',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      }
     ]
   });
-  let requiredAttributes: any[] = [];
-  if (itemType && itemType.attributes) {
-    requiredAttributes = requiredAttributes.concat(
-      (itemType.attributes as any[]).filter(attr => attr.isRequired)
-    );
+
+  if (itemType && itemType.attributeGroups) {
+    for (const group of (itemType.attributeGroups as any[])) {
+      if (group.attributes) {
+        requiredAttributes = requiredAttributes.concat(
+          (group.attributes as any[]).filter(attr => attr.isRequired)
+        );
+      }
+    }
   }
-  if (categoryId) {
+
+  // 2. Category hierarchy'sinden zorunlu attribute'ları al
+  const getCategoryHierarchy = async (catId: string): Promise<any[]> => {
+    // catId'nin string olduğundan emin ol
+    const categoryId = typeof catId === 'string' ? catId : String(catId);
+    
+    console.log('🔍 Looking for category with ID:', categoryId);
+    
     const category = await Category.findById(categoryId).populate({
       path: 'attributeGroups',
       populate: [
@@ -125,79 +413,198 @@ async function getRequiredAttributes(itemTypeId: string, categoryId: string) {
         { path: 'description', select: 'key namespace translations' },
         {
           path: 'attributes',
+          select: 'name code type description isRequired isActive',
           populate: [
             { path: 'name', select: 'key namespace translations' },
             { path: 'description', select: 'key namespace translations' }
           ]
         }
       ]
-    });
-    if (category && category.attributeGroups && (category.attributeGroups as any).length > 0) {
-      // Her bir attributeGroup için
-      for (const group of (category.attributeGroups as any)) {
-        if (group.attributes) {
-          requiredAttributes = requiredAttributes.concat(
-            (group.attributes as any[]).filter(attr => attr.isRequired)
-          );
+    }).populate('parent');
+
+    const hierarchy = [category];
+    
+    // Parent kategoriyi de ekle (recursive)
+    if (category && category.parent) {
+      let parentId: string;
+      
+      if (typeof category.parent === 'string') {
+        parentId = category.parent;
+      } else if (category.parent && typeof category.parent === 'object' && category.parent._id) {
+        parentId = String(category.parent._id);
+      } else {
+        parentId = String(category.parent);
+      }
+      
+      console.log('🔍 Looking for parent category with ID:', parentId);
+      const parentHierarchy = await getCategoryHierarchy(parentId);
+      hierarchy.push(...parentHierarchy);
+    }
+    
+    return hierarchy.filter(cat => cat); // null/undefined'ları filtrele
+  };
+
+  if (categoryId) {
+    const categoryHierarchy = await getCategoryHierarchy(categoryId);
+    for (const category of categoryHierarchy) {
+      if (category.attributeGroups) {
+        for (const group of (category.attributeGroups as any[])) {
+          if (group.attributes) {
+            requiredAttributes = requiredAttributes.concat(
+              (group.attributes as any[]).filter(attr => attr.isRequired)
+            );
+          }
         }
       }
     }
   }
-  // Aynı attribute birden fazla gelirse uniq yap
+
+  // 3. Family hierarchy'sinden zorunlu attribute'ları al
+  const getFamilyHierarchy = async (famId: string): Promise<any[]> => {
+    // famId'nin string olduğundan emin ol
+    const familyId = typeof famId === 'string' ? famId : String(famId);
+    
+    console.log('🔍 Looking for family with ID:', familyId);
+    
+    const family = await Family.findById(familyId).populate({
+      path: 'attributeGroups',
+      populate: [
+        { path: 'name', select: 'key namespace translations' },
+        { path: 'description', select: 'key namespace translations' },
+        {
+          path: 'attributes',
+          select: 'name code type description isRequired isActive',
+          populate: [
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' }
+          ]
+        }
+      ]
+    }).populate('parent');
+
+    const hierarchy = [family];
+    
+    // Parent family'i de ekle (recursive)
+    if (family && family.parent) {
+      let parentId: string;
+      
+      if (typeof family.parent === 'string') {
+        parentId = family.parent;
+      } else if (family.parent && typeof family.parent === 'object' && family.parent._id) {
+        parentId = String(family.parent._id);
+      } else {
+        parentId = String(family.parent);
+      }
+      
+      console.log('🔍 Looking for parent family with ID:', parentId);
+      const parentHierarchy = await getFamilyHierarchy(parentId);
+      hierarchy.push(...parentHierarchy);
+    }
+    
+    return hierarchy.filter(fam => fam); // null/undefined'ları filtrele
+  };
+
+  if (familyId) {
+    const familyHierarchy = await getFamilyHierarchy(familyId);
+    for (const family of familyHierarchy) {
+      if (family.attributeGroups) {
+        for (const group of (family.attributeGroups as any[])) {
+          if (group.attributes) {
+            requiredAttributes = requiredAttributes.concat(
+              (group.attributes as any[]).filter(attr => attr.isRequired)
+            );
+          }
+        }
+      }
+    }
+  }
+
+  // Duplicate'ları kaldır
   const uniq = (arr: any[]) => Array.from(new Map(arr.map(a => [a._id.toString(), a])).values());
   return uniq(requiredAttributes);
 }
 
-// POST yeni öğe oluştur
+// POST yeni öğe oluştur - Modern hierarchical approach
 export const createItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { itemType, family, category, attributeValues, isActive } = req.body;
+    const { itemType, family, category, attributes, isActive } = req.body;
 
-    // Zorunlu attribute kontrolü
-    const requiredAttributes = await getRequiredAttributes(itemType, category);
-    
-    // AttributeValues array'i varsa bir nesneye çevirelim
-    let attributes: Record<string, any> = {};
-    if (attributeValues && Array.isArray(attributeValues)) {
-      attributeValues.forEach(attr => {
-        if (attr.attributeId && attr.value !== undefined) {
-          attributes[attr.attributeId] = attr.value;
-        }
+    // Debug: Gelen payload'ı kontrol et
+    console.log('🔍 Received payload:', {
+      itemType,
+      family,
+      category,
+      attributes,
+      isActive
+    });
+
+    // Payload validation - ObjectId format kontrolü
+    if (!itemType || !family || !category) {
+      res.status(400).json({
+        success: false,
+        message: 'itemType, family ve category zorunludur'
       });
+      return;
     }
+
+    // String ID'leri kontrol et ve temizle
+    const cleanItemType = typeof itemType === 'string' ? itemType : itemType._id || itemType;
+    const cleanFamily = typeof family === 'string' ? family : family._id || family;
+    const cleanCategory = typeof category === 'string' ? category : category._id || category;
+
+    console.log('🔍 Cleaned IDs:', {
+      itemType: cleanItemType,
+      family: cleanFamily,
+      category: cleanCategory
+    });
+
+    // Zorunlu attribute kontrolü - Full hierarchy (ItemType + Category + Family)
+    const requiredAttributes = await getRequiredAttributesFromHierarchy(cleanItemType, cleanCategory, cleanFamily);
     
-    // Zorunlu attributelar için kontrol
-    const missing = requiredAttributes.filter(attr => !attributes || attributes[attr._id.toString()] == null || attributes[attr._id.toString()] === '');
+    // Frontend'den gelen attributes objesini al (modern format)
+    const itemAttributes: Record<string, any> = attributes || {};
+    
+    // Zorunlu attribute'lar için kontrol
+    const missing = requiredAttributes.filter((attr: any) => {
+      const value = itemAttributes[attr._id.toString()];
+      return value == null || value === '' || value === undefined;
+    });
+    
     if (missing.length > 0) {
       res.status(400).json({
         success: false,
         message: 'Zorunlu öznitelikler eksik',
-        missing: missing.map(a => a.name)
+        missing: missing.map((a: any) => a.name)
       });
       return;
     }
 
     // Öğe oluştur
     const item = await Item.create({
-      itemType,
-      family,
-      category,
-      attributes: attributes,
+      itemType: cleanItemType,
+      family: cleanFamily,
+      category: cleanCategory,
+      attributes: itemAttributes,
       isActive: isActive !== undefined ? isActive : true
     });
+
+    // Başarılı response
     res.status(201).json({
       success: true,
-      data: item
+      data: item,
+      message: 'Öğe başarıyla oluşturuldu'
     });
   } catch (error: any) {
+    console.error('Item creation error:', error);
+    
     if (error.code === 11000) {
-      // Duplicate key error
       res.status(400).json({
         success: false,
         message: 'Tekrarlayan veri hatası'
       });
       return;
     }
+    
     res.status(500).json({
       success: false,
       message: error.message || 'Öğe oluşturulurken bir hata oluştu'
@@ -210,15 +617,22 @@ export const updateItem = async (req: Request, res: Response, next: NextFunction
   try {
     // Güncellenecek alanları al
     const updates = { ...req.body };
-    // Zorunlu attribute kontrolü
-    const requiredAttributes = await getRequiredAttributes(updates.itemType, updates.category);
+    // Zorunlu attribute kontrolü - Full hierarchy
+    const requiredAttributes = await getRequiredAttributesFromHierarchy(
+      updates.itemType, 
+      updates.category, 
+      updates.family
+    );
     const attrs = updates.attributes || {};
-    const missing = requiredAttributes.filter(attr => !attrs || attrs[attr._id.toString()] == null || attrs[attr._id.toString()] === '');
+    const missing = requiredAttributes.filter((attr: any) => {
+      const value = attrs[attr._id.toString()];
+      return value == null || value === '' || value === undefined;
+    });
     if (missing.length > 0) {
       res.status(400).json({
         success: false,
         message: 'Zorunlu öznitelikler eksik',
-        missing: missing.map(a => a.name)
+        missing: missing.map((a: any) => a.name)
       });
       return;
     }
