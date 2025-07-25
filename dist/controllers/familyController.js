@@ -83,7 +83,13 @@ const getFamilies = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             .populate('name')
             .populate('description')
             .populate('itemType')
-            .populate('parent')
+            .populate({
+            path: 'parent',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
             .populate({
             path: 'category',
             populate: [
@@ -96,10 +102,13 @@ const getFamilies = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             populate: [
                 { path: 'name' },
                 { path: 'description' },
-                { path: 'attributes', populate: [
+                {
+                    path: 'attributes',
+                    populate: [
                         { path: 'name' },
                         { path: 'description' }
-                    ] }
+                    ]
+                }
             ]
         })
             .populate({
@@ -137,7 +146,7 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         // Query parametrelerini al
         const includeAttributes = req.query.includeAttributes === 'true';
         const includeAttributeGroups = req.query.includeAttributeGroups === 'true';
-        const populateAttributeGroupsAttributes = req.query.populateAttributeGroupsAttributes === 'true';
+        const populateAttributeGroupsAttributes = req.query.populateAttributeGroupsAttributes !== 'false'; // Varsayılan true
         // AttributeGroup modelini içe aktar
         const AttributeGroup = yield Promise.resolve().then(() => __importStar(require('../models/AttributeGroup')));
         // Önce temel Family verisini getir
@@ -145,7 +154,13 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             .populate('name')
             .populate('description')
             .populate('itemType')
-            .populate('parent')
+            .populate({
+            path: 'parent',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
             .populate({
             path: 'category',
             populate: [
@@ -176,15 +191,15 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 const groupIds = family.attributeGroups.map((g) => g.toString());
                 // AttributeGroup'ları ve içindeki öznitelikleri getir
                 const groups = yield AttributeGroup.default.find({ _id: { $in: groupIds } })
-                    .populate('name', 'key namespace translations')
-                    .populate('description', 'key namespace translations')
-                    .populate(populateAttributeGroupsAttributes ? {
+                    .populate('name')
+                    .populate('description')
+                    .populate({
                     path: 'attributes',
                     populate: [
-                        { path: 'name', select: 'key namespace translations' },
-                        { path: 'description', select: 'key namespace translations' }
+                        { path: 'name' },
+                        { path: 'description' }
                     ]
-                } : []);
+                });
                 // Yanıta ekle
                 response.attributeGroups = groups.map(g => g.toJSON());
             }
@@ -198,8 +213,8 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                     .populate({
                     path: 'attributes',
                     populate: [
-                        { path: 'name', select: 'key namespace translations' },
-                        { path: 'description', select: 'key namespace translations' }
+                        { path: 'name' },
+                        { path: 'description' }
                     ]
                 });
                 if (category && category.attributes) {
@@ -213,15 +228,15 @@ const getFamilyById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                     .populate({
                     path: 'attributeGroups',
                     populate: [
-                        { path: 'name', select: 'key namespace translations' },
-                        { path: 'description', select: 'key namespace translations' },
-                        ...(populateAttributeGroupsAttributes ? [{
-                                path: 'attributes',
-                                populate: [
-                                    { path: 'name', select: 'key namespace translations' },
-                                    { path: 'description', select: 'key namespace translations' }
-                                ]
-                            }] : [])
+                        { path: 'name' },
+                        { path: 'description' },
+                        {
+                            path: 'attributes',
+                            populate: [
+                                { path: 'name' },
+                                { path: 'description' }
+                            ]
+                        }
                     ]
                 });
                 if (category && category.attributeGroups) {
@@ -296,7 +311,13 @@ const createFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             .populate('name')
             .populate('description')
             .populate('itemType')
-            .populate('parent')
+            .populate({
+            path: 'parent',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
             .populate({
             path: 'category',
             populate: [
@@ -515,7 +536,34 @@ const getFamiliesByCategory = (req, res, next) => __awaiter(void 0, void 0, void
                 { path: 'description' }
             ]
         })
-            .populate('parent')
+            .populate({
+            path: 'parent',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
+            .populate({
+            path: 'attributeGroups',
+            populate: [
+                { path: 'name' },
+                { path: 'description' },
+                {
+                    path: 'attributes',
+                    populate: [
+                        { path: 'name' },
+                        { path: 'description' }
+                    ]
+                }
+            ]
+        })
+            .populate({
+            path: 'attributes',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
             .sort('name');
         res.status(200).json({
             success: true,
