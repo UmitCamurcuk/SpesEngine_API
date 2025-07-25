@@ -233,13 +233,18 @@ export const getFamilyById = async (req: Request, res: Response, next: NextFunct
 // POST yeni aile oluştur
 export const createFamily = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // Eğer itemType alanı boş string ise bu alanı kaldır
-    if (req.body.itemType === '') {
+    // Eğer itemType alanı boş string, null veya undefined ise bu alanı kaldır
+    if (!req.body.itemType || req.body.itemType === '' || req.body.itemType === null) {
       delete req.body.itemType;
     }
     
-    // Eğer parent alanı boş string ise bu alanı kaldır
-    if (req.body.parent === '') {
+    // Eğer category alanı boş string, null veya undefined ise bu alanı kaldır
+    if (!req.body.category || req.body.category === '' || req.body.category === null) {
+      delete req.body.category;
+    }
+    
+    // Eğer parent alanı boş string, null veya undefined ise bu alanı kaldır
+    if (!req.body.parent || req.body.parent === '' || req.body.parent === null) {
       delete req.body.parent;
     }
     
@@ -354,13 +359,18 @@ export const updateFamily = async (req: Request, res: Response, next: NextFuncti
     const comment = req.body.comment;
     delete req.body.comment;
     
-    // Eğer itemType alanı boş string ise bu alanı kaldır
-    if (req.body.itemType === '') {
+    // Eğer itemType alanı boş string, null veya undefined ise bu alanı kaldır
+    if (!req.body.itemType || req.body.itemType === '' || req.body.itemType === null) {
       delete req.body.itemType;
     }
     
-    // Eğer parent alanı boş string ise bu alanı kaldır
-    if (req.body.parent === '') {
+    // Eğer category alanı boş string, null veya undefined ise bu alanı kaldır
+    if (!req.body.category || req.body.category === '' || req.body.category === null) {
+      delete req.body.category;
+    }
+    
+    // Eğer parent alanı boş string, null veya undefined ise bu alanı kaldır
+    if (!req.body.parent || req.body.parent === '' || req.body.parent === null) {
       delete req.body.parent;
     }
     

@@ -5,7 +5,7 @@ export interface IFamily extends Document {
   code: string;
   description: mongoose.Types.ObjectId;
   itemType?: mongoose.Types.ObjectId;
-  category: mongoose.Types.ObjectId;
+  category?: mongoose.Types.ObjectId;
   parent?: mongoose.Types.ObjectId;
   attributeGroups?: mongoose.Types.ObjectId[];
   attributes?: mongoose.Types.ObjectId[];
@@ -40,7 +40,7 @@ const FamilySchema: Schema = new Schema(
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
-      required: [true, 'Kategori seçimi zorunludur']
+      required: false
     },
     parent: {
       type: mongoose.Schema.Types.ObjectId,

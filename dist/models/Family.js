@@ -59,7 +59,7 @@ const FamilySchema = new mongoose_1.Schema({
     category: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: 'Category',
-        required: [true, 'Kategori seçimi zorunludur']
+        required: false
     },
     parent: {
         type: mongoose_1.default.Schema.Types.ObjectId,

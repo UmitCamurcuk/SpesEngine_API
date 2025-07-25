@@ -261,12 +261,16 @@ exports.getFamilyById = getFamilyById;
 // POST yeni aile oluştur
 const createFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Eğer itemType alanı boş string ise bu alanı kaldır
-        if (req.body.itemType === '') {
+        // Eğer itemType alanı boş string, null veya undefined ise bu alanı kaldır
+        if (!req.body.itemType || req.body.itemType === '' || req.body.itemType === null) {
             delete req.body.itemType;
         }
-        // Eğer parent alanı boş string ise bu alanı kaldır
-        if (req.body.parent === '') {
+        // Eğer category alanı boş string, null veya undefined ise bu alanı kaldır
+        if (!req.body.category || req.body.category === '' || req.body.category === null) {
+            delete req.body.category;
+        }
+        // Eğer parent alanı boş string, null veya undefined ise bu alanı kaldır
+        if (!req.body.parent || req.body.parent === '' || req.body.parent === null) {
             delete req.body.parent;
         }
         // AttributeGroups belirlenmişse, içindeki attribute'ları da ekle
@@ -372,12 +376,16 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         // Comment'i al ve body'den çıkar
         const comment = req.body.comment;
         delete req.body.comment;
-        // Eğer itemType alanı boş string ise bu alanı kaldır
-        if (req.body.itemType === '') {
+        // Eğer itemType alanı boş string, null veya undefined ise bu alanı kaldır
+        if (!req.body.itemType || req.body.itemType === '' || req.body.itemType === null) {
             delete req.body.itemType;
         }
-        // Eğer parent alanı boş string ise bu alanı kaldır
-        if (req.body.parent === '') {
+        // Eğer category alanı boş string, null veya undefined ise bu alanı kaldır
+        if (!req.body.category || req.body.category === '' || req.body.category === null) {
+            delete req.body.category;
+        }
+        // Eğer parent alanı boş string, null veya undefined ise bu alanı kaldır
+        if (!req.body.parent || req.body.parent === '' || req.body.parent === null) {
             delete req.body.parent;
         }
         // AttributeGroups belirlenmişse, içindeki attribute'ları da ekle
