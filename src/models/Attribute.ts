@@ -24,6 +24,7 @@ export enum AttributeType {
   JSON = 'json',              // json - Serbest yapılandırılmış veri
   FORMULA = 'formula',        // formula - Dinamik hesaplama / formül
   EXPRESSION = 'expression',   // expression - Koşullu yapı, gösterim kuralları
+  TABLE = 'table',            // table - Tablo formatında veri (sipariş ölçüleri için)
   
   // UI / Görsel Bileşen Tipleri
   COLOR = 'color',            // color - Renk seçici
@@ -89,6 +90,20 @@ export interface IValidation {
   // Formula/Expression için
   variables?: string[]; // kullanılabilir değişkenler
   functions?: string[]; // kullanılabilir fonksiyonlar
+  
+  // Table için
+  columns?: Array<{
+    name: string;
+    type: 'text' | 'number' | 'date' | 'select';
+    required?: boolean;
+    options?: string[]; // select tipi için seçenekler
+    width?: number; // piksel cinsinden genişlik
+  }>;
+  minRows?: number;
+  maxRows?: number;
+  allowAddRows?: boolean;
+  allowDeleteRows?: boolean;
+  allowEditRows?: boolean;
   
   // Readonly için
   defaultValue?: any; // varsayılan değer
@@ -253,6 +268,16 @@ AttributeSchema.pre('save', function(next) {
       if (validations.maxRating !== undefined) validations.maxRating = Number(validations.maxRating);
       if (validations.allowHalfStars !== undefined) validations.allowHalfStars = Boolean(validations.allowHalfStars);
     }
+    
+    // TABLE tipi için validasyonları işle
+    if (this.type === AttributeType.TABLE) {
+      
+      if (validations.minRows !== undefined) validations.minRows = Number(validations.minRows);
+      if (validations.maxRows !== undefined) validations.maxRows = Number(validations.maxRows);
+      if (validations.allowAddRows !== undefined) validations.allowAddRows = Boolean(validations.allowAddRows);
+      if (validations.allowDeleteRows !== undefined) validations.allowDeleteRows = Boolean(validations.allowDeleteRows);
+      if (validations.allowEditRows !== undefined) validations.allowEditRows = Boolean(validations.allowEditRows);
+    }
   }
   
   next();
@@ -330,6 +355,28 @@ function processValidations(update: any) {
         validations.maxSelections = Number(validations.maxSelections);
       }
     }
+    
+    // Table tipi kontrolü
+    if ((update.$set.type === AttributeType.TABLE) || 
+        (update.type === AttributeType.TABLE)) {
+      const validations = update.$set.validations;
+      
+      if (validations.minRows !== undefined) {
+        validations.minRows = Number(validations.minRows);
+      }
+      if (validations.maxRows !== undefined) {
+        validations.maxRows = Number(validations.maxRows);
+      }
+      if (validations.allowAddRows !== undefined) {
+        validations.allowAddRows = Boolean(validations.allowAddRows);
+      }
+      if (validations.allowDeleteRows !== undefined) {
+        validations.allowDeleteRows = Boolean(validations.allowDeleteRows);
+      }
+      if (validations.allowEditRows !== undefined) {
+        validations.allowEditRows = Boolean(validations.allowEditRows);
+      }
+    }
   }
   
   // Direkt update objesinde gelen validasyon verileri
@@ -390,6 +437,27 @@ function processValidations(update: any) {
       }
       if (validations.maxSelections !== undefined) {
         validations.maxSelections = Number(validations.maxSelections);
+      }
+    }
+    
+    // Table tipi kontrolü
+    if (update.type === AttributeType.TABLE) {
+      const validations = update.validations;
+      
+      if (validations.minRows !== undefined) {
+        validations.minRows = Number(validations.minRows);
+      }
+      if (validations.maxRows !== undefined) {
+        validations.maxRows = Number(validations.maxRows);
+      }
+      if (validations.allowAddRows !== undefined) {
+        validations.allowAddRows = Boolean(validations.allowAddRows);
+      }
+      if (validations.allowDeleteRows !== undefined) {
+        validations.allowDeleteRows = Boolean(validations.allowDeleteRows);
+      }
+      if (validations.allowEditRows !== undefined) {
+        validations.allowEditRows = Boolean(validations.allowEditRows);
       }
     }
   }

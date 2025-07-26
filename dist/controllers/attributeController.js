@@ -281,6 +281,29 @@ const createAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                         attributeData.validations.maxSelections = Number(attributeData.validations.maxSelections);
                     }
                 }
+                // Table validasyonları için özel kontroller
+                if (attributeData.type === 'table' && typeof attributeData.validations === 'object') {
+                    if ('minRows' in attributeData.validations) {
+                        attributeData.validations.minRows = Number(attributeData.validations.minRows);
+                    }
+                    if ('maxRows' in attributeData.validations) {
+                        attributeData.validations.maxRows = Number(attributeData.validations.maxRows);
+                    }
+                    if ('allowAddRows' in attributeData.validations) {
+                        attributeData.validations.allowAddRows = Boolean(attributeData.validations.allowAddRows);
+                    }
+                    if ('allowDeleteRows' in attributeData.validations) {
+                        attributeData.validations.allowDeleteRows = Boolean(attributeData.validations.allowDeleteRows);
+                    }
+                    if ('allowEditRows' in attributeData.validations) {
+                        attributeData.validations.allowEditRows = Boolean(attributeData.validations.allowEditRows);
+                    }
+                    // columns array'i zaten object olarak geliyor, sadece preserve edilmeli
+                    if ('columns' in attributeData.validations && Array.isArray(attributeData.validations.columns)) {
+                        // Columns array'ini aynen koru, sadece numeric değerleri kontrol et
+                        attributeData.validations.columns = attributeData.validations.columns.map((col) => (Object.assign(Object.assign({}, col), { width: col.width ? Number(col.width) : undefined, required: Boolean(col.required) })));
+                    }
+                }
             }
         }
         else {
@@ -369,11 +392,63 @@ const updateAttribute = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             });
             return;
         }
+        // Validasyon verilerini kontrol et (updateData'da gelirse)
+        if (updateData.validations) {
+            // Validasyon objesi boş ise undefined yap
+            if (Object.keys(updateData.validations).length === 0) {
+                updateData.validations = undefined;
+            }
+            else {
+                // Table validasyonları için özel kontroller
+                if (updateData.type === 'table' && typeof updateData.validations === 'object') {
+                    if ('minRows' in updateData.validations) {
+                        updateData.validations.minRows = Number(updateData.validations.minRows);
+                    }
+                    if ('maxRows' in updateData.validations) {
+                        updateData.validations.maxRows = Number(updateData.validations.maxRows);
+                    }
+                    if ('allowAddRows' in updateData.validations) {
+                        updateData.validations.allowAddRows = Boolean(updateData.validations.allowAddRows);
+                    }
+                    if ('allowDeleteRows' in updateData.validations) {
+                        updateData.validations.allowDeleteRows = Boolean(updateData.validations.allowDeleteRows);
+                    }
+                    if ('allowEditRows' in updateData.validations) {
+                        updateData.validations.allowEditRows = Boolean(updateData.validations.allowEditRows);
+                    }
+                    // columns array'i zaten object olarak geliyor, sadece preserve edilmeli
+                    if ('columns' in updateData.validations && Array.isArray(updateData.validations.columns)) {
+                        // Columns array'ini aynen koru, sadece numeric değerleri kontrol et
+                        updateData.validations.columns = updateData.validations.columns.map((col) => (Object.assign(Object.assign({}, col), { width: col.width ? Number(col.width) : undefined, required: Boolean(col.required) })));
+                    }
+                }
+                // Other validation types (number, text, etc.)
+                if (updateData.type === 'number' && typeof updateData.validations === 'object') {
+                    if ('min' in updateData.validations) {
+                        updateData.validations.min = Number(updateData.validations.min);
+                    }
+                    if ('max' in updateData.validations) {
+                        updateData.validations.max = Number(updateData.validations.max);
+                    }
+                    ['isInteger', 'isPositive', 'isNegative', 'isZero'].forEach(prop => {
+                        if (prop in updateData.validations) {
+                            updateData.validations[prop] = Boolean(updateData.validations[prop]);
+                        }
+                    });
+                }
+            }
+        }
         // Sadece değişen alanları tespit et
         const changedFields = {};
         // Basit alanları kontrol et
         Object.keys(updateData).forEach(key => {
-            if (existingAttribute[key] !== updateData[key]) {
+            if (key === 'validations') {
+                // Validations için deep comparison
+                if (JSON.stringify(existingAttribute[key]) !== JSON.stringify(updateData[key])) {
+                    changedFields[key] = updateData[key];
+                }
+            }
+            else if (existingAttribute[key] !== updateData[key]) {
                 changedFields[key] = updateData[key];
             }
         });

@@ -216,7 +216,7 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
               { path: 'description', select: 'key namespace translations' },
               {
                 path: 'attributes',
-                select: 'name code type description isRequired isActive',
+                select: 'name code type description validations isRequired isActive',
                 populate: [
                   { path: 'name', select: 'key namespace translations' },
                   { path: 'description', select: 'key namespace translations' }

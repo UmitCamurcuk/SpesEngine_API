@@ -129,7 +129,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 { path: 'description', select: 'key namespace translations' },
                 {
                     path: 'attributes',
-                    select: 'name code type description isRequired isActive options',
+                    select: 'name code type description isRequired isActive options validations',
                     populate: [
                         { path: 'name', select: 'key namespace translations' },
                         { path: 'description', select: 'key namespace translations' },
@@ -147,7 +147,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         })
             .populate({
             path: 'attributes',
-            select: 'name code type description isRequired isActive options',
+            select: 'name code type description isRequired isActive options validations',
             populate: [
                 { path: 'name', select: 'key namespace translations' },
                 { path: 'description', select: 'key namespace translations' },
@@ -188,7 +188,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                     { path: 'description', select: 'key namespace translations' },
                     {
                         path: 'attributes',
-                        select: 'name code type description isRequired isActive options',
+                        select: 'name code type description isRequired isActive options validations',
                         populate: [
                             { path: 'name', select: 'key namespace translations' },
                             { path: 'description', select: 'key namespace translations' },
@@ -215,7 +215,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                     { path: 'description', select: 'key namespace translations' },
                     {
                         path: 'attributes',
-                        select: 'name code type description isRequired isActive options',
+                        select: 'name code type description isRequired isActive options validations',
                         populate: [
                             { path: 'name', select: 'key namespace translations' },
                             { path: 'description', select: 'key namespace translations' },
@@ -253,7 +253,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                         { path: 'description', select: 'key namespace translations' },
                         {
                             path: 'attributes',
-                            select: 'name code type description isRequired isActive options',
+                            select: 'name code type description isRequired isActive options validations',
                             populate: [
                                 { path: 'name', select: 'key namespace translations' },
                                 { path: 'description', select: 'key namespace translations' },
@@ -283,7 +283,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                                 { path: 'description', select: 'key namespace translations' },
                                 {
                                     path: 'attributes',
-                                    select: 'name code type description isRequired isActive options',
+                                    select: 'name code type description isRequired isActive options validations',
                                     populate: [
                                         { path: 'name', select: 'key namespace translations' },
                                         { path: 'description', select: 'key namespace translations' },

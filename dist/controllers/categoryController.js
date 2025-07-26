@@ -247,7 +247,7 @@ const getCategoryById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                         { path: 'description', select: 'key namespace translations' },
                         {
                             path: 'attributes',
-                            select: 'name code type description isRequired isActive',
+                            select: 'name code type description validations isRequired isActive',
                             populate: [
                                 { path: 'name', select: 'key namespace translations' },
                                 { path: 'description', select: 'key namespace translations' }

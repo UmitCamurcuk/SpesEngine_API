@@ -4625,6 +4625,22 @@ const seedLocalizations = async () => {
           en: 'Select multiple from predefined options.'
         }
       },
+      {
+        key: 'table',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Tablo',
+          en: 'Table'
+        }
+      },
+      {
+        key: 'table_type_description',
+        namespace: 'attribute_types',
+        translations: {
+          tr: 'Tablo formatında yapılandırılmış veri girilebilir.',
+          en: 'Enter structured data in table format.'
+        }
+      },
       // Ekstra öznitelik tipleri
       {
         key: 'category_id',

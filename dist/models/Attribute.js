@@ -57,6 +57,7 @@ var AttributeType;
     AttributeType["JSON"] = "json";
     AttributeType["FORMULA"] = "formula";
     AttributeType["EXPRESSION"] = "expression";
+    AttributeType["TABLE"] = "table";
     // UI / Görsel Bileşen Tipleri
     AttributeType["COLOR"] = "color";
     AttributeType["RICH_TEXT"] = "rich_text";
@@ -192,6 +193,19 @@ AttributeSchema.pre('save', function (next) {
             if (validations.allowHalfStars !== undefined)
                 validations.allowHalfStars = Boolean(validations.allowHalfStars);
         }
+        // TABLE tipi için validasyonları işle
+        if (this.type === AttributeType.TABLE) {
+            if (validations.minRows !== undefined)
+                validations.minRows = Number(validations.minRows);
+            if (validations.maxRows !== undefined)
+                validations.maxRows = Number(validations.maxRows);
+            if (validations.allowAddRows !== undefined)
+                validations.allowAddRows = Boolean(validations.allowAddRows);
+            if (validations.allowDeleteRows !== undefined)
+                validations.allowDeleteRows = Boolean(validations.allowDeleteRows);
+            if (validations.allowEditRows !== undefined)
+                validations.allowEditRows = Boolean(validations.allowEditRows);
+        }
     }
     next();
 });
@@ -257,6 +271,26 @@ function processValidations(update) {
                 validations.maxSelections = Number(validations.maxSelections);
             }
         }
+        // Table tipi kontrolü
+        if ((update.$set.type === AttributeType.TABLE) ||
+            (update.type === AttributeType.TABLE)) {
+            const validations = update.$set.validations;
+            if (validations.minRows !== undefined) {
+                validations.minRows = Number(validations.minRows);
+            }
+            if (validations.maxRows !== undefined) {
+                validations.maxRows = Number(validations.maxRows);
+            }
+            if (validations.allowAddRows !== undefined) {
+                validations.allowAddRows = Boolean(validations.allowAddRows);
+            }
+            if (validations.allowDeleteRows !== undefined) {
+                validations.allowDeleteRows = Boolean(validations.allowDeleteRows);
+            }
+            if (validations.allowEditRows !== undefined) {
+                validations.allowEditRows = Boolean(validations.allowEditRows);
+            }
+        }
     }
     // Direkt update objesinde gelen validasyon verileri
     if (update.validations) {
@@ -307,6 +341,25 @@ function processValidations(update) {
             }
             if (validations.maxSelections !== undefined) {
                 validations.maxSelections = Number(validations.maxSelections);
+            }
+        }
+        // Table tipi kontrolü
+        if (update.type === AttributeType.TABLE) {
+            const validations = update.validations;
+            if (validations.minRows !== undefined) {
+                validations.minRows = Number(validations.minRows);
+            }
+            if (validations.maxRows !== undefined) {
+                validations.maxRows = Number(validations.maxRows);
+            }
+            if (validations.allowAddRows !== undefined) {
+                validations.allowAddRows = Boolean(validations.allowAddRows);
+            }
+            if (validations.allowDeleteRows !== undefined) {
+                validations.allowDeleteRows = Boolean(validations.allowDeleteRows);
+            }
+            if (validations.allowEditRows !== undefined) {
+                validations.allowEditRows = Boolean(validations.allowEditRows);
             }
         }
     }

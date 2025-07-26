@@ -123,7 +123,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
           { path: 'description', select: 'key namespace translations' },
           {
             path: 'attributes',
-            select: 'name code type description isRequired isActive options',
+            select: 'name code type description isRequired isActive options validations',
             populate: [
               { path: 'name', select: 'key namespace translations' },
               { path: 'description', select: 'key namespace translations' },
@@ -141,7 +141,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
       })
       .populate({
         path: 'attributes',
-        select: 'name code type description isRequired isActive options',
+        select: 'name code type description isRequired isActive options validations',
         populate: [
           { path: 'name', select: 'key namespace translations' },
           { path: 'description', select: 'key namespace translations' },
@@ -185,7 +185,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
           { path: 'description', select: 'key namespace translations' },
           {
             path: 'attributes',
-            select: 'name code type description isRequired isActive options',
+            select: 'name code type description isRequired isActive options validations',
             populate: [
               { path: 'name', select: 'key namespace translations' },
               { path: 'description', select: 'key namespace translations' },
@@ -213,7 +213,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
             { path: 'description', select: 'key namespace translations' },
             {
               path: 'attributes',
-              select: 'name code type description isRequired isActive options',
+              select: 'name code type description isRequired isActive options validations',
               populate: [
                 { path: 'name', select: 'key namespace translations' },
                 { path: 'description', select: 'key namespace translations' },
@@ -253,7 +253,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
             { path: 'description', select: 'key namespace translations' },
             {
               path: 'attributes',
-              select: 'name code type description isRequired isActive options',
+              select: 'name code type description isRequired isActive options validations',
               populate: [
                 { path: 'name', select: 'key namespace translations' },
                 { path: 'description', select: 'key namespace translations' },
@@ -283,7 +283,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
                 { path: 'description', select: 'key namespace translations' },
                 {
                   path: 'attributes',
-                  select: 'name code type description isRequired isActive options',
+                  select: 'name code type description isRequired isActive options validations',
                   populate: [
                     { path: 'name', select: 'key namespace translations' },
                     { path: 'description', select: 'key namespace translations' },
