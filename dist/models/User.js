@@ -54,6 +54,14 @@ const UserSchema = new mongoose_1.Schema({
         required: [true, 'İsim alanı zorunludur'],
         trim: true
     },
+    firstName: {
+        type: String,
+        trim: true
+    },
+    lastName: {
+        type: String,
+        trim: true
+    },
     email: {
         type: String,
         required: [true, 'E-posta alanı zorunludur'],

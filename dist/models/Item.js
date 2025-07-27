@@ -58,6 +58,16 @@ const ItemSchema = new mongoose_1.Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    createdBy: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'User',
+        required: [true, 'Oluşturan kullanıcı belirtilmelidir']
+    },
+    updatedBy: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'User',
+        required: [true, 'Güncelleyen kullanıcı belirtilmelidir']
     }
 }, {
     timestamps: true,

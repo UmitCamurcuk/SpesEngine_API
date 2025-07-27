@@ -51,9 +51,22 @@ const getItems = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         const total = yield Item_1.default.countDocuments(filterParams);
         // Verileri getir
         const items = yield Item_1.default.find(filterParams)
-            .populate('itemType')
-            .populate('family')
-            .populate('category')
+            .populate({
+            path: 'family',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate({
+            path: 'category',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate('createdBy', 'name email firstName lastName')
+            .populate('updatedBy', 'name email firstName lastName')
             .sort(sortOptions)
             .skip(skip)
             .limit(limit);
@@ -176,6 +189,8 @@ const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                 }
             ]
         })
+            .populate('createdBy', 'name email firstName lastName')
+            .populate('updatedBy', 'name email firstName lastName')
             .lean();
         if (!item) {
             res.status(404).json({
@@ -490,6 +505,7 @@ function getRequiredAttributesFromHierarchy(itemTypeId, categoryId, familyId) {
 }
 // POST yeni öğe oluştur - Modern hierarchical approach
 const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
         const { itemType, family, category, attributes, isActive } = req.body;
         // Debug: Gelen payload'ı kontrol et
@@ -540,7 +556,9 @@ const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             family: cleanFamily,
             category: cleanCategory,
             attributes: itemAttributes,
-            isActive: isActive !== undefined ? isActive : true
+            isActive: isActive !== undefined ? isActive : true,
+            createdBy: (_a = req.user) === null || _a === void 0 ? void 0 : _a._id,
+            updatedBy: (_b = req.user) === null || _b === void 0 ? void 0 : _b._id
         });
         // Başarılı response
         res.status(201).json({
@@ -567,9 +585,10 @@ const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
 exports.createItem = createItem;
 // PUT öğeyi güncelle
 const updateItem = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         // Güncellenecek alanları al
-        const updates = Object.assign({}, req.body);
+        const updates = Object.assign(Object.assign({}, req.body), { updatedBy: (_a = req.user) === null || _a === void 0 ? void 0 : _a._id });
         // Zorunlu attribute kontrolü - Full hierarchy
         const requiredAttributes = yield getRequiredAttributesFromHierarchy(updates.itemType, updates.category, updates.family);
         const attrs = updates.attributes || {};
@@ -594,7 +613,7 @@ const updateItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             updates.attributes = {};
         }
         // Öğeyi bul ve güncelle
-        const item = yield Item_1.default.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true }).populate('itemType family category');
+        const item = yield Item_1.default.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true }).populate('itemType family category').populate('createdBy', 'name email firstName lastName').populate('updatedBy', 'name email firstName lastName');
         if (!item) {
             res.status(404).json({
                 success: false,

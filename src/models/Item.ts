@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { IItemType } from './ItemType';
 import { IFamily } from './Family';
 import { ICategory } from './Category';
+import { IUser } from './User';
 
 export interface IItem extends Document {
   itemType: IItemType['_id'] | IItemType;
@@ -11,6 +12,8 @@ export interface IItem extends Document {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  createdBy: IUser['_id'] | IUser;
+  updatedBy: IUser['_id'] | IUser;
 }
 
 const ItemSchema: Schema = new Schema(
@@ -38,6 +41,16 @@ const ItemSchema: Schema = new Schema(
     isActive: {
       type: Boolean,
       default: true
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Oluşturan kullanıcı belirtilmelidir']
+    },
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Güncelleyen kullanıcı belirtilmelidir']
     }
   },
   {

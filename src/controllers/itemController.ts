@@ -48,9 +48,22 @@ export const getItems = async (req: Request, res: Response, next: NextFunction):
     
     // Verileri getir
     const items = await Item.find(filterParams)
-      .populate('itemType')
-      .populate('family')
-      .populate('category')
+      .populate({
+        path: 'family',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate({
+        path: 'category',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate('createdBy', 'name email firstName lastName')
+      .populate('updatedBy', 'name email firstName lastName')
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
@@ -176,6 +189,8 @@ export const getItemById = async (req: Request, res: Response, next: NextFunctio
           }
         ]
       })
+      .populate('createdBy', 'name email firstName lastName')
+      .populate('updatedBy', 'name email firstName lastName')
       .lean();
     
     if (!item) {
@@ -585,7 +600,9 @@ export const createItem = async (req: Request, res: Response, next: NextFunction
       family: cleanFamily,
       category: cleanCategory,
       attributes: itemAttributes,
-      isActive: isActive !== undefined ? isActive : true
+      isActive: isActive !== undefined ? isActive : true,
+      createdBy: req.user?._id,
+      updatedBy: req.user?._id
     });
 
     // Başarılı response
@@ -616,7 +633,10 @@ export const createItem = async (req: Request, res: Response, next: NextFunction
 export const updateItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Güncellenecek alanları al
-    const updates = { ...req.body };
+    const updates = { 
+      ...req.body,
+      updatedBy: req.user?._id
+    };
     // Zorunlu attribute kontrolü - Full hierarchy
     const requiredAttributes = await getRequiredAttributesFromHierarchy(
       updates.itemType, 
@@ -648,7 +668,7 @@ export const updateItem = async (req: Request, res: Response, next: NextFunction
       req.params.id,
       updates,
       { new: true, runValidators: true }
-    ).populate('itemType family category');
+    ).populate('itemType family category').populate('createdBy', 'name email firstName lastName').populate('updatedBy', 'name email firstName lastName');
     if (!item) {
       res.status(404).json({
         success: false,
