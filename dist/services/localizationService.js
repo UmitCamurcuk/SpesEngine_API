@@ -92,5 +92,100 @@ class LocalizationService {
             }
         });
     }
+    // Tüm çevirileri getir (liste sayfası için)
+    getLocalizations(params) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { page = 1, limit = 10, search, namespace, key, translationValue, language, sortBy = 'createdAt', sortOrder = 'desc' } = params;
+            const skip = (page - 1) * limit;
+            // Filtre oluştur
+            const filter = {};
+            // Eski search parametresi desteği (geriye uyumluluk)
+            if (search) {
+                const searchRegex = { $regex: search, $options: 'i' };
+                const supportedLanguages = yield this.getSupportedLanguages();
+                const searchConditions = [
+                    { key: searchRegex },
+                    { namespace: searchRegex }
+                ];
+                supportedLanguages.forEach(lang => {
+                    searchConditions.push({ [`translations.${lang}`]: searchRegex });
+                });
+                filter.$or = searchConditions;
+            }
+            // Yeni gelişmiş arama parametreleri - Akıllı arama
+            const searchConditions = [];
+            if (namespace) {
+                searchConditions.push({ namespace: { $regex: namespace, $options: 'i' } });
+            }
+            if (key) {
+                searchConditions.push({ key: { $regex: key, $options: 'i' } });
+            }
+            if (translationValue) {
+                const translationRegex = { $regex: translationValue, $options: 'i' };
+                const supportedLanguages = yield this.getSupportedLanguages();
+                if (language) {
+                    // Belirli bir dilde çeviri değeri arama
+                    searchConditions.push({ [`translations.${language}`]: translationRegex });
+                }
+                else {
+                    // Tüm dillerde çeviri değeri arama
+                    const translationConditions = [];
+                    supportedLanguages.forEach(lang => {
+                        translationConditions.push({ [`translations.${lang}`]: translationRegex });
+                    });
+                    searchConditions.push({ $or: translationConditions });
+                }
+            }
+            else if (language) {
+                // Sadece dil filtresi (çeviri değeri olmadan)
+                const supportedLanguages = yield this.getSupportedLanguages();
+                if (supportedLanguages.includes(language)) {
+                    searchConditions.push({ [`translations.${language}`]: { $exists: true, $ne: null } });
+                }
+            }
+            // Eğer arama koşulları varsa, bunları AND ile birleştir
+            if (searchConditions.length > 0) {
+                if (filter.$or) {
+                    // Eğer eski search parametresi varsa, yeni koşullarla AND yap
+                    filter.$and = [
+                        { $or: filter.$or },
+                        { $and: searchConditions }
+                    ];
+                    delete filter.$or;
+                }
+                else {
+                    filter.$and = searchConditions;
+                }
+            }
+            // Debug: Filtre koşullarını logla
+            console.log('🔍 Search conditions:', searchConditions);
+            console.log('🔍 Final filter:', JSON.stringify(filter, null, 2));
+            // Sıralama
+            const sort = {};
+            sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+            // Toplam sayı
+            const total = yield Localization_1.default.countDocuments(filter);
+            // Verileri getir
+            const localizations = yield Localization_1.default.find(filter)
+                .sort(sort)
+                .skip(skip)
+                .limit(limit)
+                .lean();
+            return {
+                localizations,
+                total,
+                page,
+                limit,
+                pages: Math.ceil(total / limit)
+            };
+        });
+    }
+    // ID'ye göre çeviri sil
+    deleteLocalization(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const localization = yield Localization_1.default.findByIdAndDelete(id);
+            return localization;
+        });
+    }
 }
 exports.default = new LocalizationService();

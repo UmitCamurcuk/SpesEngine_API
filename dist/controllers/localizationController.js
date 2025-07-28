@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSupportedLanguages = exports.updateTranslationById = exports.getTranslationById = exports.upsertTranslation = exports.getTranslations = void 0;
+exports.deleteLocalization = exports.getLocalizations = exports.getSupportedLanguages = exports.updateTranslationById = exports.getTranslationById = exports.upsertTranslation = exports.getTranslations = void 0;
 const localizationService_1 = __importDefault(require("../services/localizationService"));
 const historyService_1 = __importDefault(require("../services/historyService"));
 const History_1 = require("../models/History");
@@ -325,3 +325,86 @@ const getSupportedLanguages = (req, res, next) => __awaiter(void 0, void 0, void
     }
 });
 exports.getSupportedLanguages = getSupportedLanguages;
+// Tüm çevirileri getir (liste sayfası için)
+const getLocalizations = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search;
+        const namespace = req.query.namespace;
+        const key = req.query.key;
+        const translationValue = req.query.translationValue;
+        const language = req.query.language;
+        const sortBy = req.query.sortBy || 'createdAt';
+        const sortOrder = (req.query.sortOrder || 'desc');
+        console.log('🔍 getLocalizations called with params:', {
+            page,
+            limit,
+            search,
+            namespace,
+            key,
+            translationValue,
+            language,
+            sortBy,
+            sortOrder
+        });
+        console.log('🔍 Raw query params:', req.query);
+        const result = yield localizationService_1.default.getLocalizations({
+            page,
+            limit,
+            search,
+            namespace,
+            key,
+            translationValue,
+            language,
+            sortBy,
+            sortOrder
+        });
+        console.log('✅ getLocalizations result:', result);
+        res.status(200).json(Object.assign({ success: true }, result));
+    }
+    catch (error) {
+        console.error('❌ getLocalizations error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Çeviriler listesi getirilirken bir hata oluştu'
+        });
+    }
+});
+exports.getLocalizations = getLocalizations;
+// Çeviri sil
+const deleteLocalization = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const result = yield localizationService_1.default.deleteLocalization(id);
+        // History kaydı oluştur
+        if (req.user && typeof req.user === 'object' && '_id' in req.user) {
+            const userId = String(req.user._id);
+            try {
+                yield historyService_1.default.recordHistory({
+                    entityId: id,
+                    entityType: Entity_1.EntityType.LOCALIZATION,
+                    action: History_1.ActionType.DELETE,
+                    userId: userId,
+                    previousData: result,
+                    newData: null
+                });
+            }
+            catch (historyError) {
+                console.error('History creation failed for localization delete:', historyError);
+            }
+        }
+        res.status(200).json({
+            success: true,
+            message: 'Çeviri başarıyla silindi',
+            data: result
+        });
+    }
+    catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message || 'Çeviri silinirken bir hata oluştu'
+        });
+    }
+});
+exports.deleteLocalization = deleteLocalization;
