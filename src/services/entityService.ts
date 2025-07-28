@@ -45,6 +45,11 @@ class EntityService {
     entityCode?: string
   ): Promise<IEntity> {
     try {
+      // Eğer entityId string ise ve ObjectId formatında değilse, hata fırlat
+      if (typeof entityId === 'string' && !mongoose.Types.ObjectId.isValid(entityId)) {
+        throw new Error(`Invalid ObjectId format: ${entityId}`);
+      }
+      
       const objectId = typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId;
       
       const entity = await Entity.findOneAndUpdate(
@@ -95,6 +100,12 @@ class EntityService {
     entityType: EntityType
   ): Promise<IEntity | null> {
     try {
+      // Eğer entityId string ise ve ObjectId formatında değilse, null döndür
+      if (typeof entityId === 'string' && !mongoose.Types.ObjectId.isValid(entityId)) {
+        console.warn(`[EntityService] Invalid ObjectId format: ${entityId}`);
+        return null;
+      }
+      
       const objectId = typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId;
       
       return await Entity.findOne({ entityId: objectId, entityType });
@@ -112,6 +123,11 @@ class EntityService {
     entityType: EntityType
   ): Promise<string> {
     try {
+      // Eğer entityId string ise ve ObjectId formatında değilse, key olarak döndür
+      if (typeof entityId === 'string' && !mongoose.Types.ObjectId.isValid(entityId)) {
+        return entityId;
+      }
+
       // Önce Entity tablosundan dene
       const entity = await this.getEntity(entityId, entityType);
       if (entity?.entityName && entity.entityName !== 'Unknown Entity') {

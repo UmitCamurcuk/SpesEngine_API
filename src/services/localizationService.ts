@@ -73,6 +73,83 @@ class LocalizationService {
     return result.deletedCount > 0;
   }
   
+  // Çeviri sil (ID ile)
+  async deleteLocalization(id: string): Promise<any> {
+    const result = await Localization.findByIdAndDelete(id);
+    return result;
+  }
+  
+  // Tüm çevirileri getir (liste sayfası için)
+  async getLocalizations(params: {
+    page: number;
+    limit: number;
+    search?: string;
+    namespace?: string;
+    key?: string;
+    translationValue?: string;
+    language?: string;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{
+    data: any[];
+    total: number;
+    page: number;
+    pages: number;
+  }> {
+    const { page, limit, search, namespace, key, translationValue, language, sortBy, sortOrder } = params;
+    const skip = (page - 1) * limit;
+    
+    // Filtreleme kriterleri
+    const filter: any = {};
+    
+    if (search) {
+      filter.$or = [
+        { key: { $regex: search, $options: 'i' } },
+        { namespace: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (namespace) {
+      filter.namespace = namespace;
+    }
+    
+    if (key) {
+      filter.key = { $regex: key, $options: 'i' };
+    }
+    
+    if (translationValue) {
+      filter['translations'] = { $regex: translationValue, $options: 'i' };
+    }
+    
+    if (language) {
+      filter[`translations.${language}`] = { $exists: true };
+    }
+    
+    // Toplam kayıt sayısını al
+    const total = await Localization.countDocuments(filter);
+    
+    // Sıralama
+    const sortOptions: any = {};
+    sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    
+    // Verileri getir
+    const data = await Localization.find(filter)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .lean();
+    
+    // Sayfa sayısını hesapla
+    const pages = Math.ceil(total / limit);
+    
+    return {
+      data,
+      total,
+      page,
+      pages
+    };
+  }
+  
   // Desteklenen dilleri getir (sistem ayarlarından)
   async getSupportedLanguages(): Promise<string[]> {
     try {

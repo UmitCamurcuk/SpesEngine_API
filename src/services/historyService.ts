@@ -144,11 +144,20 @@ class HistoryService {
         }
       }
 
-      // Ana entity'yi Entity tablosuna kaydet/güncelle
-      try {
-        await entityService.upsertEntity(entityId, entityType, entityCode);
-      } catch (error) {
-        console.warn(`[HistoryService] Could not upsert entity for ${entityType}:${entityId}`, error);
+      // Ana entity'yi Entity tablosuna kaydet/güncelle (sadece geçerli ObjectId'ler için)
+      if (typeof entityId === 'string' && mongoose.Types.ObjectId.isValid(entityId)) {
+        try {
+          await entityService.upsertEntity(entityId, entityType, entityCode);
+        } catch (error) {
+          console.warn(`[HistoryService] Could not upsert entity for ${entityType}:${entityId}`, error);
+        }
+      } else if (typeof entityId !== 'string') {
+        // ObjectId tipindeki entityId'ler için
+        try {
+          await entityService.upsertEntity(entityId, entityType, entityCode);
+        } catch (error) {
+          console.warn(`[HistoryService] Could not upsert entity for ${entityType}:${entityId}`, error);
+        }
       }
 
       // Etkilenen entity'leri hazırla
@@ -162,44 +171,67 @@ class HistoryService {
         role: 'primary'
       });
 
-      // İlişkili entity'leri işle
-      for (const affected of affectedEntities) {
-        let affectedEntityName = affected.entityName;
-        if (!affectedEntityName) {
+              // İlişkili entity'leri işle
+        for (const affected of affectedEntities) {
+          let affectedEntityName = affected.entityName;
+          if (!affectedEntityName) {
+            try {
+              affectedEntityName = await entityService.getEntityName(affected.entityId, affected.entityType);
+            } catch (error) {
+              console.warn(`[HistoryService] Could not get affected entity name for ${affected.entityType}:${affected.entityId}`, error);
+              affectedEntityName = `${affected.entityType}_${affected.entityId}`;
+            }
+          }
+
+          // Sadece geçerli ObjectId'leri processedAffectedEntities'a ekle
+          const isValidObjectId = typeof affected.entityId === 'string' 
+            ? mongoose.Types.ObjectId.isValid(affected.entityId)
+            : true;
+
+        // İlişkili entity'yi de Entity tablosuna kaydet (sadece geçerli ObjectId'ler için)
+        if (typeof affected.entityId === 'string' && mongoose.Types.ObjectId.isValid(affected.entityId)) {
           try {
-            affectedEntityName = await entityService.getEntityName(affected.entityId, affected.entityType);
+            await entityService.upsertEntity(
+              affected.entityId,
+              affected.entityType,
+              affected.entityCode
+            );
           } catch (error) {
-            console.warn(`[HistoryService] Could not get affected entity name for ${affected.entityType}:${affected.entityId}`, error);
-            affectedEntityName = `${affected.entityType}_${affected.entityId}`;
+            console.warn(`[HistoryService] Could not upsert affected entity for ${affected.entityType}:${affected.entityId}`, error);
+          }
+        } else if (typeof affected.entityId !== 'string') {
+          // ObjectId tipindeki entityId'ler için
+          try {
+            await entityService.upsertEntity(
+              affected.entityId,
+              affected.entityType,
+              affected.entityCode
+            );
+          } catch (error) {
+            console.warn(`[HistoryService] Could not upsert affected entity for ${affected.entityType}:${affected.entityId}`, error);
           }
         }
 
-        // İlişkili entity'yi de Entity tablosuna kaydet
-        try {
-          await entityService.upsertEntity(
-            affected.entityId,
-            affected.entityType,
-            affected.entityCode
-          );
-        } catch (error) {
-          console.warn(`[HistoryService] Could not upsert affected entity for ${affected.entityType}:${affected.entityId}`, error);
+        // Sadece geçerli ObjectId'leri processedAffectedEntities'a ekle
+        if (isValidObjectId) {
+          processedAffectedEntities.push({
+            entityId: typeof affected.entityId === 'string' ? new mongoose.Types.ObjectId(affected.entityId) : affected.entityId,
+            entityType: affected.entityType,
+            entityName: affectedEntityName,
+            role: affected.role || 'secondary'
+          });
         }
-
-        processedAffectedEntities.push({
-          entityId: typeof affected.entityId === 'string' ? new mongoose.Types.ObjectId(affected.entityId) : affected.entityId,
-          entityType: affected.entityType,
-          entityName: affectedEntityName,
-          role: affected.role || 'secondary'
-        });
       }
 
       // Changes'i hesapla (eğer verilmemişse)
       const finalChanges = changes || calculateChanges(previousData, newData);
 
-      // History kaydını oluştur
+      // History kaydını oluştur (sadece geçerli ObjectId'ler için)
       const historyRecord = new History({
         // Ana entity bilgisi (geriye uyumluluk)
-        entityId: typeof entityId === 'string' ? new mongoose.Types.ObjectId(entityId) : entityId,
+        entityId: typeof entityId === 'string' && mongoose.Types.ObjectId.isValid(entityId) 
+          ? new mongoose.Types.ObjectId(entityId) 
+          : (typeof entityId === 'string' ? null : entityId),
         entityType,
         
         // Etkilenen entity'ler

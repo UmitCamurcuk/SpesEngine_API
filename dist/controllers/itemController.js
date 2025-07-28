@@ -12,11 +12,109 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteItem = exports.updateItem = exports.createItem = exports.getItemById = exports.getItems = void 0;
+exports.deleteItem = exports.updateItem = exports.createItem = exports.getItemById = exports.getItems = exports.getItemsTest = void 0;
 const Item_1 = __importDefault(require("../models/Item"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const ItemType_1 = __importDefault(require("../models/ItemType"));
 const Category_1 = __importDefault(require("../models/Category"));
+// GET tüm öğeleri getir (test için authentication olmadan)
+const getItemsTest = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Sayfalama parametreleri
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        // Filtreleme parametreleri
+        const filterParams = {};
+        // isActive parametresi
+        if (req.query.isActive !== undefined) {
+            filterParams.isActive = req.query.isActive === 'true';
+        }
+        // ItemType, Family ve Category filtreleme
+        if (req.query.itemType) {
+            filterParams.itemType = new mongoose_1.default.Types.ObjectId(req.query.itemType);
+        }
+        if (req.query.family) {
+            filterParams.family = new mongoose_1.default.Types.ObjectId(req.query.family);
+        }
+        if (req.query.category) {
+            filterParams.category = new mongoose_1.default.Types.ObjectId(req.query.category);
+        }
+        // Sıralama parametreleri
+        const sortBy = req.query.sortBy || 'createdAt';
+        const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
+        const sortOptions = {};
+        sortOptions[sortBy] = sortOrder;
+        // Toplam kayıt sayısını al
+        const total = yield Item_1.default.countDocuments(filterParams);
+        // Verileri getir
+        const items = yield Item_1.default.find(filterParams)
+            .populate({
+            path: 'family',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate({
+            path: 'category',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate('createdBy', 'name email firstName lastName')
+            .populate('updatedBy', 'name email firstName lastName')
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit)
+            .lean();
+        // Translations alanlarını düzelt
+        const fixTranslations = (obj) => {
+            if (obj && typeof obj === 'object') {
+                if (obj.translations && obj.translations instanceof Map) {
+                    const translationsObj = {};
+                    obj.translations.forEach((value, key) => {
+                        translationsObj[key] = value;
+                    });
+                    obj.translations = translationsObj;
+                }
+            }
+        };
+        // Her item için translations alanlarını düzelt
+        items.forEach((item) => {
+            if (item.family) {
+                if (item.family.name)
+                    fixTranslations(item.family.name);
+                if (item.family.description)
+                    fixTranslations(item.family.description);
+            }
+            if (item.category) {
+                if (item.category.name)
+                    fixTranslations(item.category.name);
+                if (item.category.description)
+                    fixTranslations(item.category.description);
+            }
+        });
+        // Sayfa sayısını hesapla
+        const pages = Math.ceil(total / limit);
+        res.status(200).json({
+            success: true,
+            count: items.length,
+            total,
+            page,
+            pages,
+            data: items
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Öğeler getirilirken bir hata oluştu'
+        });
+    }
+});
+exports.getItemsTest = getItemsTest;
 // GET tüm öğeleri getir
 const getItems = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -69,7 +167,35 @@ const getItems = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
             .populate('updatedBy', 'name email firstName lastName')
             .sort(sortOptions)
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .lean();
+        // Translations alanlarını düzelt
+        const fixTranslations = (obj) => {
+            if (obj && typeof obj === 'object') {
+                if (obj.translations && obj.translations instanceof Map) {
+                    const translationsObj = {};
+                    obj.translations.forEach((value, key) => {
+                        translationsObj[key] = value;
+                    });
+                    obj.translations = translationsObj;
+                }
+            }
+        };
+        // Her item için translations alanlarını düzelt
+        items.forEach((item) => {
+            if (item.family) {
+                if (item.family.name)
+                    fixTranslations(item.family.name);
+                if (item.family.description)
+                    fixTranslations(item.family.description);
+            }
+            if (item.category) {
+                if (item.category.name)
+                    fixTranslations(item.category.name);
+                if (item.category.description)
+                    fixTranslations(item.category.description);
+            }
+        });
         // Sayfa sayısını hesapla
         const pages = Math.ceil(total / limit);
         res.status(200).json({

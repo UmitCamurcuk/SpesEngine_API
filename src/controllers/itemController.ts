@@ -5,6 +5,111 @@ import ItemType from '../models/ItemType';
 import Category from '../models/Category';
 import AttributeGroup from '../models/AttributeGroup';
 
+// GET tüm öğeleri getir (test için authentication olmadan)
+export const getItemsTest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    // Sayfalama parametreleri
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+    
+    // Filtreleme parametreleri
+    const filterParams: any = {};
+    
+    // isActive parametresi
+    if (req.query.isActive !== undefined) {
+      filterParams.isActive = req.query.isActive === 'true';
+    }
+    
+    // ItemType, Family ve Category filtreleme
+    if (req.query.itemType) {
+      filterParams.itemType = new mongoose.Types.ObjectId(req.query.itemType as string);
+    }
+    
+    if (req.query.family) {
+      filterParams.family = new mongoose.Types.ObjectId(req.query.family as string);
+    }
+    
+    if (req.query.category) {
+      filterParams.category = new mongoose.Types.ObjectId(req.query.category as string);
+    }
+    
+    // Sıralama parametreleri
+    const sortBy = req.query.sortBy || 'createdAt';
+    const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
+    const sortOptions: any = {};
+    sortOptions[sortBy as string] = sortOrder;
+    
+    // Toplam kayıt sayısını al
+    const total = await Item.countDocuments(filterParams);
+    
+    // Verileri getir
+    const items = await Item.find(filterParams)
+      .populate({
+        path: 'family',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate({
+        path: 'category',
+        populate: [
+          { path: 'name', select: 'key namespace translations' },
+          { path: 'description', select: 'key namespace translations' }
+        ]
+      })
+      .populate('createdBy', 'name email firstName lastName')
+      .populate('updatedBy', 'name email firstName lastName')
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .lean();
+    
+    // Translations alanlarını düzelt
+    const fixTranslations = (obj: any) => {
+      if (obj && typeof obj === 'object') {
+        if (obj.translations && obj.translations instanceof Map) {
+          const translationsObj: Record<string, string> = {};
+          obj.translations.forEach((value: string, key: string) => {
+            translationsObj[key] = value;
+          });
+          obj.translations = translationsObj;
+        }
+      }
+    };
+    
+    // Her item için translations alanlarını düzelt
+    items.forEach((item: any) => {
+      if (item.family) {
+        if (item.family.name) fixTranslations(item.family.name);
+        if (item.family.description) fixTranslations(item.family.description);
+      }
+      if (item.category) {
+        if (item.category.name) fixTranslations(item.category.name);
+        if (item.category.description) fixTranslations(item.category.description);
+      }
+    });
+    
+    // Sayfa sayısını hesapla
+    const pages = Math.ceil(total / limit);
+    
+    res.status(200).json({
+      success: true,
+      count: items.length,
+      total,
+      page,
+      pages,
+      data: items
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Öğeler getirilirken bir hata oluştu'
+    });
+  }
+};
+
 // GET tüm öğeleri getir
 export const getItems = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -66,7 +171,33 @@ export const getItems = async (req: Request, res: Response, next: NextFunction):
       .populate('updatedBy', 'name email firstName lastName')
       .sort(sortOptions)
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
+    
+    // Translations alanlarını düzelt
+    const fixTranslations = (obj: any) => {
+      if (obj && typeof obj === 'object') {
+        if (obj.translations && obj.translations instanceof Map) {
+          const translationsObj: Record<string, string> = {};
+          obj.translations.forEach((value: string, key: string) => {
+            translationsObj[key] = value;
+          });
+          obj.translations = translationsObj;
+        }
+      }
+    };
+    
+    // Her item için translations alanlarını düzelt
+    items.forEach((item: any) => {
+      if (item.family) {
+        if (item.family.name) fixTranslations(item.family.name);
+        if (item.family.description) fixTranslations(item.family.description);
+      }
+      if (item.category) {
+        if (item.category.name) fixTranslations(item.category.name);
+        if (item.category.description) fixTranslations(item.category.description);
+      }
+    });
     
     // Sayfa sayısını hesapla
     const pages = Math.ceil(total / limit);

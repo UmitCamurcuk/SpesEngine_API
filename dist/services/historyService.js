@@ -136,12 +136,23 @@ class HistoryService {
                         }
                     }
                 }
-                // Ana entity'yi Entity tablosuna kaydet/güncelle
-                try {
-                    yield entityService_1.default.upsertEntity(entityId, entityType, entityCode);
+                // Ana entity'yi Entity tablosuna kaydet/güncelle (sadece geçerli ObjectId'ler için)
+                if (typeof entityId === 'string' && mongoose_1.default.Types.ObjectId.isValid(entityId)) {
+                    try {
+                        yield entityService_1.default.upsertEntity(entityId, entityType, entityCode);
+                    }
+                    catch (error) {
+                        console.warn(`[HistoryService] Could not upsert entity for ${entityType}:${entityId}`, error);
+                    }
                 }
-                catch (error) {
-                    console.warn(`[HistoryService] Could not upsert entity for ${entityType}:${entityId}`, error);
+                else if (typeof entityId !== 'string') {
+                    // ObjectId tipindeki entityId'ler için
+                    try {
+                        yield entityService_1.default.upsertEntity(entityId, entityType, entityCode);
+                    }
+                    catch (error) {
+                        console.warn(`[HistoryService] Could not upsert entity for ${entityType}:${entityId}`, error);
+                    }
                 }
                 // Etkilenen entity'leri hazırla
                 const processedAffectedEntities = [];
@@ -164,26 +175,46 @@ class HistoryService {
                             affectedEntityName = `${affected.entityType}_${affected.entityId}`;
                         }
                     }
-                    // İlişkili entity'yi de Entity tablosuna kaydet
-                    try {
-                        yield entityService_1.default.upsertEntity(affected.entityId, affected.entityType, affected.entityCode);
+                    // Sadece geçerli ObjectId'leri processedAffectedEntities'a ekle
+                    const isValidObjectId = typeof affected.entityId === 'string'
+                        ? mongoose_1.default.Types.ObjectId.isValid(affected.entityId)
+                        : true;
+                    // İlişkili entity'yi de Entity tablosuna kaydet (sadece geçerli ObjectId'ler için)
+                    if (typeof affected.entityId === 'string' && mongoose_1.default.Types.ObjectId.isValid(affected.entityId)) {
+                        try {
+                            yield entityService_1.default.upsertEntity(affected.entityId, affected.entityType, affected.entityCode);
+                        }
+                        catch (error) {
+                            console.warn(`[HistoryService] Could not upsert affected entity for ${affected.entityType}:${affected.entityId}`, error);
+                        }
                     }
-                    catch (error) {
-                        console.warn(`[HistoryService] Could not upsert affected entity for ${affected.entityType}:${affected.entityId}`, error);
+                    else if (typeof affected.entityId !== 'string') {
+                        // ObjectId tipindeki entityId'ler için
+                        try {
+                            yield entityService_1.default.upsertEntity(affected.entityId, affected.entityType, affected.entityCode);
+                        }
+                        catch (error) {
+                            console.warn(`[HistoryService] Could not upsert affected entity for ${affected.entityType}:${affected.entityId}`, error);
+                        }
                     }
-                    processedAffectedEntities.push({
-                        entityId: typeof affected.entityId === 'string' ? new mongoose_1.default.Types.ObjectId(affected.entityId) : affected.entityId,
-                        entityType: affected.entityType,
-                        entityName: affectedEntityName,
-                        role: affected.role || 'secondary'
-                    });
+                    // Sadece geçerli ObjectId'leri processedAffectedEntities'a ekle
+                    if (isValidObjectId) {
+                        processedAffectedEntities.push({
+                            entityId: typeof affected.entityId === 'string' ? new mongoose_1.default.Types.ObjectId(affected.entityId) : affected.entityId,
+                            entityType: affected.entityType,
+                            entityName: affectedEntityName,
+                            role: affected.role || 'secondary'
+                        });
+                    }
                 }
                 // Changes'i hesapla (eğer verilmemişse)
                 const finalChanges = changes || calculateChanges(previousData, newData);
-                // History kaydını oluştur
+                // History kaydını oluştur (sadece geçerli ObjectId'ler için)
                 const historyRecord = new History_1.default({
                     // Ana entity bilgisi (geriye uyumluluk)
-                    entityId: typeof entityId === 'string' ? new mongoose_1.default.Types.ObjectId(entityId) : entityId,
+                    entityId: typeof entityId === 'string' && mongoose_1.default.Types.ObjectId.isValid(entityId)
+                        ? new mongoose_1.default.Types.ObjectId(entityId)
+                        : (typeof entityId === 'string' ? null : entityId),
                     entityType,
                     // Etkilenen entity'ler
                     affectedEntities: processedAffectedEntities,
