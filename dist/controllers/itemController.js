@@ -17,6 +17,7 @@ const Item_1 = __importDefault(require("../models/Item"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const ItemType_1 = __importDefault(require("../models/ItemType"));
 const Category_1 = __importDefault(require("../models/Category"));
+const Attribute_1 = __importDefault(require("../models/Attribute"));
 // GET tüm öğeleri getir (test için authentication olmadan)
 const getItemsTest = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -81,8 +82,8 @@ const getItemsTest = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 }
             }
         };
-        // Her item için translations alanlarını düzelt
-        items.forEach((item) => {
+        // Her item için translations alanlarını düzelt ve attribute'ları populate et
+        for (const item of items) {
             if (item.family) {
                 if (item.family.name)
                     fixTranslations(item.family.name);
@@ -95,7 +96,11 @@ const getItemsTest = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 if (item.category.description)
                     fixTranslations(item.category.description);
             }
-        });
+            // Attribute'ları populate et
+            if (item.attributes && typeof item.attributes === 'object') {
+                item.attributes = yield populateAttributeValues(item.attributes);
+            }
+        }
         // Sayfa sayısını hesapla
         const pages = Math.ceil(total / limit);
         res.status(200).json({
@@ -181,8 +186,8 @@ const getItems = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 }
             }
         };
-        // Her item için translations alanlarını düzelt
-        items.forEach((item) => {
+        // Her item için translations alanlarını düzelt ve attribute'ları populate et
+        for (const item of items) {
             if (item.family) {
                 if (item.family.name)
                     fixTranslations(item.family.name);
@@ -195,7 +200,11 @@ const getItems = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 if (item.category.description)
                     fixTranslations(item.category.description);
             }
-        });
+            // Attribute'ları populate et
+            if (item.attributes && typeof item.attributes === 'object') {
+                item.attributes = yield populateAttributeValues(item.attributes);
+            }
+        }
         // Sayfa sayısını hesapla
         const pages = Math.ceil(total / limit);
         res.status(200).json({
@@ -492,6 +501,93 @@ const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getItemById = getItemById;
+// Attribute değerlerini populate eden yardımcı fonksiyon
+function populateAttributeValues(attributes) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const populatedAttributes = [];
+        for (const [attributeId, value] of Object.entries(attributes)) {
+            try {
+                // Attribute'u bul
+                const attribute = yield Attribute_1.default.findById(attributeId)
+                    .populate({
+                    path: 'name',
+                    select: 'key namespace translations'
+                })
+                    .populate({
+                    path: 'description',
+                    select: 'key namespace translations'
+                })
+                    .populate({
+                    path: 'options',
+                    populate: [
+                        { path: 'name', select: 'key namespace translations' },
+                        { path: 'description', select: 'key namespace translations' }
+                    ]
+                })
+                    .lean();
+                if (attribute) {
+                    // Temel attribute bilgilerini ekle
+                    const populatedAttribute = {
+                        _id: attribute._id,
+                        code: attribute.code,
+                        type: attribute.type,
+                        name: attribute.name,
+                        description: attribute.description,
+                        isRequired: attribute.isRequired,
+                        options: attribute.options,
+                        validations: attribute.validations,
+                        notificationSettings: attribute.notificationSettings,
+                        isActive: attribute.isActive,
+                        createdAt: attribute.createdAt,
+                        updatedAt: attribute.updatedAt,
+                        __v: attribute.__v,
+                        value: value
+                    };
+                    // Eğer değer başka bir attribute'un ID'si ise, referencedValue ekle
+                    if (typeof value === 'string' && value.length === 24) {
+                        try {
+                            const referencedAttribute = yield Attribute_1.default.findById(value)
+                                .populate({
+                                path: 'name',
+                                select: 'key namespace translations'
+                            })
+                                .populate({
+                                path: 'description',
+                                select: 'key namespace translations'
+                            })
+                                .lean();
+                            if (referencedAttribute) {
+                                populatedAttribute.referencedValue = referencedAttribute;
+                            }
+                        }
+                        catch (refError) {
+                            console.log('Referenced attribute not found:', value);
+                        }
+                    }
+                    populatedAttributes.push(populatedAttribute);
+                }
+                else {
+                    // Attribute bulunamadıysa sadece değeri ekle
+                    populatedAttributes.push({
+                        _id: attributeId,
+                        value: value,
+                        error: 'Attribute not found'
+                    });
+                }
+            }
+            catch (error) {
+                console.error('Error populating attribute:', attributeId, error);
+                // Hata durumunda sadece değeri ekle
+                populatedAttributes.push({
+                    _id: attributeId,
+                    value: value,
+                    error: 'Population error'
+                });
+            }
+        }
+        return populatedAttributes;
+    });
+}
 // Modern yardımcı fonksiyon: Full hierarchy'den zorunlu attribute'ları getir
 function getRequiredAttributesFromHierarchy(itemTypeId, categoryId, familyId) {
     return __awaiter(this, void 0, void 0, function* () {

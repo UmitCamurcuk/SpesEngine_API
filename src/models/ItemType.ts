@@ -30,6 +30,36 @@ export interface INotificationChannels {
   };
 }
 
+export interface ITableColumn {
+  key: string;
+  title: string;
+  visible: boolean;
+  order: number;
+  width?: number;
+  sortable?: boolean;
+  filterable?: boolean;
+}
+
+export interface INavigationSettings {
+  showInNavbar?: boolean;
+  navbarLabel?: string;
+  navbarIcon?: string;
+  navbarOrder?: number;
+  menuGroup?: string;
+}
+
+export interface IDisplaySettings {
+  listTitle?: string;
+  listDescription?: string;
+  itemsPerPage?: number;
+  defaultSortField?: string;
+  defaultSortOrder?: 'asc' | 'desc';
+  tableColumns?: ITableColumn[];
+  showAdvancedFilters?: boolean;
+  showExportButton?: boolean;
+  showImportButton?: boolean;
+}
+
 export interface IItemTypeSettings {
   notifications?: {
     settings?: INotificationSettings;
@@ -43,6 +73,8 @@ export interface IItemTypeSettings {
     requireApproval?: boolean;
     autoPublish?: boolean;
   };
+  navigation?: INavigationSettings;
+  display?: IDisplaySettings;
 }
 
 export interface IItemType extends Document {
@@ -159,6 +191,38 @@ const ItemTypeSchema: Schema = new Schema(
           type: {
             requireApproval: { type: Boolean, default: false },
             autoPublish: { type: Boolean, default: true }
+          },
+          required: false
+        },
+        navigation: {
+          type: {
+            showInNavbar: { type: Boolean, default: false },
+            navbarLabel: { type: String, required: false },
+            navbarIcon: { type: String, required: false },
+            navbarOrder: { type: Number, required: false },
+            menuGroup: { type: String, required: false }
+          },
+          required: false
+        },
+        display: {
+          type: {
+            listTitle: { type: String, required: false },
+            listDescription: { type: String, required: false },
+            itemsPerPage: { type: Number, required: false },
+            defaultSortField: { type: String, required: false },
+            defaultSortOrder: { type: String, enum: ['asc', 'desc'], required: false },
+                         tableColumns: [{
+               key: { type: String, required: true },
+               title: { type: String, required: true },
+               visible: { type: Boolean, default: true },
+               order: { type: Number, required: true },
+               width: { type: Number, required: false },
+               sortable: { type: Boolean, default: true },
+               filterable: { type: Boolean, default: true }
+             }],
+            showAdvancedFilters: { type: Boolean, default: false },
+            showExportButton: { type: Boolean, default: false },
+            showImportButton: { type: Boolean, default: false }
           },
           required: false
         }

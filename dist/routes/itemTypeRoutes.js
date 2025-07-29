@@ -9,6 +9,14 @@ const itemTypeController_1 = require("../controllers/itemTypeController");
 const router = express_1.default.Router();
 // Tüm rotalar için token kontrolü
 router.use(auth_middleware_1.authenticateToken);
+// Navbar için özel route
+router
+    .route('/navbar')
+    .get((0, auth_middleware_1.checkAccess)(['ITEM_TYPES_VIEW']), itemTypeController_1.getItemTypesForNavbar);
+// Code'a göre ItemType getir
+router
+    .route('/code/:code')
+    .get((0, auth_middleware_1.checkAccess)(['ITEM_TYPES_VIEW']), itemTypeController_1.getItemTypeByCode);
 router
     .route('/')
     .get((0, auth_middleware_1.checkAccess)(['ITEM_TYPES_VIEW']), itemTypeController_1.getItemTypes)

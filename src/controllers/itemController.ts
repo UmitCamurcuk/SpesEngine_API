@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import ItemType from '../models/ItemType';
 import Category from '../models/Category';
 import AttributeGroup from '../models/AttributeGroup';
+import Attribute from '../models/Attribute';
 
 // GET tüm öğeleri getir (test için authentication olmadan)
 export const getItemsTest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -79,17 +80,22 @@ export const getItemsTest = async (req: Request, res: Response, next: NextFuncti
       }
     };
     
-    // Her item için translations alanlarını düzelt
-    items.forEach((item: any) => {
+    // Her item için translations alanlarını düzelt ve attribute'ları populate et
+    for (const item of items) {
       if (item.family) {
-        if (item.family.name) fixTranslations(item.family.name);
-        if (item.family.description) fixTranslations(item.family.description);
+        if ((item.family as any).name) fixTranslations((item.family as any).name);
+        if ((item.family as any).description) fixTranslations((item.family as any).description);
       }
       if (item.category) {
-        if (item.category.name) fixTranslations(item.category.name);
-        if (item.category.description) fixTranslations(item.category.description);
+        if ((item.category as any).name) fixTranslations((item.category as any).name);
+        if ((item.category as any).description) fixTranslations((item.category as any).description);
       }
-    });
+      
+      // Attribute'ları populate et
+      if (item.attributes && typeof item.attributes === 'object') {
+        item.attributes = await populateAttributeValues(item.attributes);
+      }
+    }
     
     // Sayfa sayısını hesapla
     const pages = Math.ceil(total / limit);
@@ -187,17 +193,22 @@ export const getItems = async (req: Request, res: Response, next: NextFunction):
       }
     };
     
-    // Her item için translations alanlarını düzelt
-    items.forEach((item: any) => {
+    // Her item için translations alanlarını düzelt ve attribute'ları populate et
+    for (const item of items) {
       if (item.family) {
-        if (item.family.name) fixTranslations(item.family.name);
-        if (item.family.description) fixTranslations(item.family.description);
+        if ((item.family as any).name) fixTranslations((item.family as any).name);
+        if ((item.family as any).description) fixTranslations((item.family as any).description);
       }
       if (item.category) {
-        if (item.category.name) fixTranslations(item.category.name);
-        if (item.category.description) fixTranslations(item.category.description);
+        if ((item.category as any).name) fixTranslations((item.category as any).name);
+        if ((item.category as any).description) fixTranslations((item.category as any).description);
       }
-    });
+      
+      // Attribute'ları populate et
+      if (item.attributes && typeof item.attributes === 'object') {
+        item.attributes = await populateAttributeValues(item.attributes);
+      }
+    }
     
     // Sayfa sayısını hesapla
     const pages = Math.ceil(total / limit);
@@ -508,6 +519,95 @@ export const getItemById = async (req: Request, res: Response, next: NextFunctio
     });
   }
 };
+
+// Attribute değerlerini populate eden yardımcı fonksiyon
+async function populateAttributeValues(attributes: Record<string, any>): Promise<any[]> {
+  const populatedAttributes: any[] = [];
+  
+  for (const [attributeId, value] of Object.entries(attributes)) {
+    try {
+      // Attribute'u bul
+      const attribute = await Attribute.findById(attributeId)
+        .populate({
+          path: 'name',
+          select: 'key namespace translations'
+        })
+        .populate({
+          path: 'description',
+          select: 'key namespace translations'
+        })
+        .populate({
+          path: 'options',
+          populate: [
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' }
+          ]
+        })
+        .lean();
+
+      if (attribute) {
+        // Temel attribute bilgilerini ekle
+        const populatedAttribute: any = {
+          _id: attribute._id,
+          code: attribute.code,
+          type: attribute.type,
+          name: attribute.name,
+          description: attribute.description,
+          isRequired: attribute.isRequired,
+          options: attribute.options,
+          validations: attribute.validations,
+          notificationSettings: attribute.notificationSettings,
+          isActive: attribute.isActive,
+          createdAt: attribute.createdAt,
+          updatedAt: attribute.updatedAt,
+          __v: attribute.__v,
+          value: value
+        };
+
+        // Eğer değer başka bir attribute'un ID'si ise, referencedValue ekle
+        if (typeof value === 'string' && value.length === 24) {
+          try {
+            const referencedAttribute = await Attribute.findById(value)
+              .populate({
+                path: 'name',
+                select: 'key namespace translations'
+              })
+              .populate({
+                path: 'description',
+                select: 'key namespace translations'
+              })
+              .lean();
+
+            if (referencedAttribute) {
+              populatedAttribute.referencedValue = referencedAttribute;
+            }
+          } catch (refError) {
+            console.log('Referenced attribute not found:', value);
+          }
+        }
+
+        populatedAttributes.push(populatedAttribute);
+      } else {
+        // Attribute bulunamadıysa sadece değeri ekle
+        populatedAttributes.push({
+          _id: attributeId,
+          value: value,
+          error: 'Attribute not found'
+        });
+      }
+    } catch (error) {
+      console.error('Error populating attribute:', attributeId, error);
+      // Hata durumunda sadece değeri ekle
+      populatedAttributes.push({
+        _id: attributeId,
+        value: value,
+        error: 'Population error'
+      });
+    }
+  }
+  
+  return populatedAttributes;
+}
 
 // Modern yardımcı fonksiyon: Full hierarchy'den zorunlu attribute'ları getir
 async function getRequiredAttributesFromHierarchy(itemTypeId: string, categoryId: string, familyId: string) {

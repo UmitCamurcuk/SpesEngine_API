@@ -136,6 +136,38 @@ const ItemTypeSchema = new mongoose_1.Schema({
                     autoPublish: { type: Boolean, default: true }
                 },
                 required: false
+            },
+            navigation: {
+                type: {
+                    showInNavbar: { type: Boolean, default: false },
+                    navbarLabel: { type: String, required: false },
+                    navbarIcon: { type: String, required: false },
+                    navbarOrder: { type: Number, required: false },
+                    menuGroup: { type: String, required: false }
+                },
+                required: false
+            },
+            display: {
+                type: {
+                    listTitle: { type: String, required: false },
+                    listDescription: { type: String, required: false },
+                    itemsPerPage: { type: Number, required: false },
+                    defaultSortField: { type: String, required: false },
+                    defaultSortOrder: { type: String, enum: ['asc', 'desc'], required: false },
+                    tableColumns: [{
+                            key: { type: String, required: true },
+                            title: { type: String, required: true },
+                            visible: { type: Boolean, default: true },
+                            order: { type: Number, required: true },
+                            width: { type: Number, required: false },
+                            sortable: { type: Boolean, default: true },
+                            filterable: { type: Boolean, default: true }
+                        }],
+                    showAdvancedFilters: { type: Boolean, default: false },
+                    showExportButton: { type: Boolean, default: false },
+                    showImportButton: { type: Boolean, default: false }
+                },
+                required: false
             }
         },
         required: false

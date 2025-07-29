@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteItemType = exports.updateItemType = exports.createItemType = exports.getItemTypeById = exports.getItemTypes = void 0;
+exports.getItemTypeByCode = exports.getItemTypesForNavbar = exports.deleteItemType = exports.updateItemType = exports.createItemType = exports.getItemTypeById = exports.getItemTypes = void 0;
 const ItemType_1 = __importDefault(require("../models/ItemType"));
 const historyService_1 = __importDefault(require("../services/historyService"));
 const History_1 = require("../models/History");
@@ -585,3 +585,119 @@ const deleteItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.deleteItemType = deleteItemType;
+// GET navbar için aktif öğe tiplerini getir
+const getItemTypesForNavbar = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const itemTypes = yield ItemType_1.default.find({
+            isActive: true,
+            'settings.navigation.showInNavbar': true
+        })
+            .populate({
+            path: 'name',
+            select: 'key namespace translations'
+        })
+            .sort({ 'settings.navigation.navbarOrder': 1, name: 1 });
+        res.status(200).json({
+            success: true,
+            data: itemTypes
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Navbar öğe tipleri getirilirken bir hata oluştu'
+        });
+    }
+});
+exports.getItemTypesForNavbar = getItemTypesForNavbar;
+// GET code'a göre ItemType getir (attribute bilgileri ile birlikte)
+const getItemTypeByCode = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { code } = req.params;
+        const itemType = yield ItemType_1.default.findOne({ code })
+            .populate({
+            path: 'name',
+            select: 'key namespace translations'
+        })
+            .populate({
+            path: 'description',
+            select: 'key namespace translations'
+        })
+            .populate({
+            path: 'category',
+            select: 'name code description isActive',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+            ]
+        })
+            .populate({
+            path: 'attributeGroups',
+            select: 'name code description attributes isActive',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' },
+                {
+                    path: 'attributes',
+                    select: 'name code type description isRequired isActive options validations',
+                    populate: [
+                        { path: 'name', select: 'key namespace translations' },
+                        { path: 'description', select: 'key namespace translations' },
+                        {
+                            path: 'options',
+                            select: 'name code type description isActive',
+                            populate: [
+                                { path: 'name', select: 'key namespace translations' },
+                                { path: 'description', select: 'key namespace translations' }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        })
+            .populate({
+            path: 'attributes',
+            select: 'name code type description isRequired isActive options validations',
+            populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' },
+                {
+                    path: 'options',
+                    select: 'name code type description isActive',
+                    populate: [
+                        { path: 'name', select: 'key namespace translations' },
+                        { path: 'description', select: 'key namespace translations' }
+                    ]
+                }
+            ]
+        })
+            .lean();
+        if (!itemType) {
+            res.status(404).json({
+                success: false,
+                message: 'Öğe tipi bulunamadı'
+            });
+            return;
+        }
+        res.status(200).json({
+            success: true,
+            data: itemType
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Öğe tipi getirilirken bir hata oluştu'
+        });
+    }
+});
+exports.getItemTypeByCode = getItemTypeByCode;
+exports.default = {
+    getItemTypes: exports.getItemTypes,
+    getItemTypeById: exports.getItemTypeById,
+    createItemType: exports.createItemType,
+    updateItemType: exports.updateItemType,
+    deleteItemType: exports.deleteItemType,
+    getItemTypesForNavbar: exports.getItemTypesForNavbar,
+    getItemTypeByCode: exports.getItemTypeByCode
+};

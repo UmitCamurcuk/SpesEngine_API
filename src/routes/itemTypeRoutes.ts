@@ -5,13 +5,25 @@ import {
   getItemTypeById,
   createItemType,
   updateItemType,
-  deleteItemType
+  deleteItemType,
+  getItemTypesForNavbar,
+  getItemTypeByCode
 } from '../controllers/itemTypeController';
 
 const router = express.Router();
 
 // Tüm rotalar için token kontrolü
 router.use(authenticateToken);
+
+// Navbar için özel route
+router
+  .route('/navbar')
+  .get(checkAccess(['ITEM_TYPES_VIEW']), getItemTypesForNavbar);
+
+// Code'a göre ItemType getir
+router
+  .route('/code/:code')
+  .get(checkAccess(['ITEM_TYPES_VIEW']), getItemTypeByCode);
 
 router
   .route('/')
