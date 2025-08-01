@@ -105,6 +105,13 @@ export const getFamilies = async (req: Request, res: Response, next: NextFunctio
         ]
       })
       .populate({
+        path: 'subFamilies',
+        populate: [
+          { path: 'name' },
+          { path: 'description' }
+        ]
+      })
+      .populate({
         path: 'category',
         populate: [
           { path: 'name' },
@@ -543,6 +550,22 @@ export const updateFamily = async (req: Request, res: Response, next: NextFuncti
       await syncFamilyCategoryRelationship(id, newCategoryId, oldCategoryId, req.body.comment);
     }
 
+    // Parent değişikliği varsa bidirectional sync yap
+    const oldParentId = existingFamily.parent?.toString();
+    const newParentId = req.body.parent;
+    
+    if (oldParentId !== newParentId) {
+      // Eski parent'tan çıkar
+      if (oldParentId) {
+        await syncParentChildRelationship(id, oldParentId, 'remove', req.user?._id);
+      }
+      
+      // Yeni parent'a ekle
+      if (newParentId) {
+        await syncParentChildRelationship(id, newParentId, 'add', req.user?._id);
+      }
+    }
+
     // History kaydı oluştur
     if (req.body.comment || Object.keys(updateData).length > 0) {
       await historyService.recordHistory({
@@ -609,6 +632,22 @@ export const deleteFamily = async (req: Request, res: Response, next: NextFuncti
         message: 'Aile bulunamadı'
       });
       return;
+    }
+    
+    // Parent-child ilişkisini temizle
+    if (family.parent) {
+      await syncParentChildRelationship(String(family._id), String(family.parent), 'remove', req.user?._id);
+    }
+    
+    // SubFamilies'leri parent'tan çıkar
+    if (family.subFamilies && family.subFamilies.length > 0) {
+      for (const subFamilyId of family.subFamilies) {
+        await Family.findByIdAndUpdate(
+          subFamilyId,
+          { $unset: { parent: 1 } },
+          { new: true }
+        );
+      }
     }
     
     // Veriyi sil

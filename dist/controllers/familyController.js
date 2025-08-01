@@ -133,6 +133,13 @@ const getFamilies = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             ]
         })
             .populate({
+            path: 'subFamilies',
+            populate: [
+                { path: 'name' },
+                { path: 'description' }
+            ]
+        })
+            .populate({
             path: 'category',
             populate: [
                 { path: 'name' },
@@ -482,7 +489,7 @@ const syncFamilyCategoryRelationship = (familyId, newCategoryId, oldCategoryId, 
 });
 // updateFamily fonksiyonunu güncelleyelim
 const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d, _e;
     try {
         const { id } = req.params;
         // Mevcut family'yi getir
@@ -535,6 +542,19 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         if (oldCategoryId !== newCategoryId) {
             yield syncFamilyCategoryRelationship(id, newCategoryId, oldCategoryId, req.body.comment);
         }
+        // Parent değişikliği varsa bidirectional sync yap
+        const oldParentId = (_b = existingFamily.parent) === null || _b === void 0 ? void 0 : _b.toString();
+        const newParentId = req.body.parent;
+        if (oldParentId !== newParentId) {
+            // Eski parent'tan çıkar
+            if (oldParentId) {
+                yield syncParentChildRelationship(id, oldParentId, 'remove', (_c = req.user) === null || _c === void 0 ? void 0 : _c._id);
+            }
+            // Yeni parent'a ekle
+            if (newParentId) {
+                yield syncParentChildRelationship(id, newParentId, 'add', (_d = req.user) === null || _d === void 0 ? void 0 : _d._id);
+            }
+        }
         // History kaydı oluştur
         if (req.body.comment || Object.keys(updateData).length > 0) {
             yield historyService_1.default.recordHistory({
@@ -542,7 +562,7 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 entityId: id,
                 entityName: updatedFamily.code,
                 action: History_1.ActionType.UPDATE,
-                userId: String(((_b = req.user) === null || _b === void 0 ? void 0 : _b._id) || 'system'),
+                userId: String(((_e = req.user) === null || _e === void 0 ? void 0 : _e._id) || 'system'),
                 previousData: {
                     name: String(existingFamily.name),
                     code: existingFamily.code,
@@ -587,6 +607,7 @@ const updateFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
 exports.updateFamily = updateFamily;
 // DELETE aileyi sil
 const deleteFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         // Silinmeden önce veriyi al
         const family = yield Family_1.default.findById(req.params.id);
@@ -596,6 +617,16 @@ const deleteFamily = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 message: 'Aile bulunamadı'
             });
             return;
+        }
+        // Parent-child ilişkisini temizle
+        if (family.parent) {
+            yield syncParentChildRelationship(String(family._id), String(family.parent), 'remove', (_a = req.user) === null || _a === void 0 ? void 0 : _a._id);
+        }
+        // SubFamilies'leri parent'tan çıkar
+        if (family.subFamilies && family.subFamilies.length > 0) {
+            for (const subFamilyId of family.subFamilies) {
+                yield Family_1.default.findByIdAndUpdate(subFamilyId, { $unset: { parent: 1 } }, { new: true });
+            }
         }
         // Veriyi sil
         yield Family_1.default.findByIdAndDelete(req.params.id);
