@@ -55,6 +55,11 @@ const ItemSchema = new mongoose_1.Schema({
         of: mongoose_1.Schema.Types.Mixed,
         default: {}
     },
+    associations: {
+        type: Map,
+        of: mongoose_1.Schema.Types.Mixed, // Hem tek ID hem de array kabul edebilsin
+        default: {}
+    },
     isActive: {
         type: Boolean,
         default: true
@@ -73,31 +78,58 @@ const ItemSchema = new mongoose_1.Schema({
     timestamps: true,
     versionKey: false,
     toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+    toObject: { virtuals: true },
+    // İndexleme stratejisi
+    indexes: [
+        { itemType: 1, isActive: 1 }, // ItemType'a göre aktif item'lar
+        { family: 1, isActive: 1 }, // Family'e göre aktif item'lar
+        { category: 1, isActive: 1 }, // Category'e göre aktif item'lar
+        { 'associations': 1 }, // Association değerlerine göre arama
+        { createdAt: -1 }, // Son oluşturulan item'lar
+        { updatedAt: -1 } // Son güncellenen item'lar
+    ]
 });
-// Attributes alanını düz bir obje olarak döndür
+// Attributes ve associations alanlarını düz obje olarak döndür
 ItemSchema.methods.toJSON = function () {
     const item = this.toObject();
+    // Attributes'ı düz obje yap
     if (item.attributes && item.attributes instanceof Map) {
         item.attributes = Object.fromEntries(item.attributes);
     }
     else if (!item.attributes) {
         item.attributes = {};
     }
+    // Associations'ı düz obje yap
+    if (item.associations && item.associations instanceof Map) {
+        item.associations = Object.fromEntries(item.associations);
+    }
+    else if (!item.associations) {
+        item.associations = {};
+    }
     return item;
 };
-// Öğe oluşturulurken veya güncellenirken attributes Map olarak ayarla
+// Öğe oluşturulurken veya güncellenirken attributes ve associations Map olarak ayarla
 ItemSchema.pre('save', function (next) {
+    // Attributes Map'e çevir
     if (this.attributes && typeof this.attributes === 'object' && !(this.attributes instanceof Map)) {
         this.attributes = new Map(Object.entries(this.attributes));
     }
+    // Associations Map'e çevir
+    if (this.associations && typeof this.associations === 'object' && !(this.associations instanceof Map)) {
+        this.associations = new Map(Object.entries(this.associations));
+    }
     next();
 });
-// Öğe toplu güncelleme işlemleri için attributes Map olarak ayarla
+// Öğe toplu güncelleme işlemleri için attributes ve associations Map olarak ayarla
 ItemSchema.pre('findOneAndUpdate', function (next) {
     const update = this.getUpdate();
+    // Attributes Map'e çevir
     if (update && update.attributes && typeof update.attributes === 'object' && !(update.attributes instanceof Map)) {
         update.attributes = new Map(Object.entries(update.attributes));
+    }
+    // Associations Map'e çevir
+    if (update && update.associations && typeof update.associations === 'object' && !(update.associations instanceof Map)) {
+        update.associations = new Map(Object.entries(update.associations));
     }
     next();
 });

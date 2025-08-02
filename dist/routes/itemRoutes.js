@@ -18,4 +18,30 @@ router
     .get((0, auth_middleware_1.checkAccess)(['ITEMS_VIEW']), itemController_1.getItemById)
     .put((0, auth_middleware_1.checkAccess)(['ITEMS_UPDATE']), itemController_1.updateItem)
     .delete((0, auth_middleware_1.checkAccess)(['ITEMS_DELETE']), itemController_1.deleteItem);
+// ============================================================================
+// ASSOCIATION ROUTES
+// ============================================================================
+// Item associations
+router
+    .route('/:id/associations')
+    .get((0, auth_middleware_1.checkAccess)(['ITEMS_VIEW']), itemController_1.getItemAssociations);
+// Association management
+router
+    .route('/:sourceItemId/associations/create')
+    .post((0, auth_middleware_1.checkAccess)(['ITEMS_UPDATE']), itemController_1.createAssociation);
+router
+    .route('/:sourceItemId/associations/remove')
+    .post((0, auth_middleware_1.checkAccess)(['ITEMS_UPDATE']), itemController_1.removeAssociation);
+// Search items for association
+router
+    .route('/:sourceItemId/search/:targetItemTypeCode')
+    .get((0, auth_middleware_1.checkAccess)(['ITEMS_VIEW']), itemController_1.searchItemsForAssociation);
+// ItemType association rules
+router
+    .route('/types/:itemTypeCode/association-rules')
+    .get((0, auth_middleware_1.checkAccess)(['ITEMS_VIEW']), itemController_1.getItemTypeAssociationRules);
+// Association validation
+router
+    .route('/:id/associations/validate')
+    .post((0, auth_middleware_1.checkAccess)(['ITEMS_VIEW']), itemController_1.validateItemAssociations);
 exports.default = router;

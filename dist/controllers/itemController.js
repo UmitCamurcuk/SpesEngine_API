@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteItem = exports.updateItem = exports.createItem = exports.getItemById = exports.getItems = exports.getItemsTest = void 0;
+exports.validateItemAssociations = exports.getItemTypeAssociationRules = exports.searchItemsForAssociation = exports.removeAssociation = exports.createAssociation = exports.getItemAssociations = exports.deleteItem = exports.updateItem = exports.createItem = exports.getItemById = exports.getItems = exports.getItemsTest = void 0;
 const Item_1 = __importDefault(require("../models/Item"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const ItemType_1 = __importDefault(require("../models/ItemType"));
 const Category_1 = __importDefault(require("../models/Category"));
 const Attribute_1 = __importDefault(require("../models/Attribute"));
+const associationService_1 = __importDefault(require("../services/associationService"));
 // GET tüm öğeleri getir (test için authentication olmadan)
 const getItemsTest = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -486,7 +487,20 @@ const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             const familyHierarchy = yield getFamilyHierarchy(String(item.family._id));
             item.familyHierarchy = familyHierarchy;
         }
-        console.log('✅ Item fetched successfully with full hierarchy');
+        // 4. Association'ları getir ve populate et
+        try {
+            const associations = yield associationService_1.default.getItemAssociations(item._id.toString(), {
+                populate: true,
+                populateFields: ['itemType', 'family', 'category'],
+                includeInactive: false
+            });
+            item.populatedAssociations = associations;
+        }
+        catch (associationError) {
+            console.warn('Association fetch error:', associationError);
+            item.populatedAssociations = [];
+        }
+        console.log('✅ Item fetched successfully with full hierarchy and associations');
         res.status(200).json({
             success: true,
             data: item
@@ -725,17 +739,18 @@ function getRequiredAttributesFromHierarchy(itemTypeId, categoryId, familyId) {
         return uniq(requiredAttributes);
     });
 }
-// POST yeni öğe oluştur - Modern hierarchical approach
+// POST yeni öğe oluştur - Modern hierarchical approach with associations
 const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        const { itemType, family, category, attributes, isActive } = req.body;
+        const { itemType, family, category, attributes, associations, isActive } = req.body;
         // Debug: Gelen payload'ı kontrol et
         console.log('🔍 Received payload:', {
             itemType,
             family,
             category,
             attributes,
+            associations,
             isActive
         });
         // Payload validation - ObjectId format kontrolü
@@ -778,10 +793,38 @@ const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             family: cleanFamily,
             category: cleanCategory,
             attributes: itemAttributes,
+            associations: associations || {},
             isActive: isActive !== undefined ? isActive : true,
             createdBy: (_a = req.user) === null || _a === void 0 ? void 0 : _a._id,
             updatedBy: (_b = req.user) === null || _b === void 0 ? void 0 : _b._id
         });
+        // Association validation (oluşturulduktan sonra)
+        if (associations && Object.keys(associations).length > 0) {
+            try {
+                const validationResult = yield associationService_1.default.validateAssociations(String(item._id), associations);
+                if (!validationResult.isValid) {
+                    // Item'ı sil çünkü association'lar geçersiz
+                    yield Item_1.default.findByIdAndDelete(String(item._id));
+                    res.status(400).json({
+                        success: false,
+                        message: 'Association validation başarısız',
+                        errors: validationResult.errors,
+                        warnings: validationResult.warnings
+                    });
+                    return;
+                }
+            }
+            catch (validationError) {
+                // Item'ı sil çünkü validation hatası
+                yield Item_1.default.findByIdAndDelete(String(item._id));
+                res.status(400).json({
+                    success: false,
+                    message: 'Association validation hatası',
+                    error: validationError.message
+                });
+                return;
+            }
+        }
         // Başarılı response
         res.status(201).json({
             success: true,
@@ -889,3 +932,159 @@ const deleteItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.deleteItem = deleteItem;
+// ============================================================================
+// ASSOCIATION MANAGEMENT ENDPOINTS
+// ============================================================================
+// GET item'ın association'larını getir
+const getItemAssociations = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const { populate = 'true', includeInactive = 'false' } = req.query;
+        const associations = yield associationService_1.default.getItemAssociations(id, {
+            populate: populate === 'true',
+            populateFields: ['itemType', 'family', 'category'],
+            includeInactive: includeInactive === 'true'
+        });
+        res.status(200).json({
+            success: true,
+            data: associations
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Association\'lar getirilirken hata oluştu'
+        });
+    }
+});
+exports.getItemAssociations = getItemAssociations;
+// POST yeni association oluştur
+const createAssociation = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { sourceItemId } = req.params;
+        const { targetItemId, associationType } = req.body;
+        if (!targetItemId || !associationType) {
+            res.status(400).json({
+                success: false,
+                message: 'targetItemId ve associationType gerekli'
+            });
+            return;
+        }
+        yield associationService_1.default.createAssociation(sourceItemId, targetItemId, associationType);
+        res.status(201).json({
+            success: true,
+            message: 'Association başarıyla oluşturuldu'
+        });
+    }
+    catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message || 'Association oluşturulurken hata oluştu'
+        });
+    }
+});
+exports.createAssociation = createAssociation;
+// DELETE association sil
+const removeAssociation = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { sourceItemId } = req.params;
+        const { targetItemId, associationType } = req.body;
+        if (!targetItemId || !associationType) {
+            res.status(400).json({
+                success: false,
+                message: 'targetItemId ve associationType gerekli'
+            });
+            return;
+        }
+        yield associationService_1.default.removeAssociation(sourceItemId, targetItemId, associationType);
+        res.status(200).json({
+            success: true,
+            message: 'Association başarıyla silindi'
+        });
+    }
+    catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message || 'Association silinirken hata oluştu'
+        });
+    }
+});
+exports.removeAssociation = removeAssociation;
+// GET association için uygun item'ları ara
+const searchItemsForAssociation = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { sourceItemId, targetItemTypeCode } = req.params;
+        const { search, page = '1', limit = '20', includeInactive = 'false' } = req.query;
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+        const items = yield associationService_1.default.searchItemsForAssociation(sourceItemId, targetItemTypeCode, search, {
+            populate: true,
+            populateFields: ['itemType', 'family', 'category'],
+            includeInactive: includeInactive === 'true',
+            skip,
+            limit: limitNum,
+            sort: { createdAt: -1 }
+        });
+        res.status(200).json({
+            success: true,
+            data: items,
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total: items.length
+            }
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Item arama işleminde hata oluştu'
+        });
+    }
+});
+exports.searchItemsForAssociation = searchItemsForAssociation;
+// GET ItemType'ın association rules'ları
+const getItemTypeAssociationRules = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { itemTypeCode } = req.params;
+        const rules = yield associationService_1.default.getAssociationRules(itemTypeCode);
+        res.status(200).json({
+            success: true,
+            data: rules
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Association rules getirilirken hata oluştu'
+        });
+    }
+});
+exports.getItemTypeAssociationRules = getItemTypeAssociationRules;
+// POST association validation
+const validateItemAssociations = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const { associations } = req.body;
+        if (!associations) {
+            res.status(400).json({
+                success: false,
+                message: 'associations verisi gerekli'
+            });
+            return;
+        }
+        const validationResult = yield associationService_1.default.validateAssociations(id, associations);
+        res.status(200).json({
+            success: true,
+            data: validationResult
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Association validation işleminde hata oluştu'
+        });
+    }
+});
+exports.validateItemAssociations = validateItemAssociations;

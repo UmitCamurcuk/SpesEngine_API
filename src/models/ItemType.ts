@@ -77,6 +77,37 @@ export interface IItemTypeSettings {
   display?: IDisplaySettings;
 }
 
+// Association tanımları için interface'ler
+export interface IAssociationRule {
+  targetItemTypeCode: string;           // Hedef ItemType kodu (örn: "customer")
+  targetItemTypeName?: string;          // Display name
+  relationshipType: 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many';
+  cardinality: {
+    min?: number;                       // Minimum ilişki sayısı
+    max?: number;                       // Maximum ilişki sayısı (null = unlimited)
+  };
+  isRequired: boolean;                  // İlişki zorunlu mu?
+  cascadeDelete?: boolean;              // İlgili kayıt silindiğinde ne olsun?
+  displayField?: string;                // Hangi attribute gösterilsin?
+  searchableFields?: string[];          // Hangi attribute'larda arama yapılsın?
+  filterBy?: Record<string, any>;       // Ek filtreleme kriterleri
+  validationRules?: Record<string, any>; // İlişki validation kuralları
+  uiConfig?: {
+    showInList?: boolean;               // Liste ekranında göster
+    showInDetail?: boolean;             // Detay ekranında göster
+    allowInlineCreate?: boolean;        // Inline oluşturma izni
+    allowInlineEdit?: boolean;          // Inline düzenleme izni
+    displayMode?: 'dropdown' | 'modal' | 'popup' | 'inline';
+  };
+}
+
+export interface IItemTypeAssociations {
+  // Giden ilişkiler (bu itemType'dan diğerlerine)
+  outgoing?: IAssociationRule[];
+  // Gelen ilişkiler (diğer itemType'lardan buna)  
+  incoming?: IAssociationRule[];
+}
+
 export interface IItemType extends Document {
   name: mongoose.Types.ObjectId;
   code: string;
@@ -84,6 +115,7 @@ export interface IItemType extends Document {
   category: mongoose.Types.ObjectId;
   attributeGroups?: mongoose.Types.ObjectId[];
   attributes?: mongoose.Types.ObjectId[];
+  associations?: IItemTypeAssociations;  // YENİ: Association tanımları
   settings?: IItemTypeSettings;
   isActive: boolean;
   createdAt: Date;
@@ -229,13 +261,86 @@ const ItemTypeSchema: Schema = new Schema(
       },
       required: false
     },
+    associations: {
+      type: {
+        outgoing: [{
+          targetItemTypeCode: { type: String, required: true },
+          targetItemTypeName: { type: String, required: false },
+          relationshipType: { 
+            type: String, 
+            enum: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'],
+            required: true 
+          },
+          cardinality: {
+            min: { type: Number, default: 0 },
+            max: { type: Number, default: null } // null = unlimited
+          },
+          isRequired: { type: Boolean, default: false },
+          cascadeDelete: { type: Boolean, default: false },
+          displayField: { type: String, required: false },
+          searchableFields: [{ type: String }],
+          filterBy: { type: Map, of: Schema.Types.Mixed },
+          validationRules: { type: Map, of: Schema.Types.Mixed },
+          uiConfig: {
+            showInList: { type: Boolean, default: true },
+            showInDetail: { type: Boolean, default: true },
+            allowInlineCreate: { type: Boolean, default: false },
+            allowInlineEdit: { type: Boolean, default: false },
+            displayMode: { 
+              type: String, 
+              enum: ['dropdown', 'modal', 'popup', 'inline'],
+              default: 'dropdown'
+            }
+          }
+        }],
+        incoming: [{
+          targetItemTypeCode: { type: String, required: true },
+          targetItemTypeName: { type: String, required: false },
+          relationshipType: { 
+            type: String, 
+            enum: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'],
+            required: true 
+          },
+          cardinality: {
+            min: { type: Number, default: 0 },
+            max: { type: Number, default: null }
+          },
+          isRequired: { type: Boolean, default: false },
+          cascadeDelete: { type: Boolean, default: false },
+          displayField: { type: String, required: false },
+          searchableFields: [{ type: String }],
+          filterBy: { type: Map, of: Schema.Types.Mixed },
+          validationRules: { type: Map, of: Schema.Types.Mixed },
+          uiConfig: {
+            showInList: { type: Boolean, default: true },
+            showInDetail: { type: Boolean, default: true },
+            allowInlineCreate: { type: Boolean, default: false },
+            allowInlineEdit: { type: Boolean, default: false },
+            displayMode: { 
+              type: String, 
+              enum: ['dropdown', 'modal', 'popup', 'inline'],
+              default: 'dropdown'
+            }
+          }
+        }]
+      },
+      required: false,
+      default: {}
+    },
     isActive: {
       type: Boolean,
       default: true
     }
   },
   {
-    timestamps: true
+    timestamps: true,
+    // İndexleme stratejisi
+    indexes: [
+      { code: 1 }, // Unique code lookup
+      { 'associations.outgoing.targetItemTypeCode': 1 }, // Association queries
+      { 'associations.incoming.targetItemTypeCode': 1 }, // Reverse association queries
+      { isActive: 1, code: 1 } // Active itemTypes
+    ]
   }
 );
 

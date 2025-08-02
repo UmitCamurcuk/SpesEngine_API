@@ -5,6 +5,7 @@ import ItemType from '../models/ItemType';
 import Category from '../models/Category';
 import AttributeGroup from '../models/AttributeGroup';
 import Attribute from '../models/Attribute';
+import associationService from '../services/associationService';
 
 // GET tüm öğeleri getir (test için authentication olmadan)
 export const getItemsTest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -505,7 +506,20 @@ export const getItemById = async (req: Request, res: Response, next: NextFunctio
       (item as any).familyHierarchy = familyHierarchy;
     }
 
-    console.log('✅ Item fetched successfully with full hierarchy');
+    // 4. Association'ları getir ve populate et
+    try {
+      const associations = await associationService.getItemAssociations(item._id.toString(), {
+        populate: true,
+        populateFields: ['itemType', 'family', 'category'],
+        includeInactive: false
+      });
+      (item as any).populatedAssociations = associations;
+    } catch (associationError) {
+      console.warn('Association fetch error:', associationError);
+      (item as any).populatedAssociations = [];
+    }
+
+    console.log('✅ Item fetched successfully with full hierarchy and associations');
     
     res.status(200).json({
       success: true,
@@ -770,10 +784,10 @@ async function getRequiredAttributesFromHierarchy(itemTypeId: string, categoryId
   return uniq(requiredAttributes);
 }
 
-// POST yeni öğe oluştur - Modern hierarchical approach
+// POST yeni öğe oluştur - Modern hierarchical approach with associations
 export const createItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { itemType, family, category, attributes, isActive } = req.body;
+    const { itemType, family, category, attributes, associations, isActive } = req.body;
 
     // Debug: Gelen payload'ı kontrol et
     console.log('🔍 Received payload:', {
@@ -781,6 +795,7 @@ export const createItem = async (req: Request, res: Response, next: NextFunction
       family,
       category,
       attributes,
+      associations,
       isActive
     });
 
@@ -831,10 +846,38 @@ export const createItem = async (req: Request, res: Response, next: NextFunction
       family: cleanFamily,
       category: cleanCategory,
       attributes: itemAttributes,
+      associations: associations || {},
       isActive: isActive !== undefined ? isActive : true,
       createdBy: req.user?._id,
       updatedBy: req.user?._id
     });
+
+    // Association validation (oluşturulduktan sonra)
+    if (associations && Object.keys(associations).length > 0) {
+      try {
+        const validationResult = await associationService.validateAssociations(String(item._id), associations);
+        if (!validationResult.isValid) {
+          // Item'ı sil çünkü association'lar geçersiz
+          await Item.findByIdAndDelete(String(item._id));
+          res.status(400).json({
+            success: false,
+            message: 'Association validation başarısız',
+            errors: validationResult.errors,
+            warnings: validationResult.warnings
+          });
+          return;
+        }
+      } catch (validationError: any) {
+        // Item'ı sil çünkü validation hatası
+        await Item.findByIdAndDelete(String(item._id));
+        res.status(400).json({
+          success: false,
+          message: 'Association validation hatası',
+          error: validationError.message
+        });
+        return;
+      }
+    }
 
     // Başarılı response
     res.status(201).json({
@@ -949,6 +992,183 @@ export const deleteItem = async (req: Request, res: Response, next: NextFunction
     res.status(500).json({
       success: false,
       message: error.message || 'Öğe silinirken bir hata oluştu'
+    });
+  }
+};
+
+// ============================================================================
+// ASSOCIATION MANAGEMENT ENDPOINTS
+// ============================================================================
+
+// GET item'ın association'larını getir
+export const getItemAssociations = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { populate = 'true', includeInactive = 'false' } = req.query;
+
+    const associations = await associationService.getItemAssociations(id, {
+      populate: populate === 'true',
+      populateFields: ['itemType', 'family', 'category'],
+      includeInactive: includeInactive === 'true'
+    });
+
+    res.status(200).json({
+      success: true,
+      data: associations
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Association\'lar getirilirken hata oluştu'
+    });
+  }
+};
+
+// POST yeni association oluştur
+export const createAssociation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { sourceItemId } = req.params;
+    const { targetItemId, associationType } = req.body;
+
+    if (!targetItemId || !associationType) {
+      res.status(400).json({
+        success: false,
+        message: 'targetItemId ve associationType gerekli'
+      });
+      return;
+    }
+
+    await associationService.createAssociation(sourceItemId, targetItemId, associationType);
+
+    res.status(201).json({
+      success: true,
+      message: 'Association başarıyla oluşturuldu'
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Association oluşturulurken hata oluştu'
+    });
+  }
+};
+
+// DELETE association sil
+export const removeAssociation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { sourceItemId } = req.params;
+    const { targetItemId, associationType } = req.body;
+
+    if (!targetItemId || !associationType) {
+      res.status(400).json({
+        success: false,
+        message: 'targetItemId ve associationType gerekli'
+      });
+      return;
+    }
+
+    await associationService.removeAssociation(sourceItemId, targetItemId, associationType);
+
+    res.status(200).json({
+      success: true,
+      message: 'Association başarıyla silindi'
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Association silinirken hata oluştu'
+    });
+  }
+};
+
+// GET association için uygun item'ları ara
+export const searchItemsForAssociation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { sourceItemId, targetItemTypeCode } = req.params;
+    const { 
+      search, 
+      page = '1', 
+      limit = '20',
+      includeInactive = 'false'
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    const items = await associationService.searchItemsForAssociation(
+      sourceItemId,
+      targetItemTypeCode,
+      search as string,
+      {
+        populate: true,
+        populateFields: ['itemType', 'family', 'category'],
+        includeInactive: includeInactive === 'true',
+        skip,
+        limit: limitNum,
+        sort: { createdAt: -1 }
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      data: items,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: items.length
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Item arama işleminde hata oluştu'
+    });
+  }
+};
+
+// GET ItemType'ın association rules'ları
+export const getItemTypeAssociationRules = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { itemTypeCode } = req.params;
+
+    const rules = await associationService.getAssociationRules(itemTypeCode);
+
+    res.status(200).json({
+      success: true,
+      data: rules
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Association rules getirilirken hata oluştu'
+    });
+  }
+};
+
+// POST association validation
+export const validateItemAssociations = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { associations } = req.body;
+
+    if (!associations) {
+      res.status(400).json({
+        success: false,
+        message: 'associations verisi gerekli'
+      });
+      return;
+    }
+
+    const validationResult = await associationService.validateAssociations(id, associations);
+
+    res.status(200).json({
+      success: true,
+      data: validationResult
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Association validation işleminde hata oluştu'
     });
   }
 }; 
