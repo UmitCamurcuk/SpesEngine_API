@@ -4647,6 +4647,423 @@ const seedLocalizations = () => __awaiter(void 0, void 0, void 0, function* () {
                     tr: 'Ürün',
                     en: 'Product'
                 }
+            },
+            // Relationship Type Create Page Translations
+            {
+                key: 'general_info',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Genel Bilgiler',
+                    en: 'General Information'
+                }
+            },
+            {
+                key: 'name_code_description',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İsim, kod ve açıklama',
+                    en: 'Name, code and description'
+                }
+            },
+            {
+                key: 'enter_basic_relationship_type_info',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişki tipinin temel bilgilerini girin',
+                    en: 'Enter basic relationship type information'
+                }
+            },
+            {
+                key: 'relationship_type_name',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişki Tipi İsmi',
+                    en: 'Relationship Type Name'
+                }
+            },
+            {
+                key: 'enter_relationship_type_name',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişki tipinin ismini girin',
+                    en: 'Enter relationship type name'
+                }
+            },
+            {
+                key: 'code',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Kod',
+                    en: 'Code'
+                }
+            },
+            {
+                key: 'unique_code',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'unique_code',
+                    en: 'unique_code'
+                }
+            },
+            {
+                key: 'code_validation_message',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Kod sadece harf, rakam, _ ve - karakterlerini içerebilir',
+                    en: 'Code can only contain letters, numbers, _ and - characters'
+                }
+            },
+            {
+                key: 'description',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Açıklama',
+                    en: 'Description'
+                }
+            },
+            {
+                key: 'enter_relationship_type_description',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişki tipinin açıklamasını girin',
+                    en: 'Enter relationship type description'
+                }
+            },
+            {
+                key: 'directionality',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Yönlülük',
+                    en: 'Directionality'
+                }
+            },
+            {
+                key: 'determine_relationship_direction',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişkinin yönlü olup olmadığını belirleyin',
+                    en: 'Determine if the relationship is directional'
+                }
+            },
+            {
+                key: 'directional_relationship',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Yönlü İlişki',
+                    en: 'Directional Relationship'
+                }
+            },
+            {
+                key: 'directional_relationship_description',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'A → B şeklinde tek yönlü ilişki. Kaynak ve hedef bellidir.',
+                    en: 'A → B unidirectional relationship. Source and target are defined.'
+                }
+            },
+            {
+                key: 'bidirectional_relationship',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Çift Yönlü İlişki',
+                    en: 'Bidirectional Relationship'
+                }
+            },
+            {
+                key: 'bidirectional_relationship_description',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'A ↔ B şeklinde çift yönlü ilişki. Her iki varlık da eşit seviyededir.',
+                    en: 'A ↔ B bidirectional relationship. Both entities are at equal level.'
+                }
+            },
+            {
+                key: 'relationship_type_and_types',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişki Tipi ve İzin Verilen Tipler',
+                    en: 'Relationship Type and Allowed Types'
+                }
+            },
+            {
+                key: 'relationship_type_and_types_description',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişki tipini ve hangi varlık tiplerinin kullanılabileceğini seçin',
+                    en: 'Select the relationship type and which entity types can be used'
+                }
+            },
+            {
+                key: 'relationship_type_and_types_short',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişki tipi ve izin verilen tipler',
+                    en: 'Relationship type and allowed types'
+                }
+            },
+            {
+                key: 'relationship_type',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişki Tipi',
+                    en: 'Relationship Type'
+                }
+            },
+            {
+                key: 'select_relationship_type_description',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Bu ilişki için uygun tipi seçin',
+                    en: 'Select the appropriate type for this relationship'
+                }
+            },
+            {
+                key: 'one_to_one',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'One-to-One',
+                    en: 'One-to-One'
+                }
+            },
+            {
+                key: 'one_to_many',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'One-to-Many',
+                    en: 'One-to-Many'
+                }
+            },
+            {
+                key: 'many_to_one',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Many-to-One',
+                    en: 'Many-to-One'
+                }
+            },
+            {
+                key: 'many_to_many',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Many-to-Many',
+                    en: 'Many-to-Many'
+                }
+            },
+            {
+                key: 'source_entity_types',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Kaynak Varlık Tipleri',
+                    en: 'Source Entity Types'
+                }
+            },
+            {
+                key: 'relationship_initiator_side',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişkiyi başlatan taraf',
+                    en: 'The side that initiates the relationship'
+                }
+            },
+            {
+                key: 'first_entity_side',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlk varlık tarafı',
+                    en: 'First entity side'
+                }
+            },
+            {
+                key: 'target_entity_types',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Hedef Varlık Tipleri',
+                    en: 'Target Entity Types'
+                }
+            },
+            {
+                key: 'relationship_target_side',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişkinin hedeflediği taraf',
+                    en: 'The side that is targeted by the relationship'
+                }
+            },
+            {
+                key: 'second_entity_side',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İkinci varlık tarafı',
+                    en: 'Second entity side'
+                }
+            },
+            {
+                key: 'preview',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Önizleme',
+                    en: 'Preview'
+                }
+            },
+            {
+                key: 'check_relationship_type_info_and_create',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişki tipi bilgilerini kontrol edin ve oluşturun',
+                    en: 'Check relationship type information and create'
+                }
+            },
+            {
+                key: 'name',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İsim',
+                    en: 'Name'
+                }
+            },
+            {
+                key: 'directional',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Yönlü',
+                    en: 'Directional'
+                }
+            },
+            {
+                key: 'bidirectional',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Çift Yönlü',
+                    en: 'Bidirectional'
+                }
+            },
+            {
+                key: 'allowed_types',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İzin Verilen Tipler',
+                    en: 'Allowed Types'
+                }
+            },
+            {
+                key: 'source_types',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Kaynak Tipler',
+                    en: 'Source Types'
+                }
+            },
+            {
+                key: 'target_types',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Hedef Tipler',
+                    en: 'Target Types'
+                }
+            },
+            {
+                key: 'home',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Ana Sayfa',
+                    en: 'Home'
+                }
+            },
+            {
+                key: 'relationships',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişkiler',
+                    en: 'Relationships'
+                }
+            },
+            {
+                key: 'create_new_relationship_type',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Yeni İlişki Tipi Oluştur',
+                    en: 'Create New Relationship Type'
+                }
+            },
+            {
+                key: 'directionality',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Yön',
+                    en: 'Direction'
+                }
+            },
+            {
+                key: 'description',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Açıklama',
+                    en: 'Description'
+                }
+            },
+            {
+                key: 'created_by',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Oluşturan',
+                    en: 'Created By'
+                }
+            },
+            {
+                key: 'updated_by',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Güncelleyen',
+                    en: 'Updated By'
+                }
+            },
+            {
+                key: 'actions',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İşlemler',
+                    en: 'Actions'
+                }
+            },
+            {
+                key: 'new_relationship_type',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Yeni İlişki Tipi',
+                    en: 'New Relationship Type'
+                }
+            },
+            {
+                key: 'search_placeholder',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişki tipi ara (isim, kod, açıklama)...',
+                    en: 'Search relationship type (name, code, description)...'
+                }
+            },
+            {
+                key: 'allowed_types',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İzin Verilen Tipler',
+                    en: 'Allowed Types'
+                }
+            },
+            {
+                key: 'relationship_types',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'İlişki Tipleri',
+                    en: 'Relationship Types'
+                }
+            },
+            {
+                key: 'manage_relationship_types',
+                namespace: 'relationship_types',
+                translations: {
+                    tr: 'Sistem genelinde kullanılan ilişki tiplerini yönetin',
+                    en: 'Manage relationship types used throughout the system'
+                }
             }
         ];
         // Her çeviriyi ekle

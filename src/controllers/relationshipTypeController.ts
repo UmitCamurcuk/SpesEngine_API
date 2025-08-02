@@ -5,8 +5,13 @@ import { ValidationError } from '../utils/errors';
 // İlişki tipi oluştur
 export const createRelationshipType = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const relationshipType = await relationshipTypeService.create(req.body);
-    res.status(201).json(relationshipType);
+    const userId = (req as any).user?._id;
+    const relationshipType = await relationshipTypeService.create(req.body, userId);
+    res.status(201).json({
+      success: true,
+      data: relationshipType,
+      message: 'İlişki tipi başarıyla oluşturuldu'
+    });
   } catch (error) {
     next(error);
   }
@@ -16,7 +21,11 @@ export const createRelationshipType = async (req: Request, res: Response, next: 
 export const getAllRelationshipTypes = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const relationshipTypes = await relationshipTypeService.getAll();
-    res.status(200).json(relationshipTypes);
+    res.status(200).json({
+      success: true,
+      data: relationshipTypes,
+      message: 'İlişki tipleri başarıyla getirildi'
+    });
   } catch (error) {
     next(error);
   }
@@ -27,7 +36,11 @@ export const getRelationshipTypeById = async (req: Request, res: Response, next:
   try {
     const { id } = req.params;
     const relationshipType = await relationshipTypeService.getById(id);
-    res.status(200).json(relationshipType);
+    res.status(200).json({
+      success: true,
+      data: relationshipType,
+      message: 'İlişki tipi başarıyla getirildi'
+    });
   } catch (error) {
     next(error);
   }
@@ -37,14 +50,19 @@ export const getRelationshipTypeById = async (req: Request, res: Response, next:
 export const updateRelationshipType = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
+    const userId = (req as any).user?._id;
     
     // Boş veri kontrolü
     if (Object.keys(req.body).length === 0) {
       throw new ValidationError('Güncelleme için en az bir alan gereklidir');
     }
     
-    const relationshipType = await relationshipTypeService.update(id, req.body);
-    res.status(200).json(relationshipType);
+    const relationshipType = await relationshipTypeService.update(id, req.body, userId);
+    res.status(200).json({
+      success: true,
+      data: relationshipType,
+      message: 'İlişki tipi başarıyla güncellendi'
+    });
   } catch (error) {
     next(error);
   }

@@ -55,6 +55,11 @@ const RelationshipTypeSchema = new mongoose_1.Schema({
         type: Boolean,
         default: true,
     },
+    relationshipType: {
+        type: String,
+        enum: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'],
+        required: false,
+    },
     allowedSourceTypes: [{
             type: String,
             required: true,
@@ -66,6 +71,16 @@ const RelationshipTypeSchema = new mongoose_1.Schema({
     metadata: {
         type: Map,
         of: mongoose_1.Schema.Types.Mixed,
+    },
+    createdBy: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false,
+    },
+    updatedBy: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false,
     },
 }, { timestamps: true });
 exports.default = mongoose_1.default.model('RelationshipType', RelationshipTypeSchema);

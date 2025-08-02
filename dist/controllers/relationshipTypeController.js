@@ -17,9 +17,15 @@ const relationshipTypeService_1 = __importDefault(require("../services/relations
 const errors_1 = require("../utils/errors");
 // İlişki tipi oluştur
 const createRelationshipType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const relationshipType = yield relationshipTypeService_1.default.create(req.body);
-        res.status(201).json(relationshipType);
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+        const relationshipType = yield relationshipTypeService_1.default.create(req.body, userId);
+        res.status(201).json({
+            success: true,
+            data: relationshipType,
+            message: 'İlişki tipi başarıyla oluşturuldu'
+        });
     }
     catch (error) {
         next(error);
@@ -30,7 +36,11 @@ exports.createRelationshipType = createRelationshipType;
 const getAllRelationshipTypes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const relationshipTypes = yield relationshipTypeService_1.default.getAll();
-        res.status(200).json(relationshipTypes);
+        res.status(200).json({
+            success: true,
+            data: relationshipTypes,
+            message: 'İlişki tipleri başarıyla getirildi'
+        });
     }
     catch (error) {
         next(error);
@@ -42,7 +52,11 @@ const getRelationshipTypeById = (req, res, next) => __awaiter(void 0, void 0, vo
     try {
         const { id } = req.params;
         const relationshipType = yield relationshipTypeService_1.default.getById(id);
-        res.status(200).json(relationshipType);
+        res.status(200).json({
+            success: true,
+            data: relationshipType,
+            message: 'İlişki tipi başarıyla getirildi'
+        });
     }
     catch (error) {
         next(error);
@@ -51,14 +65,20 @@ const getRelationshipTypeById = (req, res, next) => __awaiter(void 0, void 0, vo
 exports.getRelationshipTypeById = getRelationshipTypeById;
 // İlişki tipini güncelle
 const updateRelationshipType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const { id } = req.params;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
         // Boş veri kontrolü
         if (Object.keys(req.body).length === 0) {
             throw new errors_1.ValidationError('Güncelleme için en az bir alan gereklidir');
         }
-        const relationshipType = yield relationshipTypeService_1.default.update(id, req.body);
-        res.status(200).json(relationshipType);
+        const relationshipType = yield relationshipTypeService_1.default.update(id, req.body, userId);
+        res.status(200).json({
+            success: true,
+            data: relationshipType,
+            message: 'İlişki tipi başarıyla güncellendi'
+        });
     }
     catch (error) {
         next(error);
