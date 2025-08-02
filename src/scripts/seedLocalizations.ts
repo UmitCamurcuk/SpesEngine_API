@@ -5082,6 +5082,78 @@ const seedLocalizations = async () => {
           tr: 'Sistem genelinde kullanılan ilişki tiplerini yönetin',
           en: 'Manage relationship types used throughout the system'
         }
+      },
+      {
+        key: 'configuration',
+        namespace: 'relationship_types',
+        translations: {
+          tr: 'Yapılandırma',
+          en: 'Configuration'
+        }
+      },
+      {
+        key: 'documentation',
+        namespace: 'relationship_types',
+        translations: {
+          tr: 'Dokümantasyon',
+          en: 'Documentation'
+        }
+      },
+      {
+        key: 'permissions',
+        namespace: 'relationship_types',
+        translations: {
+          tr: 'İzinler',
+          en: 'Permissions'
+        }
+      },
+      {
+        key: 'statistics',
+        namespace: 'relationship_types',
+        translations: {
+          tr: 'İstatistikler',
+          en: 'Statistics'
+        }
+      },
+      {
+        key: 'view_json',
+        namespace: 'relationship_types',
+        translations: {
+          tr: 'JSON Görüntüle',
+          en: 'View JSON'
+        }
+      },
+      {
+        key: 'change_comment_title',
+        namespace: 'relationship_types',
+        translations: {
+          tr: 'Değişiklik Açıklaması',
+          en: 'Change Description'
+        }
+      },
+      {
+        key: 'changes_made',
+        namespace: 'relationship_types',
+        translations: {
+          tr: 'Yapılan Değişiklikler:',
+          en: 'Changes Made:'
+        }
+      },
+      {
+        key: 'change_comment_label',
+        namespace: 'relationship_types',
+        translations: {
+          tr: 'Değişiklik Açıklaması (Opsiyonel)',
+          en: 'Change Description (Optional)'
+        }
+      },
+      {
+        key: 'change_comment_placeholder',
+        namespace: 'relationship_types',
+        translations: {
+          tr: 'Bu değişikliklerin neden yapıldığını açıklayın...',
+          en: 'Explain why these changes were made...'
+        }
       }
     ];
 
