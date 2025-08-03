@@ -161,6 +161,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 }
             ]
         })
+            // Associations field'ı populate et (eğer varsa)
             .lean();
         if (!itemType) {
             res.status(404).json({
@@ -168,6 +169,13 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 message: 'Öğe tipi bulunamadı'
             });
             return;
+        }
+        // Associations field'ını manuel olarak ekle (eğer varsa)
+        if (itemType.associations) {
+            console.log('🔗 ItemType associations found:', itemType.associations);
+        }
+        else {
+            console.log('🔗 No associations found for ItemType');
         }
         // Kategori hiyerarşisini ve family'leri populate et
         if (itemType.category) {

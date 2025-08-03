@@ -3,6 +3,7 @@ import { authenticateToken, checkAccess } from '../middleware/auth.middleware';
 import {
   getItems,
   getItemById,
+  getItemsByType,
   createItem,
   updateItem,
   deleteItem,
@@ -30,6 +31,11 @@ router
   .get(checkAccess(['ITEMS_VIEW']), getItemById)
   .put(checkAccess(['ITEMS_UPDATE']), updateItem)
   .delete(checkAccess(['ITEMS_DELETE']), deleteItem);
+
+// Get items by ItemType
+router
+  .route('/types/:itemTypeCode')
+  .get(checkAccess(['ITEMS_VIEW']), getItemsByType);
 
 // ============================================================================
 // ASSOCIATION ROUTES

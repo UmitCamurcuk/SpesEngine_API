@@ -1,5 +1,39 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IDisplayColumnConfig {
+  attributeId: string;
+  attributeName?: string;
+  attributeCode?: string;
+  displayName: string;
+  width?: number;
+  sortable?: boolean;
+  filterable?: boolean;
+  isRequired?: boolean;
+  formatType?: 'text' | 'date' | 'number' | 'select' | 'table' | 'custom';
+  customFormat?: string;
+}
+
+export interface IDisplayConfig {
+  sourceToTarget?: {
+    enabled: boolean;
+    columns: IDisplayColumnConfig[];
+    defaultSortBy?: string;
+    defaultSortOrder?: 'asc' | 'desc';
+    pageSize?: number;
+    showSearch?: boolean;
+    searchableColumns?: string[];
+  };
+  targetToSource?: {
+    enabled: boolean;
+    columns: IDisplayColumnConfig[];
+    defaultSortBy?: string;
+    defaultSortOrder?: 'asc' | 'desc';
+    pageSize?: number;
+    showSearch?: boolean;
+    searchableColumns?: string[];
+  };
+}
+
 export interface IRelationshipType extends Document {
   code: string;
   name: string | any; // Localization objesi olabilir
@@ -9,6 +43,7 @@ export interface IRelationshipType extends Document {
   allowedSourceTypes: string[];
   allowedTargetTypes: string[];
   metadata?: Record<string, any>;
+  displayConfig?: IDisplayConfig; // YENİ ALAN
   createdBy?: any;
   updatedBy?: any;
   createdAt: Date;
@@ -53,6 +88,11 @@ const RelationshipTypeSchema: Schema = new Schema(
     metadata: {
       type: Map,
       of: Schema.Types.Mixed,
+    },
+    displayConfig: {
+      type: Schema.Types.Mixed,
+      required: false,
+      default: null
     },
     createdBy: {
       type: Schema.Types.ObjectId,

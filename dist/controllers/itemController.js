@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateItemAssociations = exports.getItemTypeAssociationRules = exports.searchItemsForAssociation = exports.removeAssociation = exports.createAssociation = exports.getItemAssociations = exports.deleteItem = exports.updateItem = exports.createItem = exports.getItemById = exports.getItems = exports.getItemsTest = void 0;
+exports.validateItemAssociations = exports.getItemTypeAssociationRules = exports.searchItemsForAssociation = exports.removeAssociation = exports.createAssociation = exports.getItemAssociations = exports.deleteItem = exports.updateItem = exports.createItem = exports.getItemById = exports.getItemsByType = exports.getItems = exports.getItemsTest = void 0;
 const Item_1 = __importDefault(require("../models/Item"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const ItemType_1 = __importDefault(require("../models/ItemType"));
@@ -225,6 +225,197 @@ const getItems = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.getItems = getItems;
+// GET belirli ItemType'a ait öğeleri getir - Enhanced for Association Display
+const getItemsByType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { itemTypeCode } = req.params;
+        // ItemType'ı bul ve attribute definitions'ları al
+        const itemType = yield ItemType_1.default.findOne({ code: itemTypeCode })
+            .populate({
+            path: 'attributeGroups',
+            populate: {
+                path: 'attributes',
+                select: 'name code type description isRequired isActive options',
+                populate: [
+                    { path: 'name', select: 'key namespace translations' },
+                    { path: 'description', select: 'key namespace translations' },
+                    {
+                        path: 'options',
+                        select: 'name code type description isActive',
+                        populate: [
+                            { path: 'name', select: 'key namespace translations' },
+                            { path: 'description', select: 'key namespace translations' }
+                        ]
+                    }
+                ]
+            }
+        })
+            .lean();
+        if (!itemType) {
+            res.status(404).json({
+                success: false,
+                message: `${itemTypeCode} kodlu öğe tipi bulunamadı`
+            });
+            return;
+        }
+        // Sayfalama parametreleri
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 100; // Association için daha yüksek default
+        const skip = (page - 1) * limit;
+        // Filtreleme parametreleri
+        const filterParams = {
+            itemType: itemType._id,
+            isActive: true // Association items genelde aktif olanlar
+        };
+        // Additional filters from query params
+        if (req.query.isActive !== undefined) {
+            filterParams.isActive = req.query.isActive === 'true';
+        }
+        if (req.query.family) {
+            filterParams.family = new mongoose_1.default.Types.ObjectId(req.query.family);
+        }
+        if (req.query.category) {
+            filterParams.category = new mongoose_1.default.Types.ObjectId(req.query.category);
+        }
+        // Apply custom filters passed in the request body
+        if (req.body && typeof req.body === 'object') {
+            Object.keys(req.body).forEach(key => {
+                filterParams[key] = req.body[key];
+            });
+        }
+        // Sıralama parametreleri
+        const sortBy = req.query.sortBy || 'createdAt';
+        const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
+        const sortOptions = {};
+        sortOptions[sortBy] = sortOrder;
+        // Toplam kayıt sayısını al
+        const total = yield Item_1.default.countDocuments(filterParams);
+        // Verileri getir - Association için sadece gerekli alanları populate et
+        const items = yield Item_1.default.find(filterParams)
+            .populate({
+            path: 'family',
+            select: 'name code',
+            populate: {
+                path: 'name',
+                select: 'key namespace translations'
+            }
+        })
+            .populate({
+            path: 'category',
+            select: 'name code',
+            populate: {
+                path: 'name',
+                select: 'key namespace translations'
+            }
+        })
+            .select('_id attributes isActive createdAt updatedAt family category') // Sadece gerekli alanlar
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit)
+            .lean();
+        // Translations alanlarını düzelt
+        const fixTranslations = (obj) => {
+            if (obj && typeof obj === 'object') {
+                if (obj.translations && obj.translations instanceof Map) {
+                    const translationsObj = {};
+                    obj.translations.forEach((value, key) => {
+                        translationsObj[key] = value;
+                    });
+                    obj.translations = translationsObj;
+                }
+            }
+        };
+        // Attribute definitions'ları topla
+        const attributeDefinitions = {};
+        if (itemType.attributeGroups) {
+            itemType.attributeGroups.forEach((group) => {
+                if (group.attributes) {
+                    group.attributes.forEach((attr) => {
+                        attributeDefinitions[attr._id] = Object.assign(Object.assign({}, attr), { groupName: group.name });
+                    });
+                }
+            });
+        }
+        // Her item için translations alanlarını düzelt ve attributes'ları parse et
+        for (const item of items) {
+            if (item.family && item.family.name) {
+                fixTranslations(item.family.name);
+            }
+            if (item.category && item.category.name) {
+                fixTranslations(item.category.name);
+            }
+            // Attributes'ları parse et ve anlamlı hale getir
+            if (item.attributes && typeof item.attributes === 'object') {
+                const parsedAttributes = {};
+                Object.keys(item.attributes).forEach(attrId => {
+                    const attrDef = attributeDefinitions[attrId];
+                    const attrValue = item.attributes[attrId];
+                    if (attrDef) {
+                        let displayValue = attrValue;
+                        // Select type için option name'ini bul
+                        if (attrDef.type === 'select' && attrDef.options && Array.isArray(attrValue)) {
+                            const selectedOption = attrDef.options.find((opt) => opt._id === attrValue);
+                            displayValue = selectedOption ? selectedOption.name : attrValue;
+                        }
+                        // Table type için formatla
+                        if (attrDef.type === 'table' && Array.isArray(attrValue)) {
+                            displayValue = attrValue.map((row) => row.join(' x ')).join(', ');
+                        }
+                        // Date type için formatla
+                        if (attrDef.type === 'date' && attrValue) {
+                            displayValue = new Date(attrValue).toLocaleDateString('tr-TR');
+                        }
+                        parsedAttributes[attrId] = {
+                            value: attrValue,
+                            displayValue: displayValue,
+                            definition: {
+                                name: attrDef.name,
+                                code: attrDef.code,
+                                type: attrDef.type,
+                                groupName: attrDef.groupName
+                            }
+                        };
+                    }
+                    else {
+                        // Definition bulunamadıysa raw value'yu kullan
+                        parsedAttributes[attrId] = {
+                            value: attrValue,
+                            displayValue: attrValue,
+                            definition: null
+                        };
+                    }
+                });
+                item.attributes = parsedAttributes;
+            }
+        }
+        // Sayfa sayısını hesapla
+        const pages = Math.ceil(total / limit);
+        res.status(200).json({
+            success: true,
+            count: items.length,
+            total,
+            page,
+            pages,
+            data: items,
+            // Association display için ek bilgiler
+            meta: {
+                itemType: {
+                    code: itemType.code,
+                    name: itemType.name,
+                    attributeDefinitions: Object.keys(attributeDefinitions).length
+                }
+            }
+        });
+    }
+    catch (error) {
+        console.error(`${req.params.itemTypeCode} tipindeki öğeler getirilirken hata:`, error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Öğeler getirilirken bir hata oluştu'
+        });
+    }
+});
+exports.getItemsByType = getItemsByType;
 // GET belirli bir öğeyi getir - Modern full hierarchy approach
 const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {

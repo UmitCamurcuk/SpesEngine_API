@@ -230,6 +230,222 @@ export const getItems = async (req: Request, res: Response, next: NextFunction):
   }
 };
 
+// GET belirli ItemType'a ait öğeleri getir - Enhanced for Association Display
+export const getItemsByType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { itemTypeCode } = req.params;
+    
+    // ItemType'ı bul ve attribute definitions'ları al
+    const itemType = await ItemType.findOne({ code: itemTypeCode })
+      .populate({
+        path: 'attributeGroups',
+        populate: {
+          path: 'attributes',
+          select: 'name code type description isRequired isActive options',
+          populate: [
+            { path: 'name', select: 'key namespace translations' },
+            { path: 'description', select: 'key namespace translations' },
+            {
+              path: 'options',
+              select: 'name code type description isActive',
+              populate: [
+                { path: 'name', select: 'key namespace translations' },
+                { path: 'description', select: 'key namespace translations' }
+              ]
+            }
+          ]
+        }
+      })
+      .lean();
+      
+    if (!itemType) {
+      res.status(404).json({
+        success: false,
+        message: `${itemTypeCode} kodlu öğe tipi bulunamadı`
+      });
+      return;
+    }
+
+    // Sayfalama parametreleri
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 100; // Association için daha yüksek default
+    const skip = (page - 1) * limit;
+    
+    // Filtreleme parametreleri
+    const filterParams: any = {
+      itemType: itemType._id,
+      isActive: true // Association items genelde aktif olanlar
+    };
+    
+    // Additional filters from query params
+    if (req.query.isActive !== undefined) {
+      filterParams.isActive = req.query.isActive === 'true';
+    }
+    
+    if (req.query.family) {
+      filterParams.family = new mongoose.Types.ObjectId(req.query.family as string);
+    }
+    
+    if (req.query.category) {
+      filterParams.category = new mongoose.Types.ObjectId(req.query.category as string);
+    }
+
+    // Apply custom filters passed in the request body
+    if (req.body && typeof req.body === 'object') {
+      Object.keys(req.body).forEach(key => {
+        filterParams[key] = req.body[key];
+      });
+    }
+    
+    // Sıralama parametreleri
+    const sortBy = req.query.sortBy || 'createdAt';
+    const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
+    const sortOptions: any = {};
+    sortOptions[sortBy as string] = sortOrder;
+    
+    // Toplam kayıt sayısını al
+    const total = await Item.countDocuments(filterParams);
+    
+    // Verileri getir - Association için sadece gerekli alanları populate et
+    const items = await Item.find(filterParams)
+      .populate({
+        path: 'family',
+        select: 'name code',
+        populate: {
+          path: 'name',
+          select: 'key namespace translations'
+        }
+      })
+      .populate({
+        path: 'category', 
+        select: 'name code',
+        populate: {
+          path: 'name',
+          select: 'key namespace translations'
+        }
+      })
+      .select('_id attributes isActive createdAt updatedAt family category') // Sadece gerekli alanlar
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .lean();
+    
+    // Translations alanlarını düzelt
+    const fixTranslations = (obj: any) => {
+      if (obj && typeof obj === 'object') {
+        if (obj.translations && obj.translations instanceof Map) {
+          const translationsObj: Record<string, string> = {};
+          obj.translations.forEach((value: string, key: string) => {
+            translationsObj[key] = value;
+          });
+          obj.translations = translationsObj;
+        }
+      }
+    };
+    
+    // Attribute definitions'ları topla
+    const attributeDefinitions: Record<string, any> = {};
+    if (itemType.attributeGroups) {
+      itemType.attributeGroups.forEach((group: any) => {
+        if (group.attributes) {
+          group.attributes.forEach((attr: any) => {
+            attributeDefinitions[attr._id] = {
+              ...attr,
+              groupName: group.name
+            };
+          });
+        }
+      });
+    }
+    
+    // Her item için translations alanlarını düzelt ve attributes'ları parse et
+    for (const item of items) {
+      if (item.family && (item.family as any).name) {
+        fixTranslations((item.family as any).name);
+      }
+      if (item.category && (item.category as any).name) {
+        fixTranslations((item.category as any).name);
+      }
+      
+      // Attributes'ları parse et ve anlamlı hale getir
+      if (item.attributes && typeof item.attributes === 'object') {
+        const parsedAttributes: Record<string, any> = {};
+        
+        Object.keys(item.attributes).forEach(attrId => {
+          const attrDef = attributeDefinitions[attrId];
+          const attrValue = item.attributes[attrId];
+          
+          if (attrDef) {
+            let displayValue = attrValue;
+            
+            // Select type için option name'ini bul
+            if (attrDef.type === 'select' && attrDef.options && Array.isArray(attrValue)) {
+              const selectedOption = attrDef.options.find((opt: any) => opt._id === attrValue);
+              displayValue = selectedOption ? selectedOption.name : attrValue;
+            }
+            
+            // Table type için formatla
+            if (attrDef.type === 'table' && Array.isArray(attrValue)) {
+              displayValue = attrValue.map((row: any[]) => row.join(' x ')).join(', ');
+            }
+            
+            // Date type için formatla
+            if (attrDef.type === 'date' && attrValue) {
+              displayValue = new Date(attrValue).toLocaleDateString('tr-TR');
+            }
+            
+            parsedAttributes[attrId] = {
+              value: attrValue,
+              displayValue: displayValue,
+              definition: {
+                name: attrDef.name,
+                code: attrDef.code,
+                type: attrDef.type,
+                groupName: attrDef.groupName
+              }
+            };
+          } else {
+            // Definition bulunamadıysa raw value'yu kullan
+            parsedAttributes[attrId] = {
+              value: attrValue,
+              displayValue: attrValue,
+              definition: null
+            };
+          }
+        });
+        
+        item.attributes = parsedAttributes;
+      }
+    }
+    
+    // Sayfa sayısını hesapla
+    const pages = Math.ceil(total / limit);
+    
+    res.status(200).json({
+      success: true,
+      count: items.length,
+      total,
+      page,
+      pages,
+      data: items,
+      // Association display için ek bilgiler
+      meta: {
+        itemType: {
+          code: itemType.code,
+          name: itemType.name,
+          attributeDefinitions: Object.keys(attributeDefinitions).length
+        }
+      }
+    });
+  } catch (error: any) {
+    console.error(`${req.params.itemTypeCode} tipindeki öğeler getirilirken hata:`, error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Öğeler getirilirken bir hata oluştu'
+    });
+  }
+};
+
 // GET belirli bir öğeyi getir - Modern full hierarchy approach
 export const getItemById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {

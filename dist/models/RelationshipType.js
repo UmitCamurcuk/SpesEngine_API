@@ -72,6 +72,11 @@ const RelationshipTypeSchema = new mongoose_1.Schema({
         type: Map,
         of: mongoose_1.Schema.Types.Mixed,
     },
+    displayConfig: {
+        type: mongoose_1.Schema.Types.Mixed,
+        required: false,
+        default: null
+    },
     createdBy: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'User',

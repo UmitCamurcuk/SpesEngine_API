@@ -18,6 +18,10 @@ router
     .get((0, auth_middleware_1.checkAccess)(['ITEMS_VIEW']), itemController_1.getItemById)
     .put((0, auth_middleware_1.checkAccess)(['ITEMS_UPDATE']), itemController_1.updateItem)
     .delete((0, auth_middleware_1.checkAccess)(['ITEMS_DELETE']), itemController_1.deleteItem);
+// Get items by ItemType
+router
+    .route('/types/:itemTypeCode')
+    .get((0, auth_middleware_1.checkAccess)(['ITEMS_VIEW']), itemController_1.getItemsByType);
 // ============================================================================
 // ASSOCIATION ROUTES
 // ============================================================================
