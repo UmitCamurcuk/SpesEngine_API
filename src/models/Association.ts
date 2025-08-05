@@ -34,7 +34,7 @@ export interface IDisplayConfig {
   };
 }
 
-export interface IRelationshipType extends Document {
+export interface IAssociation extends Document {
   code: string;
   name: string | any; // Localization objesi olabilir
   description?: string | any; // Localization objesi olabilir
@@ -50,7 +50,7 @@ export interface IRelationshipType extends Document {
   updatedAt: Date;
 }
 
-const RelationshipTypeSchema: Schema = new Schema(
+const AssociationSchema: Schema = new Schema(
   {
     code: {
       type: String,
@@ -60,13 +60,14 @@ const RelationshipTypeSchema: Schema = new Schema(
       lowercase: true,
     },
     name: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Localization',
       required: true,
-      trim: true,
     },
     description: {
-      type: String,
-      trim: true,
+      type: Schema.Types.ObjectId,
+      ref: 'Localization',
+      required: false,
     },
     isDirectional: {
       type: Boolean,
@@ -108,4 +109,4 @@ const RelationshipTypeSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-export default mongoose.model<IRelationshipType>('RelationshipType', RelationshipTypeSchema); 
+export default mongoose.model<IAssociation>('Association', AssociationSchema); 

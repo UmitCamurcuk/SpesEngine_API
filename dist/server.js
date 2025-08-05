@@ -24,7 +24,7 @@ const permissionRoutes_1 = __importDefault(require("./routes/permissionRoutes"))
 const permissionGroupRoutes_1 = __importDefault(require("./routes/permissionGroupRoutes"));
 const localizationRoutes_1 = __importDefault(require("./routes/localizationRoutes"));
 const relationshipRoutes_1 = __importDefault(require("./routes/relationshipRoutes"));
-const relationshipTypeRoutes_1 = __importDefault(require("./routes/relationshipTypeRoutes"));
+const associationRoutes_1 = __importDefault(require("./routes/associationRoutes"));
 const systemSettingsRoutes_1 = __importDefault(require("./routes/systemSettingsRoutes"));
 // Env değişkenlerini yükle
 dotenv_1.default.config();
@@ -65,7 +65,7 @@ app.use('/api/permissionGroups', permissionGroupRoutes_1.default);
 app.use('/api/localizations', localizationRoutes_1.default);
 app.use('/api/history', historyRoutes_1.default);
 app.use('/api/relationships', relationshipRoutes_1.default);
-app.use('/api/relationship-types', relationshipTypeRoutes_1.default);
+app.use('/api/associations', associationRoutes_1.default);
 app.use('/api/system', systemSettingsRoutes_1.default);
 // Ana route
 app.get('/', (req, res) => {

@@ -168,9 +168,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
 
     // Associations field'ını manuel olarak ekle (eğer varsa)
     if (itemType.associations) {
-      console.log('🔗 ItemType associations found:', itemType.associations);
     } else {
-      console.log('🔗 No associations found for ItemType');
     }
 
     // Kategori hiyerarşisini ve family'leri populate et

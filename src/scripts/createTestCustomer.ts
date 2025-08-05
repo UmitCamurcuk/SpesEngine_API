@@ -10,14 +10,12 @@ import Family from '../models/Family';
 
 async function createTestCustomer() {
   try {
-    console.log('🚀 Test müşterisi oluşturuluyor...');
 
     // 1. CUSTOMERS ItemType'ını bul
     const customersItemType = await ItemType.findOne({ code: 'CUSTOMERS' });
     if (!customersItemType) {
       throw new Error('CUSTOMERS ItemType bulunamadı');
     }
-    console.log('📦 CUSTOMERS ItemType bulundu:', customersItemType._id);
 
     // 2. Category bul (ilk kategoriyi al)
     const category = await Category.findOne({ isActive: true });
@@ -51,7 +49,6 @@ async function createTestCustomer() {
       updatedBy: new mongoose.Types.ObjectId()
     });
 
-    console.log('✅ Test müşterisi oluşturuldu:', testCustomer._id);
     console.log('   Ad:', testCustomer.attributes.person_name);
     console.log('   Soyad:', testCustomer.attributes.person_lastname);
 
@@ -72,17 +69,13 @@ async function createTestCustomer() {
       updatedBy: new mongoose.Types.ObjectId()
     });
 
-    console.log('✅ İkinci test müşterisi oluşturuldu:', testCustomer2._id);
     console.log('   Ad:', testCustomer2.attributes.person_name);
     console.log('   Soyad:', testCustomer2.attributes.person_lastname);
 
     // 6. Sonuçları doğrula
     const customerCount = await Item.countDocuments({ itemType: customersItemType._id });
-    console.log('📊 Toplam müşteri sayısı:', customerCount);
 
-    console.log('🎉 Test müşterileri başarıyla oluşturuldu!');
     console.log('');
-    console.log('🔧 Test için:');
     console.log('1. Frontend\'de Items -> Create sayfasına gidin');
     console.log('2. ORDERS ItemType\'ını seçin');
     console.log('3. İlişkiler adımında bu müşteriler dropdown\'da görünecek');
@@ -99,17 +92,14 @@ async function main() {
     // MongoDB bağlantısı
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/spesengine';
     await mongoose.connect(mongoUri);
-    console.log('🔗 MongoDB bağlantısı kuruldu');
 
     // Test müşterisi oluştur
     await createTestCustomer();
 
-    console.log('✨ Script başarıyla tamamlandı');
   } catch (error: any) {
     console.error('💥 Script hatası:', error.message);
   } finally {
     await mongoose.disconnect();
-    console.log('🔗 MongoDB bağlantısı kapatıldı');
   }
 }
 

@@ -451,7 +451,6 @@ export const getItemById = async (req: Request, res: Response, next: NextFunctio
   try {
     const Family = require('../models/Family').default;
     
-    console.log('🔍 Fetching item with ID:', req.params.id);
     
     // 1. Temel item bilgilerini al
     const item = await Item.findById(req.params.id)
@@ -847,7 +846,6 @@ async function getRequiredAttributesFromHierarchy(itemTypeId: string, categoryId
   // 1. ItemType'dan zorunlu attribute'ları al
   const itemTypeIdStr = typeof itemTypeId === 'string' ? itemTypeId : String(itemTypeId);
   
-  console.log('🔍 Looking for itemType with ID:', itemTypeIdStr);
   
   const itemType = await ItemType.findById(itemTypeIdStr).populate({
     path: 'attributeGroups',
@@ -880,7 +878,6 @@ async function getRequiredAttributesFromHierarchy(itemTypeId: string, categoryId
     // catId'nin string olduğundan emin ol
     const categoryId = typeof catId === 'string' ? catId : String(catId);
     
-    console.log('🔍 Looking for category with ID:', categoryId);
     
     const category = await Category.findById(categoryId).populate({
       path: 'attributeGroups',
@@ -912,7 +909,6 @@ async function getRequiredAttributesFromHierarchy(itemTypeId: string, categoryId
         parentId = String(category.parent);
       }
       
-      console.log('🔍 Looking for parent category with ID:', parentId);
       const parentHierarchy = await getCategoryHierarchy(parentId);
       hierarchy.push(...parentHierarchy);
     }
@@ -940,7 +936,6 @@ async function getRequiredAttributesFromHierarchy(itemTypeId: string, categoryId
     // famId'nin string olduğundan emin ol
     const familyId = typeof famId === 'string' ? famId : String(famId);
     
-    console.log('🔍 Looking for family with ID:', familyId);
     
     const family = await Family.findById(familyId).populate({
       path: 'attributeGroups',
@@ -972,7 +967,6 @@ async function getRequiredAttributesFromHierarchy(itemTypeId: string, categoryId
         parentId = String(family.parent);
       }
       
-      console.log('🔍 Looking for parent family with ID:', parentId);
       const parentHierarchy = await getFamilyHierarchy(parentId);
       hierarchy.push(...parentHierarchy);
     }
@@ -1005,16 +999,6 @@ export const createItem = async (req: Request, res: Response, next: NextFunction
   try {
     const { itemType, family, category, attributes, associations, isActive } = req.body;
 
-    // Debug: Gelen payload'ı kontrol et
-    console.log('🔍 Received payload:', {
-      itemType,
-      family,
-      category,
-      attributes,
-      associations,
-      isActive
-    });
-
     // Payload validation - ObjectId format kontrolü
     if (!itemType || !family || !category) {
       res.status(400).json({
@@ -1028,12 +1012,6 @@ export const createItem = async (req: Request, res: Response, next: NextFunction
     const cleanItemType = typeof itemType === 'string' ? itemType : itemType._id || itemType;
     const cleanFamily = typeof family === 'string' ? family : family._id || family;
     const cleanCategory = typeof category === 'string' ? category : category._id || category;
-
-    console.log('🔍 Cleaned IDs:', {
-      itemType: cleanItemType,
-      family: cleanFamily,
-      category: cleanCategory
-    });
 
     // Zorunlu attribute kontrolü - Full hierarchy (ItemType + Category + Family)
     const requiredAttributes = await getRequiredAttributesFromHierarchy(cleanItemType, cleanCategory, cleanFamily);

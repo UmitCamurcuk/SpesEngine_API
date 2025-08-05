@@ -37,7 +37,7 @@ const mongoose_1 = __importStar(require("mongoose"));
 const RelationshipSchema = new mongoose_1.Schema({
     relationshipTypeId: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'RelationshipType',
+        ref: 'Association',
         required: true,
     },
     sourceEntityId: {

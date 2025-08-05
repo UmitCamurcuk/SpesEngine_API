@@ -4,6 +4,7 @@ import Item from '../models/Item';
 import Category from '../models/Category';
 import Family from '../models/Family';
 import Localization from '../models/Localization';
+import Association from '../models/Association';
 
 /**
  * Müşteri-Sipariş Association Demo Script
@@ -289,7 +290,144 @@ async function setupCustomerOrderAssociation() {
 
     console.log('✅ Müşteri associationları güncellendi');
 
-    // 7. Test sorguları çalıştır
+    // 7. Association oluştur
+    console.log('🔗 Association oluşturuluyor...');
+    
+    // Association name localization'ı oluştur
+    const associationNameLoc = await Localization.findOneAndUpdate(
+      { key: 'customer_order_association_name', namespace: 'association' },
+      {
+        key: 'customer_order_association_name',
+        namespace: 'association',
+        translations: new Map([
+          ['tr', 'Müşteri-Sipariş İlişkisi'],
+          ['en', 'Customer-Order Relationship']
+        ])
+      },
+      { upsert: true, new: true }
+    );
+
+    // Association description localization'ı oluştur
+    const associationDescLoc = await Localization.findOneAndUpdate(
+      { key: 'customer_order_association_desc', namespace: 'association' },
+      {
+        key: 'customer_order_association_desc',
+        namespace: 'association',
+        translations: new Map([
+          ['tr', 'Bir müşterinin birden fazla siparişi olabilir, bir siparişin tek müşterisi vardır'],
+          ['en', 'A customer can have multiple orders, an order has one customer']
+        ])
+      },
+      { upsert: true, new: true }
+    );
+
+    // Müşteri-Sipariş Association'ı oluştur
+    const customerOrderAssociation = await Association.findOneAndUpdate(
+      { code: 'customer-order' },
+      {
+        code: 'customer-order',
+        name: associationNameLoc._id,
+        description: associationDescLoc._id,
+        isDirectional: true,
+        relationshipType: 'one-to-many',
+        allowedSourceTypes: ['customer'],
+        allowedTargetTypes: ['order'],
+        displayConfig: {
+          sourceToTarget: {
+            enabled: true,
+            columns: [
+              {
+                attributeId: 'orderNumber',
+                displayName: 'Sipariş Numarası',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                isRequired: true,
+                formatType: 'text'
+              },
+              {
+                attributeId: 'orderDate',
+                displayName: 'Sipariş Tarihi',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                isRequired: true,
+                formatType: 'date'
+              },
+              {
+                attributeId: 'status',
+                displayName: 'Durum',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                isRequired: true,
+                formatType: 'text'
+              },
+              {
+                attributeId: 'totalAmount',
+                displayName: 'Toplam Tutar',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                isRequired: true,
+                formatType: 'number'
+              }
+            ],
+            defaultSortBy: 'orderDate',
+            defaultSortOrder: 'desc',
+            pageSize: 10,
+            showSearch: true,
+            searchableColumns: ['orderNumber', 'status']
+          },
+          targetToSource: {
+            enabled: true,
+            columns: [
+              {
+                attributeId: 'customerName',
+                displayName: 'Müşteri Adı',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                isRequired: true,
+                formatType: 'text'
+              },
+              {
+                attributeId: 'email',
+                displayName: 'E-posta',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                isRequired: true,
+                formatType: 'email'
+              },
+              {
+                attributeId: 'phone',
+                displayName: 'Telefon',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                isRequired: false,
+                formatType: 'text'
+              }
+            ],
+            defaultSortBy: 'customerName',
+            defaultSortOrder: 'asc',
+            pageSize: 10,
+            showSearch: true,
+            searchableColumns: ['customerName', 'email']
+          }
+        },
+        metadata: {
+          description: 'Müşteri ve sipariş arasındaki one-to-many ilişki',
+          businessRule: 'Bir sipariş mutlaka bir müşteriye ait olmalıdır'
+        }
+      },
+      { upsert: true, new: true }
+    );
+
+    console.log('✅ Association oluşturuldu:', customerOrderAssociation._id);
+
+    // 8. Test sorguları çalıştır
     console.log('🧪 Test sorguları çalıştırılıyor...');
 
     // Müşteriyi siparişleriyle beraber getir

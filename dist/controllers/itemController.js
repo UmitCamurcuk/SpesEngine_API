@@ -420,7 +420,6 @@ exports.getItemsByType = getItemsByType;
 const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const Family = require('../models/Family').default;
-        console.log('🔍 Fetching item with ID:', req.params.id);
         // 1. Temel item bilgilerini al
         const item = yield Item_1.default.findById(req.params.id)
             .populate({
@@ -800,7 +799,6 @@ function getRequiredAttributesFromHierarchy(itemTypeId, categoryId, familyId) {
         let requiredAttributes = [];
         // 1. ItemType'dan zorunlu attribute'ları al
         const itemTypeIdStr = typeof itemTypeId === 'string' ? itemTypeId : String(itemTypeId);
-        console.log('🔍 Looking for itemType with ID:', itemTypeIdStr);
         const itemType = yield ItemType_1.default.findById(itemTypeIdStr).populate({
             path: 'attributeGroups',
             populate: [
@@ -827,7 +825,6 @@ function getRequiredAttributesFromHierarchy(itemTypeId, categoryId, familyId) {
         const getCategoryHierarchy = (catId) => __awaiter(this, void 0, void 0, function* () {
             // catId'nin string olduğundan emin ol
             const categoryId = typeof catId === 'string' ? catId : String(catId);
-            console.log('🔍 Looking for category with ID:', categoryId);
             const category = yield Category_1.default.findById(categoryId).populate({
                 path: 'attributeGroups',
                 populate: [
@@ -856,7 +853,6 @@ function getRequiredAttributesFromHierarchy(itemTypeId, categoryId, familyId) {
                 else {
                     parentId = String(category.parent);
                 }
-                console.log('🔍 Looking for parent category with ID:', parentId);
                 const parentHierarchy = yield getCategoryHierarchy(parentId);
                 hierarchy.push(...parentHierarchy);
             }
@@ -878,7 +874,6 @@ function getRequiredAttributesFromHierarchy(itemTypeId, categoryId, familyId) {
         const getFamilyHierarchy = (famId) => __awaiter(this, void 0, void 0, function* () {
             // famId'nin string olduğundan emin ol
             const familyId = typeof famId === 'string' ? famId : String(famId);
-            console.log('🔍 Looking for family with ID:', familyId);
             const family = yield Family.findById(familyId).populate({
                 path: 'attributeGroups',
                 populate: [
@@ -907,7 +902,6 @@ function getRequiredAttributesFromHierarchy(itemTypeId, categoryId, familyId) {
                 else {
                     parentId = String(family.parent);
                 }
-                console.log('🔍 Looking for parent family with ID:', parentId);
                 const parentHierarchy = yield getFamilyHierarchy(parentId);
                 hierarchy.push(...parentHierarchy);
             }
@@ -935,15 +929,6 @@ const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     var _a, _b;
     try {
         const { itemType, family, category, attributes, associations, isActive } = req.body;
-        // Debug: Gelen payload'ı kontrol et
-        console.log('🔍 Received payload:', {
-            itemType,
-            family,
-            category,
-            attributes,
-            associations,
-            isActive
-        });
         // Payload validation - ObjectId format kontrolü
         if (!itemType || !family || !category) {
             res.status(400).json({
@@ -956,11 +941,6 @@ const createItem = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         const cleanItemType = typeof itemType === 'string' ? itemType : itemType._id || itemType;
         const cleanFamily = typeof family === 'string' ? family : family._id || family;
         const cleanCategory = typeof category === 'string' ? category : category._id || category;
-        console.log('🔍 Cleaned IDs:', {
-            itemType: cleanItemType,
-            family: cleanFamily,
-            category: cleanCategory
-        });
         // Zorunlu attribute kontrolü - Full hierarchy (ItemType + Category + Family)
         const requiredAttributes = yield getRequiredAttributesFromHierarchy(cleanItemType, cleanCategory, cleanFamily);
         // Frontend'den gelen attributes objesini al (modern format)

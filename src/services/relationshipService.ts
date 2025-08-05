@@ -1,12 +1,12 @@
 import Relationship, { IRelationship } from '../models/Relationship';
-import RelationshipType from '../models/RelationshipType';
+import Association from '../models/Association';
 import { NotFoundError, ValidationError } from '../utils/errors';
 import mongoose from 'mongoose';
 
 class RelationshipService {
   async create(data: Partial<IRelationship>): Promise<IRelationship> {
     // İlişki tipini kontrol et
-    const relationshipType = await RelationshipType.findById(data.relationshipTypeId);
+    const relationshipType = await Association.findById(data.relationshipTypeId);
     if (!relationshipType) {
       throw new ValidationError('Geçersiz ilişki tipi');
     }
@@ -65,7 +65,7 @@ class RelationshipService {
       .sort({ priority: -1, createdAt: -1 });
   }
   
-  async getByRelationshipType(relationshipTypeId: string): Promise<IRelationship[]> {
+  async getByAssociation(relationshipTypeId: string): Promise<IRelationship[]> {
     return await Relationship.find({ 
       relationshipTypeId,
       status: 'active'
@@ -84,7 +84,7 @@ class RelationshipService {
       const sourceType = data.sourceEntityType || relationship.sourceEntityType;
       const targetType = data.targetEntityType || relationship.targetEntityType;
       
-      const relationshipType = await RelationshipType.findById(typeId);
+      const relationshipType = await Association.findById(typeId);
       if (!relationshipType) {
         throw new ValidationError('Geçersiz ilişki tipi');
       }

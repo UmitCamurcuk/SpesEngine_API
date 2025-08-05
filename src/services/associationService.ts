@@ -67,7 +67,7 @@ class AssociationService {
           rules.push({
             ...rule,
             targetItemTypeCode: sourceType.code,
-            relationshipType: this.reverseRelationshipType(rule.relationshipType) as 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many'
+            relationshipType: this.reverseAssociation(rule.relationshipType) as 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many'
           });
         }
       }
@@ -469,7 +469,7 @@ class AssociationService {
 
   // Helper Methods
 
-  private reverseRelationshipType(type: string): string {
+  private reverseAssociation(type: string): string {
     switch (type) {
       case 'one-to-one': return 'one-to-one';
       case 'one-to-many': return 'many-to-one';

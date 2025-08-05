@@ -63,7 +63,7 @@ exports.getRelationshipsByEntity = getRelationshipsByEntity;
 const getRelationshipsByType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { typeId } = req.params;
-        const relationships = yield relationshipService_1.default.getByRelationshipType(typeId);
+        const relationships = yield relationshipService_1.default.getByAssociation(typeId);
         res.status(200).json(relationships);
     }
     catch (error) {

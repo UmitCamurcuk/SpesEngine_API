@@ -13,14 +13,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Relationship_1 = __importDefault(require("../models/Relationship"));
-const RelationshipType_1 = __importDefault(require("../models/RelationshipType"));
+const Association_1 = __importDefault(require("../models/Association"));
 const errors_1 = require("../utils/errors");
 const mongoose_1 = __importDefault(require("mongoose"));
 class RelationshipService {
     create(data) {
         return __awaiter(this, void 0, void 0, function* () {
             // İlişki tipini kontrol et
-            const relationshipType = yield RelationshipType_1.default.findById(data.relationshipTypeId);
+            const relationshipType = yield Association_1.default.findById(data.relationshipTypeId);
             if (!relationshipType) {
                 throw new errors_1.ValidationError('Geçersiz ilişki tipi');
             }
@@ -74,7 +74,7 @@ class RelationshipService {
                 .sort({ priority: -1, createdAt: -1 });
         });
     }
-    getByRelationshipType(relationshipTypeId) {
+    getByAssociation(relationshipTypeId) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield Relationship_1.default.find({
                 relationshipTypeId,
@@ -93,7 +93,7 @@ class RelationshipService {
                 const typeId = data.relationshipTypeId || relationship.relationshipTypeId;
                 const sourceType = data.sourceEntityType || relationship.sourceEntityType;
                 const targetType = data.targetEntityType || relationship.targetEntityType;
-                const relationshipType = yield RelationshipType_1.default.findById(typeId);
+                const relationshipType = yield Association_1.default.findById(typeId);
                 if (!relationshipType) {
                     throw new errors_1.ValidationError('Geçersiz ilişki tipi');
                 }

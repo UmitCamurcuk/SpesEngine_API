@@ -21,7 +21,7 @@ const RelationshipSchema: Schema = new Schema(
   {
     relationshipTypeId: {
       type: Schema.Types.ObjectId,
-      ref: 'RelationshipType',
+      ref: 'Association',
       required: true,
     },
     sourceEntityId: {

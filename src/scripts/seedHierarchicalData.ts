@@ -109,7 +109,6 @@ async function seedHierarchicalData() {
 
         const attribute = await Attribute.create(attributeData);
         createdAttributes.push(attribute);
-        console.log(`✅ Attribute oluşturuldu: ${attrDef.code}`);
       } catch (error) {
         console.error(`❌ Attribute oluşturma hatası (${attrDef.code}):`, error);
       }
@@ -174,7 +173,6 @@ async function seedHierarchicalData() {
 
         const attributeGroup = await AttributeGroup.create(attributeGroupData);
         createdAttributeGroups.push(attributeGroup);
-        console.log(`✅ Attribute Group oluşturuldu: ${agDef.code}`);
       } catch (error) {
         console.error(`❌ Attribute Group oluşturma hatası (${agDef.code}):`, error);
       }
@@ -236,7 +234,6 @@ async function seedHierarchicalData() {
 
         const category = await Category.create(categoryData);
         createdCategories.push(category);
-        console.log(`✅ Category oluşturuldu: ${catDef.code}`);
       } catch (error) {
         console.error(`❌ Category oluşturma hatası (${catDef.code}):`, error);
       }
@@ -306,7 +303,6 @@ async function seedHierarchicalData() {
 
         const family = await Family.create(familyData);
         createdFamilies.push(family);
-        console.log(`✅ Family oluşturuldu: ${famDef.code} (Category: ${famDef.categoryCode})`);
       } catch (error) {
         console.error(`❌ Family oluşturma hatası (${famDef.code}):`, error);
       }
@@ -382,7 +378,6 @@ async function seedHierarchicalData() {
 
         const itemType = await ItemType.create(itemTypeData);
         createdItemTypes.push(itemType);
-        console.log(`✅ Item Type oluşturuldu: ${itDef.code} (Category: ${itDef.categoryCode})`);
       } catch (error) {
         console.error(`❌ Item Type oluşturma hatası (${itDef.code}):`, error);
       }
@@ -396,7 +391,6 @@ async function seedHierarchicalData() {
     console.log(`- ${createdCategories.length} Categories`);
     console.log(`- ${createdFamilies.length} Families`);
     console.log(`- ${createdItemTypes.length} Item Types`);
-    console.log('\n✅ Veri yapısı başarıyla oluşturuldu!');
 
     await mongoose.disconnect();
     process.exit(0);

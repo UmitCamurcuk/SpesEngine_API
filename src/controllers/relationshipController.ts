@@ -66,7 +66,7 @@ export const getRelationshipsByEntity = async (req: Request, res: Response, next
 export const getRelationshipsByType = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { typeId } = req.params;
-    const relationships = await relationshipService.getByRelationshipType(typeId);
+    const relationships = await relationshipService.getByAssociation(typeId);
     res.status(200).json(relationships);
   } catch (error) {
     next(error);
