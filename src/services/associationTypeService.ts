@@ -20,6 +20,9 @@ class AssociationTypeService {
     const association = new Association(associationData);
     const savedType = await association.save();
     
+    // ItemType'ların associationIds alanını güncelle
+    await this.updateItemTypeAssociationIds(savedType);
+    
     // Populate edilmiş veriyi döndür
     return await this.getById(String(savedType._id));
   }
@@ -132,6 +135,9 @@ class AssociationTypeService {
       throw new NotFoundError('Association bulunamadı');
     }
     
+    // ItemType'ların associationIds alanını güncelle
+    await this.updateItemTypeAssociationIds(association);
+    
     // Populate edilmiş veriyi döndür
     return await this.getById(id);
   }
@@ -140,6 +146,36 @@ class AssociationTypeService {
     const result = await Association.findByIdAndDelete(id);
     if (!result) {
       throw new NotFoundError('Association bulunamadı');
+    }
+  }
+
+  /**
+   * ItemType'ların associationIds alanını günceller
+   */
+  private async updateItemTypeAssociationIds(association: IAssociation): Promise<void> {
+    try {
+      const ItemType = require('../models/ItemType').default;
+      
+      // Source ItemType'ları güncelle
+      if (association.allowedSourceTypes && association.allowedSourceTypes.length > 0) {
+        await ItemType.updateMany(
+          { code: { $in: association.allowedSourceTypes } },
+          { $addToSet: { associationIds: association._id } }
+        );
+      }
+      
+      // Target ItemType'ları güncelle
+      if (association.allowedTargetTypes && association.allowedTargetTypes.length > 0) {
+        await ItemType.updateMany(
+          { code: { $in: association.allowedTargetTypes } },
+          { $addToSet: { associationIds: association._id } }
+        );
+      }
+      
+      console.log(`✅ ItemType'lar association ID'si ile güncellendi: ${association.code}`);
+    } catch (error) {
+      console.error('❌ ItemType associationIds güncellenirken hata:', error);
+      throw error;
     }
   }
 }

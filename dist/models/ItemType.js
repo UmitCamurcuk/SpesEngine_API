@@ -179,72 +179,6 @@ const ItemTypeSchema = new mongoose_1.Schema({
         },
         required: false
     },
-    associations: {
-        type: {
-            outgoing: [{
-                    targetItemTypeCode: { type: String, required: true },
-                    targetItemTypeName: { type: String, required: false },
-                    relationshipType: {
-                        type: String,
-                        enum: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'],
-                        required: true
-                    },
-                    cardinality: {
-                        min: { type: Number, default: 0 },
-                        max: { type: Number, default: null } // null = unlimited
-                    },
-                    isRequired: { type: Boolean, default: false },
-                    cascadeDelete: { type: Boolean, default: false },
-                    displayField: { type: String, required: false },
-                    searchableFields: [{ type: String }],
-                    filterBy: { type: Map, of: mongoose_1.Schema.Types.Mixed },
-                    validationRules: { type: Map, of: mongoose_1.Schema.Types.Mixed },
-                    uiConfig: {
-                        showInList: { type: Boolean, default: true },
-                        showInDetail: { type: Boolean, default: true },
-                        allowInlineCreate: { type: Boolean, default: false },
-                        allowInlineEdit: { type: Boolean, default: false },
-                        displayMode: {
-                            type: String,
-                            enum: ['dropdown', 'modal', 'popup', 'inline'],
-                            default: 'dropdown'
-                        }
-                    }
-                }],
-            incoming: [{
-                    targetItemTypeCode: { type: String, required: true },
-                    targetItemTypeName: { type: String, required: false },
-                    relationshipType: {
-                        type: String,
-                        enum: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'],
-                        required: true
-                    },
-                    cardinality: {
-                        min: { type: Number, default: 0 },
-                        max: { type: Number, default: null }
-                    },
-                    isRequired: { type: Boolean, default: false },
-                    cascadeDelete: { type: Boolean, default: false },
-                    displayField: { type: String, required: false },
-                    searchableFields: [{ type: String }],
-                    filterBy: { type: Map, of: mongoose_1.Schema.Types.Mixed },
-                    validationRules: { type: Map, of: mongoose_1.Schema.Types.Mixed },
-                    uiConfig: {
-                        showInList: { type: Boolean, default: true },
-                        showInDetail: { type: Boolean, default: true },
-                        allowInlineCreate: { type: Boolean, default: false },
-                        allowInlineEdit: { type: Boolean, default: false },
-                        displayMode: {
-                            type: String,
-                            enum: ['dropdown', 'modal', 'popup', 'inline'],
-                            default: 'dropdown'
-                        }
-                    }
-                }]
-        },
-        required: false,
-        default: {}
-    },
     isActive: {
         type: Boolean,
         default: true
@@ -254,8 +188,7 @@ const ItemTypeSchema = new mongoose_1.Schema({
     // İndexleme stratejisi
     indexes: [
         { code: 1 }, // Unique code lookup
-        { 'associations.outgoing.targetItemTypeCode': 1 }, // Association queries
-        { 'associations.incoming.targetItemTypeCode': 1 }, // Reverse association queries
+        { associationIds: 1 }, // Association queries
         { isActive: 1, code: 1 } // Active itemTypes
     ]
 });

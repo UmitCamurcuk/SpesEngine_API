@@ -166,15 +166,10 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
       return;
     }
 
-    // Associations field'ını manuel olarak ekle (eğer varsa)
-    if (itemType.associations) {
-    } else {
-    }
+
 
     // AssociationIds'leri populate et
     console.log('🔍 ItemType associationIds:', (itemType as any).associationIds);
-    console.log('🔍 ItemType code:', itemType.code);
-    console.log('🔍 ItemType _id:', itemType._id);
     if ((itemType as any).associationIds && (itemType as any).associationIds.length > 0) {
       const Association = require('../models/Association').default;
       const associations = await Association.find({

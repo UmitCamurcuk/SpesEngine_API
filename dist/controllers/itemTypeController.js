@@ -170,15 +170,8 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             });
             return;
         }
-        // Associations field'ını manuel olarak ekle (eğer varsa)
-        if (itemType.associations) {
-        }
-        else {
-        }
         // AssociationIds'leri populate et
         console.log('🔍 ItemType associationIds:', itemType.associationIds);
-        console.log('🔍 ItemType code:', itemType.code);
-        console.log('🔍 ItemType _id:', itemType._id);
         if (itemType.associationIds && itemType.associationIds.length > 0) {
             const Association = require('../models/Association').default;
             const associations = yield Association.find({

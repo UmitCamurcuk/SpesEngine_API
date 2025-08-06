@@ -45,30 +45,74 @@ class AssociationService {
 
     const rules: IAssociationRule[] = [];
     
-    // Outgoing associations
-    if (itemType.associations?.outgoing) {
-      rules.push(...itemType.associations.outgoing);
-    }
-    
-    // Incoming associations (reverse lookup)
-    const incomingItemTypes = await ItemType.find({
-      'associations.outgoing.targetItemTypeCode': itemTypeCode,
-      isActive: true
-    });
+    // AssociationIds'den association'ları getir
+    if (itemType.associationIds && itemType.associationIds.length > 0) {
+      const Association = require('../models/Association').default;
+      const associations = await Association.find({
+        _id: { $in: itemType.associationIds }
+      });
 
-    for (const sourceType of incomingItemTypes) {
-      if (sourceType.associations?.outgoing) {
-        const relevantRules = sourceType.associations.outgoing.filter(
-          rule => rule.targetItemTypeCode === itemTypeCode
-        );
+      for (const association of associations) {
+        // Bu itemType source olarak kullanılıyor mu?
+        if (association.allowedSourceTypes.includes(itemTypeCode)) {
+          for (const targetTypeCode of association.allowedTargetTypes) {
+            if (targetTypeCode !== itemTypeCode) {
+              rules.push({
+                targetItemTypeCode: targetTypeCode,
+                targetItemTypeName: targetTypeCode === 'customer' ? 'Müşteri' : 'Sipariş',
+                relationshipType: association.relationshipType,
+                cardinality: {
+                  min: 0,
+                  max: undefined
+                },
+                isRequired: false,
+                cascadeDelete: false,
+                displayField: 'name',
+                searchableFields: ['name'],
+                filterBy: {
+                  isActive: true
+                },
+                uiConfig: {
+                  showInList: true,
+                  showInDetail: true,
+                  allowInlineCreate: false,
+                  allowInlineEdit: false,
+                  displayMode: 'dropdown'
+                }
+              });
+            }
+          }
+        }
         
-        // Incoming olarak işaretle
-        for (const rule of relevantRules) {
-          rules.push({
-            ...rule,
-            targetItemTypeCode: sourceType.code,
-            relationshipType: this.reverseAssociation(rule.relationshipType) as 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many'
-          });
+        // Bu itemType target olarak kullanılıyor mu?
+        if (association.allowedTargetTypes.includes(itemTypeCode)) {
+          for (const sourceTypeCode of association.allowedSourceTypes) {
+            if (sourceTypeCode !== itemTypeCode) {
+              rules.push({
+                targetItemTypeCode: sourceTypeCode,
+                targetItemTypeName: sourceTypeCode === 'customer' ? 'Müşteri' : 'Sipariş',
+                relationshipType: this.reverseAssociation(association.relationshipType) as 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many',
+                cardinality: {
+                  min: 0,
+                  max: undefined
+                },
+                isRequired: false,
+                cascadeDelete: false,
+                displayField: 'name',
+                searchableFields: ['name'],
+                filterBy: {
+                  isActive: true
+                },
+                uiConfig: {
+                  showInList: true,
+                  showInDetail: true,
+                  allowInlineCreate: false,
+                  allowInlineEdit: false,
+                  displayMode: 'dropdown'
+                }
+              });
+            }
+          }
         }
       }
     }

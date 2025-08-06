@@ -78,31 +78,7 @@ async function setupCustomerOrderAssociation() {
         code: 'customer',
         description: customerDescLoc._id,
         category: customerCategory._id,
-        associations: {
-          outgoing: [
-            {
-              targetItemTypeCode: 'order',
-              targetItemTypeName: 'Sipariş',
-              relationshipType: 'one-to-many',
-              cardinality: {
-                min: 0,
-                max: null // Unlimited
-              },
-              isRequired: false,
-              cascadeDelete: false,
-              displayField: 'orderNumber',
-              searchableFields: ['orderNumber', 'orderDate', 'status'],
-              uiConfig: {
-                showInList: true,
-                showInDetail: true,
-                allowInlineCreate: false,
-                allowInlineEdit: false,
-                displayMode: 'modal'
-              }
-            }
-          ],
-          incoming: []
-        },
+
         isActive: true
       },
       { upsert: true, new: true }
@@ -149,34 +125,7 @@ async function setupCustomerOrderAssociation() {
         code: 'order',
         description: orderDescLoc._id,
         category: customerCategory._id,
-        associations: {
-          outgoing: [
-            {
-              targetItemTypeCode: 'customer',
-              targetItemTypeName: 'Müşteri',
-              relationshipType: 'many-to-one',
-              cardinality: {
-                min: 1,     // Sipariş için müşteri zorunlu
-                max: 1      // Tek müşteri
-              },
-              isRequired: true,
-              cascadeDelete: false,
-              displayField: 'customerName',
-              searchableFields: ['customerName', 'email', 'phone'],
-              filterBy: {
-                isActive: true
-              },
-              uiConfig: {
-                showInList: true,
-                showInDetail: true,
-                allowInlineCreate: false,
-                allowInlineEdit: false,
-                displayMode: 'dropdown'
-              }
-            }
-          ],
-          incoming: []
-        },
+
         isActive: true
       },
       { upsert: true, new: true }
