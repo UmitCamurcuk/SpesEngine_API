@@ -175,6 +175,87 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         }
         else {
         }
+        // AssociationIds'leri populate et
+        console.log('🔍 ItemType associationIds:', itemType.associationIds);
+        console.log('🔍 ItemType code:', itemType.code);
+        console.log('🔍 ItemType _id:', itemType._id);
+        if (itemType.associationIds && itemType.associationIds.length > 0) {
+            const Association = require('../models/Association').default;
+            const associations = yield Association.find({
+                _id: { $in: itemType.associationIds }
+            }).populate('name description');
+            itemType.associations = {
+                outgoing: [],
+                incoming: []
+            };
+            // Her association için rule'ları oluştur
+            for (const association of associations) {
+                const sourceMatch = association.allowedSourceTypes.includes(itemType.code);
+                const targetMatch = association.allowedTargetTypes.includes(itemType.code);
+                if (sourceMatch) {
+                    // Bu itemType source olarak kullanılıyor
+                    for (const targetTypeCode of association.allowedTargetTypes) {
+                        if (targetTypeCode !== itemType.code) {
+                            itemType.associations.outgoing.push({
+                                targetItemTypeCode: targetTypeCode,
+                                targetItemTypeName: targetTypeCode === 'customer' ? 'Müşteri' : 'Sipariş',
+                                relationshipType: association.relationshipType,
+                                cardinality: {
+                                    min: 0,
+                                    max: undefined
+                                },
+                                isRequired: false,
+                                cascadeDelete: false,
+                                displayField: 'name',
+                                searchableFields: ['name'],
+                                filterBy: {
+                                    isActive: true
+                                },
+                                uiConfig: {
+                                    showInList: true,
+                                    showInDetail: true,
+                                    allowInlineCreate: false,
+                                    allowInlineEdit: false,
+                                    displayMode: 'dropdown'
+                                },
+                                _id: association._id
+                            });
+                        }
+                    }
+                }
+                if (targetMatch) {
+                    // Bu itemType target olarak kullanılıyor
+                    for (const sourceTypeCode of association.allowedSourceTypes) {
+                        if (sourceTypeCode !== itemType.code) {
+                            itemType.associations.incoming.push({
+                                sourceItemTypeCode: sourceTypeCode,
+                                sourceItemTypeName: sourceTypeCode === 'customer' ? 'Müşteri' : 'Sipariş',
+                                relationshipType: association.relationshipType,
+                                cardinality: {
+                                    min: 0,
+                                    max: undefined
+                                },
+                                isRequired: false,
+                                cascadeDelete: false,
+                                displayField: 'name',
+                                searchableFields: ['name'],
+                                filterBy: {
+                                    isActive: true
+                                },
+                                uiConfig: {
+                                    showInList: true,
+                                    showInDetail: true,
+                                    allowInlineCreate: false,
+                                    allowInlineEdit: false,
+                                    displayMode: 'dropdown'
+                                },
+                                _id: association._id
+                            });
+                        }
+                    }
+                }
+            }
+        }
         // Kategori hiyerarşisini ve family'leri populate et
         if (itemType.category) {
             const Category = require('../models/Category').default;

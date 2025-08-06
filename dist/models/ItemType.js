@@ -70,6 +70,13 @@ const ItemTypeSchema = new mongoose_1.Schema({
             required: false
         }
     ],
+    associationIds: [
+        {
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: 'Association',
+            required: false
+        }
+    ],
     settings: {
         type: {
             notifications: {

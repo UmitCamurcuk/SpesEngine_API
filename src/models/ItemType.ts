@@ -116,6 +116,7 @@ export interface IItemType extends Document {
   attributeGroups?: mongoose.Types.ObjectId[];
   attributes?: mongoose.Types.ObjectId[];
   associations?: IItemTypeAssociations;  // YENİ: Association tanımları
+  associationIds?: mongoose.Types.ObjectId[];  // Association ID'leri
   settings?: IItemTypeSettings;
   isActive: boolean;
   createdAt: Date;
@@ -156,6 +157,13 @@ const ItemTypeSchema: Schema = new Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Attribute',
+        required: false
+      }
+    ],
+    associationIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Association',
         required: false
       }
     ],

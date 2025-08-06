@@ -108,7 +108,7 @@ async function setupCustomerOrderAssociation() {
       { upsert: true, new: true }
     );
 
-    console.log('✅ Müşteri ItemType oluşturuldu:', customerItemType.code);
+    console.log('✅ Müşteri ItemType oluşturuldu:', customerItemType.code, 'ID:', customerItemType._id);
 
     // 2. Sipariş ItemType'ı oluştur/güncelle
     console.log('📦 Sipariş ItemType ayarlanıyor...');
@@ -182,7 +182,7 @@ async function setupCustomerOrderAssociation() {
       { upsert: true, new: true }
     );
 
-    console.log('✅ Sipariş ItemType oluşturuldu:', orderItemType.code);
+    console.log('✅ Sipariş ItemType oluşturuldu:', orderItemType.code, 'ID:', orderItemType._id);
 
     // 3. Örnek Müşteri oluştur
     console.log('👤 Örnek müşteri oluşturuluyor...');
@@ -330,8 +330,8 @@ async function setupCustomerOrderAssociation() {
         description: associationDescLoc._id,
         isDirectional: true,
         relationshipType: 'one-to-many',
-        allowedSourceTypes: ['customer'],
-        allowedTargetTypes: ['order'],
+        allowedSourceTypes: [(customerItemType as any)._id.toString()],
+        allowedTargetTypes: [(orderItemType as any)._id.toString()],
         displayConfig: {
           sourceToTarget: {
             enabled: true,
@@ -426,6 +426,30 @@ async function setupCustomerOrderAssociation() {
     );
 
     console.log('✅ Association oluşturuldu:', customerOrderAssociation._id);
+
+    // ItemType'ları association ID'si ile güncelle
+    console.log('🔍 Customer ItemType ID:', customerItemType._id);
+    console.log('🔍 Association ID:', customerOrderAssociation._id);
+    
+    const updatedCustomer = await ItemType.findByIdAndUpdate(
+      customerItemType._id,
+      { 
+        $addToSet: { associationIds: customerOrderAssociation._id }
+      },
+      { new: true }
+    );
+
+    const updatedOrder = await ItemType.findByIdAndUpdate(
+      orderItemType._id,
+      { 
+        $addToSet: { associationIds: customerOrderAssociation._id }
+      },
+      { new: true }
+    );
+
+    console.log('✅ ItemType\'lar association ID\'si ile güncellendi');
+    console.log('🔍 Updated Customer associationIds:', updatedCustomer?.associationIds);
+    console.log('🔍 Updated Order associationIds:', updatedOrder?.associationIds);
 
     // 8. Test sorguları çalıştır
     console.log('🧪 Test sorguları çalıştırılıyor...');
