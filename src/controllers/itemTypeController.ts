@@ -207,6 +207,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
               (itemType as any).associations.outgoing.push({
                 targetItemTypeCode: targetItemType.code,
                 targetItemTypeName: targetItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
+                association: association.relationshipType,
                 relationshipType: association.relationshipType,
                 cardinality: {
                   min: 0,
@@ -240,6 +241,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
               (itemType as any).associations.incoming.push({
                 sourceItemTypeCode: sourceItemType.code,
                 sourceItemTypeName: sourceItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
+                association: association.relationshipType,
                 relationshipType: association.relationshipType,
                 cardinality: {
                   min: 0,

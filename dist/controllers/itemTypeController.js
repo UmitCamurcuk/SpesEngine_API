@@ -204,6 +204,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                             itemType.associations.outgoing.push({
                                 targetItemTypeCode: targetItemType.code,
                                 targetItemTypeName: targetItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
+                                association: association.relationshipType,
                                 relationshipType: association.relationshipType,
                                 cardinality: {
                                     min: 0,
@@ -236,6 +237,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                             itemType.associations.incoming.push({
                                 sourceItemTypeCode: sourceItemType.code,
                                 sourceItemTypeName: sourceItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
+                                association: association.relationshipType,
                                 relationshipType: association.relationshipType,
                                 cardinality: {
                                     min: 0,
