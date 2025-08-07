@@ -156,18 +156,18 @@ class AssociationTypeService {
     try {
       const ItemType = require('../models/ItemType').default;
       
-      // Source ItemType'ları güncelle
+      // Source ItemType'ları güncelle (artık ID'ler içeriyor)
       if (association.allowedSourceTypes && association.allowedSourceTypes.length > 0) {
         await ItemType.updateMany(
-          { code: { $in: association.allowedSourceTypes } },
+          { _id: { $in: association.allowedSourceTypes } },
           { $addToSet: { associationIds: association._id } }
         );
       }
       
-      // Target ItemType'ları güncelle
+      // Target ItemType'ları güncelle (artık ID'ler içeriyor)
       if (association.allowedTargetTypes && association.allowedTargetTypes.length > 0) {
         await ItemType.updateMany(
-          { code: { $in: association.allowedTargetTypes } },
+          { _id: { $in: association.allowedTargetTypes } },
           { $addToSet: { associationIds: association._id } }
         );
       }
