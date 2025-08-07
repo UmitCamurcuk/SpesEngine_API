@@ -103,6 +103,7 @@ const getItemTypes = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
 exports.getItemTypes = getItemTypes;
 // GET tek bir öğe tipini getir
 const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
         const itemType = yield ItemType_1.default.findById(req.params.id)
             .populate({
@@ -222,6 +223,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                                     allowInlineEdit: false,
                                     displayMode: 'dropdown'
                                 },
+                                displayConfig: (_a = association.displayConfig) === null || _a === void 0 ? void 0 : _a.sourceToTarget,
                                 _id: association._id
                             });
                         }
@@ -253,6 +255,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                                     allowInlineEdit: false,
                                     displayMode: 'dropdown'
                                 },
+                                displayConfig: (_b = association.displayConfig) === null || _b === void 0 ? void 0 : _b.targetToSource,
                                 _id: association._id
                             });
                         }

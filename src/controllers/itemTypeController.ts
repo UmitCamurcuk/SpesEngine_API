@@ -226,6 +226,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
                   allowInlineEdit: false,
                   displayMode: 'dropdown'
                 },
+                displayConfig: association.displayConfig?.sourceToTarget,
                 _id: association._id
               });
             }
@@ -258,6 +259,7 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
                   allowInlineEdit: false,
                   displayMode: 'dropdown'
                 },
+                displayConfig: association.displayConfig?.targetToSource,
                 _id: association._id
               });
             }
