@@ -40,8 +40,8 @@ export interface IAssociation extends Document {
   description?: string | any; // Localization objesi olabilir
   isDirectional: boolean;
   relationshipType?: 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many';
-  allowedSourceTypes: string[];
-  allowedTargetTypes: string[];
+  allowedSourceTypes: any[]; // ObjectId array
+  allowedTargetTypes: any[]; // ObjectId array
   metadata?: Record<string, any>;
   displayConfig?: IDisplayConfig; // YENİ ALAN
   createdBy?: any;
@@ -79,11 +79,13 @@ const AssociationSchema: Schema = new Schema(
       required: false,
     },
     allowedSourceTypes: [{
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'ItemType',
       required: true,
     }],
     allowedTargetTypes: [{
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'ItemType',
       required: true,
     }],
     metadata: {

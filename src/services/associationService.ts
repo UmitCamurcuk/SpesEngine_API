@@ -53,13 +53,27 @@ class AssociationService {
       });
 
       for (const association of associations) {
+        // allowedSourceTypes ve allowedTargetTypes artık ID'ler içeriyor, kod değil
+        // Bu yüzden ItemType'ları bulup kodlarını karşılaştırmalıyız
+        
+        // Source ItemType'ları bul
+        const sourceItemTypes = await ItemType.find({
+          _id: { $in: association.allowedSourceTypes }
+        }).select('code');
+        
+        // Target ItemType'ları bul
+        const targetItemTypes = await ItemType.find({
+          _id: { $in: association.allowedTargetTypes }
+        }).select('code');
+        
         // Bu itemType source olarak kullanılıyor mu?
-        if (association.allowedSourceTypes.includes(itemTypeCode)) {
-          for (const targetTypeCode of association.allowedTargetTypes) {
-            if (targetTypeCode !== itemTypeCode) {
+        const sourceMatch = sourceItemTypes.some((it: any) => it.code === itemTypeCode);
+        if (sourceMatch) {
+          for (const targetItemType of targetItemTypes) {
+            if (targetItemType.code !== itemTypeCode) {
               rules.push({
-                targetItemTypeCode: targetTypeCode,
-                targetItemTypeName: targetTypeCode === 'customer' ? 'Müşteri' : 'Sipariş',
+                targetItemTypeCode: targetItemType.code,
+                targetItemTypeName: targetItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
                 relationshipType: association.relationshipType,
                 cardinality: {
                   min: 0,
@@ -85,12 +99,13 @@ class AssociationService {
         }
         
         // Bu itemType target olarak kullanılıyor mu?
-        if (association.allowedTargetTypes.includes(itemTypeCode)) {
-          for (const sourceTypeCode of association.allowedSourceTypes) {
-            if (sourceTypeCode !== itemTypeCode) {
+        const targetMatch = targetItemTypes.some((it: any) => it.code === itemTypeCode);
+        if (targetMatch) {
+          for (const sourceItemType of sourceItemTypes) {
+            if (sourceItemType.code !== itemTypeCode) {
               rules.push({
-                targetItemTypeCode: sourceTypeCode,
-                targetItemTypeName: sourceTypeCode === 'customer' ? 'Müşteri' : 'Sipariş',
+                targetItemTypeCode: sourceItemType.code,
+                targetItemTypeName: sourceItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
                 relationshipType: this.reverseAssociation(association.relationshipType) as 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many',
                 cardinality: {
                   min: 0,

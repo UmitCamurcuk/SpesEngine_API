@@ -183,15 +183,26 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             };
             // Her association için rule'ları oluştur
             for (const association of associations) {
-                const sourceMatch = association.allowedSourceTypes.includes(itemType.code);
-                const targetMatch = association.allowedTargetTypes.includes(itemType.code);
+                // allowedSourceTypes ve allowedTargetTypes artık ID'ler içeriyor, kod değil
+                // Bu yüzden ItemType'ları bulup kodlarını karşılaştırmalıyız
+                const ItemType = require('../models/ItemType').default;
+                // Source ItemType'ları bul
+                const sourceItemTypes = yield ItemType.find({
+                    _id: { $in: association.allowedSourceTypes }
+                }).select('code');
+                // Target ItemType'ları bul
+                const targetItemTypes = yield ItemType.find({
+                    _id: { $in: association.allowedTargetTypes }
+                }).select('code');
+                const sourceMatch = sourceItemTypes.some((it) => it.code === itemType.code);
+                const targetMatch = targetItemTypes.some((it) => it.code === itemType.code);
                 if (sourceMatch) {
                     // Bu itemType source olarak kullanılıyor
-                    for (const targetTypeCode of association.allowedTargetTypes) {
-                        if (targetTypeCode !== itemType.code) {
+                    for (const targetItemType of targetItemTypes) {
+                        if (targetItemType.code !== itemType.code) {
                             itemType.associations.outgoing.push({
-                                targetItemTypeCode: targetTypeCode,
-                                targetItemTypeName: targetTypeCode === 'customer' ? 'Müşteri' : 'Sipariş',
+                                targetItemTypeCode: targetItemType.code,
+                                targetItemTypeName: targetItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
                                 relationshipType: association.relationshipType,
                                 cardinality: {
                                     min: 0,
@@ -218,11 +229,11 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 }
                 if (targetMatch) {
                     // Bu itemType target olarak kullanılıyor
-                    for (const sourceTypeCode of association.allowedSourceTypes) {
-                        if (sourceTypeCode !== itemType.code) {
+                    for (const sourceItemType of sourceItemTypes) {
+                        if (sourceItemType.code !== itemType.code) {
                             itemType.associations.incoming.push({
-                                sourceItemTypeCode: sourceTypeCode,
-                                sourceItemTypeName: sourceTypeCode === 'customer' ? 'Müşteri' : 'Sipariş',
+                                sourceItemTypeCode: sourceItemType.code,
+                                sourceItemTypeName: sourceItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
                                 relationshipType: association.relationshipType,
                                 cardinality: {
                                     min: 0,
