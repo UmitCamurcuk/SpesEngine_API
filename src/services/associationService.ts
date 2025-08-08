@@ -22,8 +22,8 @@ export interface IAssociationValidationResult {
 
 export interface IPopulatedAssociation {
   associationKey: string;
-  targetItemTypeCode: string;
-  relationshipType: string;
+  targetItemTypeCode?: string;
+  relationshipType?: string;
   items: IItem[];
   metadata: IAssociationRule;
 }
@@ -316,8 +316,8 @@ class AssociationService {
 
       associations.push({
         associationKey,
-        targetItemTypeCode: rule.targetItemTypeCode,
-        relationshipType: rule.relationshipType,
+        targetItemTypeCode: rule.targetItemTypeCode || rule.sourceItemTypeCode,
+        relationshipType: rule.association || rule.relationshipType,
         items,
         metadata: rule
       });
@@ -539,7 +539,9 @@ class AssociationService {
   }
 
   private getAssociationKey(rule: IAssociationRule): string {
-    return `${rule.targetItemTypeCode}_${rule.relationshipType}`;
+    const itemTypeCode = rule.targetItemTypeCode || rule.sourceItemTypeCode;
+    const relationshipType = rule.association || rule.relationshipType;
+    return `${itemTypeCode}_${relationshipType}`;
   }
 
   private async validateCustomRules(

@@ -4,6 +4,8 @@ import Localization from '../models/Localization';
 
 class AssociationTypeService {
   async create(data: Partial<IAssociation>, userId?: string): Promise<IAssociation> {
+    console.log('🔍 Backend - Received Data:', JSON.stringify(data, null, 2));
+    
     // Association kodunun benzersiz olduğunu kontrol et
     const existingType = await Association.findOne({ code: data.code });
     if (existingType) {
@@ -31,6 +33,8 @@ class AssociationTypeService {
     const associations = await Association.find()
       .populate('createdBy', 'firstName lastName email name')
       .populate('updatedBy', 'firstName lastName email name')
+      .populate('allowedSourceTypes', 'code name')
+      .populate('allowedTargetTypes', 'code name')
       .sort({ createdAt: -1 });
 
     // Name ve description localization'larını populate et
@@ -72,7 +76,9 @@ class AssociationTypeService {
   async getById(id: string): Promise<IAssociation> {
     const association = await Association.findById(id)
       .populate('createdBy', 'firstName lastName email name')
-      .populate('updatedBy', 'firstName lastName email name');
+      .populate('updatedBy', 'firstName lastName email name')
+      .populate('allowedSourceTypes', 'code name')
+      .populate('allowedTargetTypes', 'code name');
     
     if (!association) {
       throw new NotFoundError('Association bulunamadı');

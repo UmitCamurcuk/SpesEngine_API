@@ -1,0 +1,673 @@
+(node:88566) [MONGOOSE] Warning: Duplicate schema index on {"code":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server 1903 portunda çalışıyor
+MongoDB bağlantısı başarılı: localhost
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+Error fetching category by ID: CastError: Cast to ObjectId failed for value "[object Object]" (type string) at path "_id" for model "Category"
+    at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:251:11)
+    at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+    at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+    at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+    at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+    at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+    at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+    at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  stringValue: '"[object Object]"',
+  messageFormat: undefined,
+  kind: 'ObjectId',
+  value: '[object Object]',
+  path: '_id',
+  reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+      at new ObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/bson/lib/bson.cjs:2523:23)
+      at castObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast/objectid.js:25:12)
+      at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:249:12)
+      at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+      at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+      at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+      at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+      at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+      at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+      at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80),
+  valueType: 'string'
+}
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+Error fetching category by ID: CastError: Cast to ObjectId failed for value "[object Object]" (type string) at path "_id" for model "Category"
+    at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:251:11)
+    at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+    at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+    at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+    at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+    at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+    at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+    at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  stringValue: '"[object Object]"',
+  messageFormat: undefined,
+  kind: 'ObjectId',
+  value: '[object Object]',
+  path: '_id',
+  reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+      at new ObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/bson/lib/bson.cjs:2523:23)
+      at castObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast/objectid.js:25:12)
+      at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:249:12)
+      at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+      at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+      at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+      at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+      at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+      at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+      at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80),
+  valueType: 'string'
+}
+Token doğrulama hatası: Error: Invalid access token
+    at JWTService.verifyAccessToken (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/dist/utils/jwt.js:34:19)
+    at /Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/dist/middleware/auth.middleware.js:35:42
+    at Generator.next (<anonymous>)
+    at /Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/dist/middleware/auth.middleware.js:8:71
+    at new Promise (<anonymous>)
+    at __awaiter (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/dist/middleware/auth.middleware.js:4:12)
+    at authenticateToken (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/dist/middleware/auth.middleware.js:20:47)
+    at Layer.handle [as handle_request] (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/express/lib/router/index.js:328:13)
+    at /Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/express/lib/router/index.js:286:9
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+Error fetching category by ID: CastError: Cast to ObjectId failed for value "[object Object]" (type string) at path "_id" for model "Category"
+    at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:251:11)
+    at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+    at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+    at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+    at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+    at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+    at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+    at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  stringValue: '"[object Object]"',
+  messageFormat: undefined,
+  kind: 'ObjectId',
+  value: '[object Object]',
+  path: '_id',
+  reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+      at new ObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/bson/lib/bson.cjs:2523:23)
+      at castObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast/objectid.js:25:12)
+      at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:249:12)
+      at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+      at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+      at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+      at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+      at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+      at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+      at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80),
+  valueType: 'string'
+}
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+Error fetching category by ID: CastError: Cast to ObjectId failed for value "[object Object]" (type string) at path "_id" for model "Category"
+    at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:251:11)
+    at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+    at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+    at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+    at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+    at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+    at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+    at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  stringValue: '"[object Object]"',
+  messageFormat: undefined,
+  kind: 'ObjectId',
+  value: '[object Object]',
+  path: '_id',
+  reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+      at new ObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/bson/lib/bson.cjs:2523:23)
+      at castObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast/objectid.js:25:12)
+      at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:249:12)
+      at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+      at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+      at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+      at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+      at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+      at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+      at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80),
+  valueType: 'string'
+}
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+Error fetching category by ID: CastError: Cast to ObjectId failed for value "[object Object]" (type string) at path "_id" for model "Category"
+    at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:251:11)
+    at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+    at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+    at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+    at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+    at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+    at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+    at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  stringValue: '"[object Object]"',
+  messageFormat: undefined,
+  kind: 'ObjectId',
+  value: '[object Object]',
+  path: '_id',
+  reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+      at new ObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/bson/lib/bson.cjs:2523:23)
+      at castObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast/objectid.js:25:12)
+      at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:249:12)
+      at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+      at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+      at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+      at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+      at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+      at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+      at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80),
+  valueType: 'string'
+}
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+Error fetching category by ID: CastError: Cast to ObjectId failed for value "[object Object]" (type string) at path "_id" for model "Category"
+    at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:251:11)
+    at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+    at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+    at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+    at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+    at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+    at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+    at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  stringValue: '"[object Object]"',
+  messageFormat: undefined,
+  kind: 'ObjectId',
+  value: '[object Object]',
+  path: '_id',
+  reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+      at new ObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/bson/lib/bson.cjs:2523:23)
+      at castObjectId (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast/objectid.js:25:12)
+      at SchemaObjectId.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schema/objectId.js:249:12)
+      at SchemaType.applySetters (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1255:12)
+      at SchemaType.castForQuery (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/schemaType.js:1673:17)
+      at cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/cast.js:390:32)
+      at Query.cast (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:5055:12)
+      at Query._castConditions (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2351:10)
+      at model.Query._findOne (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:2674:8)
+      at model.Query.exec (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/mongoose/lib/query.js:4604:80),
+  valueType: 'string'
+}
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+Token doğrulama hatası: Error: Invalid access token
+    at JWTService.verifyAccessToken (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/dist/utils/jwt.js:34:19)
+    at /Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/dist/middleware/auth.middleware.js:35:42
+    at Generator.next (<anonymous>)
+    at /Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/dist/middleware/auth.middleware.js:8:71
+    at new Promise (<anonymous>)
+    at __awaiter (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/dist/middleware/auth.middleware.js:4:12)
+    at authenticateToken (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/dist/middleware/auth.middleware.js:20:47)
+    at Layer.handle [as handle_request] (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/express/lib/router/index.js:328:13)
+    at /Users/umitcamurcuk/Desktop/REPOS/SpesEngine/SpesEngine_API/node_modules/express/lib/router/index.js:286:9
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+✅ ItemType'lar association ID'si ile güncellendi: vvvva
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 68851e07af58673dc6d8cc4f için bulunan families: 0
+Alt kategori 68851e22af58673dc6d8ccbe (Single_System) için bulunan families: 1
+Alt kategori 68851e4aaf58673dc6d8cd36 (dobule_system) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
+🔍 ItemType associationIds: [
+  new ObjectId('68936e92d527678922654540'),
+  new ObjectId('6895b453523f2ec00ca4dcf7'),
+  new ObjectId('6895baff814bd3b026926d0b'),
+  new ObjectId('6895bdd06e43f58df8a60d92'),
+  new ObjectId('6895cb755571840e07125df8'),
+  new ObjectId('6895ce0489e5074b03a4e044')
+]
+Ana kategori 688b6047390de452600555a2 için bulunan families: 0
+Alt kategori 688b607b390de4526005565c (Individual_Customer) için bulunan families: 1
+Alt kategori 688b60d9390de45260055717 (Distributor) için bulunan families: 0
+Alt kategori 688b6101390de452600557d1 (Business_Partner) için bulunan families: 1
+Alt kategori 688b6134390de4526005588b (Corporate_Customer) için bulunan families: 0
+System admin kullanıcısı - tüm izinler veriliyor
