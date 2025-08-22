@@ -367,4 +367,118 @@ export const refreshPermissions = async (req: Request, res: Response) => {
       error: error.message
     });
   }
+};
+
+// @desc    Profil bilgilerini güncelle
+// @route   PUT /api/auth/profile
+// @access  Private
+export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      });
+      return;
+    }
+
+    const {
+      firstName,
+      lastName,
+      phone,
+      bio,
+      position,
+      department,
+      location,
+      website,
+      socialLinks,
+      preferences
+    } = req.body;
+
+    // Güncellenebilir alanları belirle
+    const updateFields: any = {};
+    
+    if (firstName !== undefined) updateFields.firstName = firstName;
+    if (lastName !== undefined) updateFields.lastName = lastName;
+    if (phone !== undefined) updateFields.phone = phone;
+    if (bio !== undefined) updateFields.bio = bio;
+    if (position !== undefined) updateFields.position = position;
+    if (department !== undefined) updateFields.department = department;
+    if (location !== undefined) updateFields.location = location;
+    if (website !== undefined) updateFields.website = website;
+    if (socialLinks !== undefined) updateFields.socialLinks = socialLinks;
+    if (preferences !== undefined) updateFields.preferences = preferences;
+
+    // Kullanıcıyı güncelle
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      updateFields,
+      { new: true, runValidators: true }
+    ).populate('role');
+
+    if (!updatedUser) {
+      res.status(404).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Profil başarıyla güncellendi',
+      user: updatedUser
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Profil güncellenirken hata oluştu',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Avatar yükle
+// @route   POST /api/auth/avatar
+// @access  Private
+export const uploadAvatar = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      });
+      return;
+    }
+
+    // Burada dosya yükleme işlemi yapılacak
+    // Şimdilik basit bir URL döndürüyoruz
+    const avatarUrl = req.body.avatarUrl || '';
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { avatar: avatarUrl },
+      { new: true }
+    ).populate('role');
+
+    if (!updatedUser) {
+      res.status(404).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Avatar başarıyla güncellendi',
+      user: updatedUser
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Avatar yüklenirken hata oluştu',
+      error: error.message
+    });
+  }
 }; 

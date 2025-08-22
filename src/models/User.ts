@@ -9,6 +9,27 @@ export interface IUser extends Document {
   lastName?: string;
   email: string;
   password: string;
+  phone?: string;
+  avatar?: string;
+  bio?: string;
+  position?: string;
+  department?: string;
+  location?: string;
+  website?: string;
+  socialLinks?: {
+    linkedin?: string;
+    twitter?: string;
+    github?: string;
+  };
+  preferences?: {
+    language?: string;
+    theme?: 'light' | 'dark' | 'auto';
+    notifications?: {
+      email?: boolean;
+      push?: boolean;
+      sms?: boolean;
+    };
+  };
   isAdmin: boolean;
   isActive: boolean;
   lastLogin: Date;
@@ -48,6 +69,74 @@ const UserSchema: Schema = new Schema({
     type: String,
     required: [true, 'Şifre alanı zorunludur'],
     minlength: [6, 'Şifre en az 6 karakter olmalıdır']
+  },
+  phone: {
+    type: String,
+    trim: true
+  },
+  avatar: {
+    type: String,
+    trim: true
+  },
+  bio: {
+    type: String,
+    trim: true,
+    maxlength: [500, 'Biyografi en fazla 500 karakter olabilir']
+  },
+  position: {
+    type: String,
+    trim: true
+  },
+  department: {
+    type: String,
+    trim: true
+  },
+  location: {
+    type: String,
+    trim: true
+  },
+  website: {
+    type: String,
+    trim: true
+  },
+  socialLinks: {
+    linkedin: {
+      type: String,
+      trim: true
+    },
+    twitter: {
+      type: String,
+      trim: true
+    },
+    github: {
+      type: String,
+      trim: true
+    }
+  },
+  preferences: {
+    language: {
+      type: String,
+      default: 'tr'
+    },
+    theme: {
+      type: String,
+      enum: ['light', 'dark', 'auto'],
+      default: 'auto'
+    },
+    notifications: {
+      email: {
+        type: Boolean,
+        default: true
+      },
+      push: {
+        type: Boolean,
+        default: true
+      },
+      sms: {
+        type: Boolean,
+        default: false
+      }
+    }
   },
   isAdmin: {
     type: Boolean,

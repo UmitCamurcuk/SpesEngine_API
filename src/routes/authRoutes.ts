@@ -6,7 +6,9 @@ import {
   getMe,
   logout,
   refreshPermissions,
-  refreshToken
+  refreshToken,
+  updateProfile,
+  uploadAvatar
 } from '../controllers/authController';
 
 const router = express.Router();
@@ -20,5 +22,7 @@ router.post('/refresh-token', refreshToken);
 router.get('/me', authenticateToken, getMe);
 router.post('/logout', authenticateToken, logout);
 router.get('/refresh-permissions', authenticateToken, refreshPermissions);
+router.put('/profile', authenticateToken, updateProfile);
+router.post('/avatar', authenticateToken, uploadAvatar);
 
 export default router; 
