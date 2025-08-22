@@ -166,7 +166,7 @@ class EntityService {
         case EntityType.USER:
           const User = (await import('../models/User')).default;
           const user = await User.findById(objectId);
-          return user?.name || user?.email || `user_${entityId}`;
+          return user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || `user_${entityId}` : `user_${entityId}`;
           
         case EntityType.LOCALIZATION:
           // Localization için namespace:key formatında name döndür

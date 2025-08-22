@@ -31,14 +31,15 @@ const getUserPermissions = async (user: any): Promise<string[]> => {
 // Kullanıcı kaydı
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, password, role } = req.body;
+    const { firstName, lastName, email, password, role } = req.body;
 
     // Geçici olarak sabit bir rol ID'si oluştur
     const roleId = new mongoose.Types.ObjectId();
 
     // Kullanıcı oluştur
     const user = await User.create({
-      name,
+      firstName,
+      lastName,
       email,
       password,
       role: roleId // Geçici rol ID'si
@@ -313,8 +314,8 @@ const sendTokenResponse = (user: IUser, statusCode: number, res: Response): void
     user: {
       id: user._id,
       email: user.email,
-      firstName: user.name.split(' ')[0],
-      lastName: user.name.split(' ').slice(1).join(' '),
+      firstName: user.firstName,
+      lastName: user.lastName,
       role: 'user'
     }
   });

@@ -49,17 +49,14 @@ const mongoose_1 = __importStar(require("mongoose"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const UserSchema = new mongoose_1.Schema({
-    name: {
-        type: String,
-        required: [true, 'İsim alanı zorunludur'],
-        trim: true
-    },
     firstName: {
         type: String,
+        required: [true, 'Ad alanı zorunludur'],
         trim: true
     },
     lastName: {
         type: String,
+        required: [true, 'Soyad alanı zorunludur'],
         trim: true
     },
     email: {

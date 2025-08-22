@@ -39,12 +39,13 @@ const getUserPermissions = (user) => __awaiter(void 0, void 0, void 0, function*
 // Kullanıcı kaydı
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, email, password, role } = req.body;
+        const { firstName, lastName, email, password, role } = req.body;
         // Geçici olarak sabit bir rol ID'si oluştur
         const roleId = new mongoose_1.default.Types.ObjectId();
         // Kullanıcı oluştur
         const user = yield User_1.default.create({
-            name,
+            firstName,
+            lastName,
             email,
             password,
             role: roleId // Geçici rol ID'si
@@ -292,8 +293,8 @@ const sendTokenResponse = (user, statusCode, res) => {
         user: {
             id: user._id,
             email: user.email,
-            firstName: user.name.split(' ')[0],
-            lastName: user.name.split(' ').slice(1).join(' '),
+            firstName: user.firstName,
+            lastName: user.lastName,
             role: 'user'
         }
     });

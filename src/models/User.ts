@@ -4,9 +4,8 @@ import jwt from 'jsonwebtoken';
 
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
-  name: string;
-  firstName?: string;
-  lastName?: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   phone?: string;
@@ -44,17 +43,14 @@ export interface IUser extends Document {
 }
 
 const UserSchema: Schema = new Schema({
-  name: {
-    type: String,
-    required: [true, 'İsim alanı zorunludur'],
-    trim: true
-  },
   firstName: {
     type: String,
+    required: [true, 'Ad alanı zorunludur'],
     trim: true
   },
   lastName: {
     type: String,
+    required: [true, 'Soyad alanı zorunludur'],
     trim: true
   },
   email: {

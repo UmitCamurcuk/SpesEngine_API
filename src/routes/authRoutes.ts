@@ -23,6 +23,7 @@ router.get('/test', (req, res) => {
   res.json({ success: true, message: 'Auth routes çalışıyor' });
 });
 
+
 // Korumalı rotalar
 router.get('/me', authenticateToken, getMe);
 router.post('/logout', authenticateToken, logout);
