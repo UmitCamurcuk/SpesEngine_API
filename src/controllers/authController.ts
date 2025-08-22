@@ -374,6 +374,10 @@ export const refreshPermissions = async (req: Request, res: Response) => {
 // @access  Private
 export const updateProfile = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log('UpdateProfile endpoint called');
+    console.log('Request body:', req.body);
+    console.log('User:', req.user);
+    
     if (!req.user) {
       res.status(401).json({
         success: false,

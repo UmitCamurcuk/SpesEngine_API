@@ -18,6 +18,11 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/refresh-token', refreshToken);
 
+// Test endpoint
+router.get('/test', (req, res) => {
+  res.json({ success: true, message: 'Auth routes çalışıyor' });
+});
+
 // Korumalı rotalar
 router.get('/me', authenticateToken, getMe);
 router.post('/logout', authenticateToken, logout);

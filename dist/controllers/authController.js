@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshPermissions = exports.logout = exports.getMe = exports.refreshToken = exports.login = exports.register = void 0;
+exports.uploadAvatar = exports.updateProfile = exports.refreshPermissions = exports.logout = exports.getMe = exports.refreshToken = exports.login = exports.register = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -345,3 +345,103 @@ const refreshPermissions = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.refreshPermissions = refreshPermissions;
+// @desc    Profil bilgilerini güncelle
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log('UpdateProfile endpoint called');
+        console.log('Request body:', req.body);
+        console.log('User:', req.user);
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+            return;
+        }
+        const { firstName, lastName, phone, bio, position, department, location, website, socialLinks, preferences } = req.body;
+        // Güncellenebilir alanları belirle
+        const updateFields = {};
+        if (firstName !== undefined)
+            updateFields.firstName = firstName;
+        if (lastName !== undefined)
+            updateFields.lastName = lastName;
+        if (phone !== undefined)
+            updateFields.phone = phone;
+        if (bio !== undefined)
+            updateFields.bio = bio;
+        if (position !== undefined)
+            updateFields.position = position;
+        if (department !== undefined)
+            updateFields.department = department;
+        if (location !== undefined)
+            updateFields.location = location;
+        if (website !== undefined)
+            updateFields.website = website;
+        if (socialLinks !== undefined)
+            updateFields.socialLinks = socialLinks;
+        if (preferences !== undefined)
+            updateFields.preferences = preferences;
+        // Kullanıcıyı güncelle
+        const updatedUser = yield User_1.default.findByIdAndUpdate(req.user._id, updateFields, { new: true, runValidators: true }).populate('role');
+        if (!updatedUser) {
+            res.status(404).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+            return;
+        }
+        res.status(200).json({
+            success: true,
+            message: 'Profil başarıyla güncellendi',
+            user: updatedUser
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Profil güncellenirken hata oluştu',
+            error: error.message
+        });
+    }
+});
+exports.updateProfile = updateProfile;
+// @desc    Avatar yükle
+// @route   POST /api/auth/avatar
+// @access  Private
+const uploadAvatar = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+            return;
+        }
+        // Burada dosya yükleme işlemi yapılacak
+        // Şimdilik basit bir URL döndürüyoruz
+        const avatarUrl = req.body.avatarUrl || '';
+        const updatedUser = yield User_1.default.findByIdAndUpdate(req.user._id, { avatar: avatarUrl }, { new: true }).populate('role');
+        if (!updatedUser) {
+            res.status(404).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+            return;
+        }
+        res.status(200).json({
+            success: true,
+            message: 'Avatar başarıyla güncellendi',
+            user: updatedUser
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Avatar yüklenirken hata oluştu',
+            error: error.message
+        });
+    }
+});
+exports.uploadAvatar = uploadAvatar;
