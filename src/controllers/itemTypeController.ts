@@ -204,22 +204,36 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
           // Bu itemType source olarak kullanılıyor
           for (const targetItemType of targetItemTypes) {
             if (targetItemType.code !== itemType.code) {
+              // Association metadata'sından bilgileri al
+              const metadata = association.metadata || {};
+              
+              // FilterBy objesini oluştur
+              const filterBy: any = { isActive: true };
+              
+              // Category filter varsa ekle
+              if (metadata.targetCategoryFilter) {
+                // Category code'dan ObjectId'ye çevir
+                const Category = require('../models/Category').default;
+                const categoryObj = await Category.findOne({ code: metadata.targetCategoryFilter });
+                if (categoryObj) {
+                  filterBy.category = categoryObj._id;
+                }
+              }
+
               (itemType as any).associations.outgoing.push({
                 targetItemTypeCode: targetItemType.code,
                 targetItemTypeName: targetItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
                 association: association.relationshipType,
                 relationshipType: association.relationshipType,
                 cardinality: {
-                  min: 0,
-                  max: undefined
+                  min: metadata.cardinality?.min || 0,
+                  max: metadata.cardinality?.max || undefined
                 },
-                isRequired: false,
+                isRequired: metadata.isRequired || false,
                 cascadeDelete: false,
-                displayField: 'name',
-                searchableFields: ['name'],
-                filterBy: {
-                  isActive: true
-                },
+                displayField: metadata.displayField || 'name',
+                searchableFields: metadata.searchableFields || ['name'],
+                filterBy: filterBy,
                 uiConfig: {
                   showInList: true,
                   showInDetail: true,
@@ -238,22 +252,35 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
           // Bu itemType target olarak kullanılıyor
           for (const sourceItemType of sourceItemTypes) {
             if (sourceItemType.code !== itemType.code) {
+              // Association metadata'sından bilgileri al  
+              const metadata = association.metadata || {};
+              
+              // FilterBy objesini oluştur
+              const filterBy: any = { isActive: true };
+              
+              // Category filter varsa ekle (incoming için genelde gerek yok ama tutarlılık için)
+              if (metadata.sourceCategoryFilter) {
+                const Category = require('../models/Category').default;
+                const categoryObj = await Category.findOne({ code: metadata.sourceCategoryFilter });
+                if (categoryObj) {
+                  filterBy.category = categoryObj._id;
+                }
+              }
+
               (itemType as any).associations.incoming.push({
                 sourceItemTypeCode: sourceItemType.code,
                 sourceItemTypeName: sourceItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
                 association: association.relationshipType,
                 relationshipType: association.relationshipType,
                 cardinality: {
-                  min: 0,
-                  max: undefined
+                  min: metadata.cardinality?.min || 0,
+                  max: metadata.cardinality?.max || undefined
                 },
-                isRequired: false,
+                isRequired: metadata.isRequired || false,
                 cascadeDelete: false,
-                displayField: 'name',
-                searchableFields: ['name'],
-                filterBy: {
-                  isActive: true
-                },
+                displayField: metadata.displayField || 'name',
+                searchableFields: metadata.searchableFields || ['name'],
+                filterBy: filterBy,
                 uiConfig: {
                   showInList: true,
                   showInDetail: true,

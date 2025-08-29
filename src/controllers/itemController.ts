@@ -230,6 +230,8 @@ export const getItems = async (req: Request, res: Response, next: NextFunction):
   }
 };
 
+
+
 // GET belirli ItemType'a ait öğeleri getir - Enhanced for Association Display
 export const getItemsByType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {

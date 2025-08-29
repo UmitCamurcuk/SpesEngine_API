@@ -103,7 +103,7 @@ const getItemTypes = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
 exports.getItemTypes = getItemTypes;
 // GET tek bir öğe tipini getir
 const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d, _e, _f;
     try {
         const itemType = yield ItemType_1.default.findById(req.params.id)
             .populate({
@@ -201,22 +201,33 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                     // Bu itemType source olarak kullanılıyor
                     for (const targetItemType of targetItemTypes) {
                         if (targetItemType.code !== itemType.code) {
+                            // Association metadata'sından bilgileri al
+                            const metadata = association.metadata || {};
+                            // FilterBy objesini oluştur
+                            const filterBy = { isActive: true };
+                            // Category filter varsa ekle
+                            if (metadata.targetCategoryFilter) {
+                                // Category code'dan ObjectId'ye çevir
+                                const Category = require('../models/Category').default;
+                                const categoryObj = yield Category.findOne({ code: metadata.targetCategoryFilter });
+                                if (categoryObj) {
+                                    filterBy.category = categoryObj._id;
+                                }
+                            }
                             itemType.associations.outgoing.push({
                                 targetItemTypeCode: targetItemType.code,
                                 targetItemTypeName: targetItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
                                 association: association.relationshipType,
                                 relationshipType: association.relationshipType,
                                 cardinality: {
-                                    min: 0,
-                                    max: undefined
+                                    min: ((_a = metadata.cardinality) === null || _a === void 0 ? void 0 : _a.min) || 0,
+                                    max: ((_b = metadata.cardinality) === null || _b === void 0 ? void 0 : _b.max) || undefined
                                 },
-                                isRequired: false,
+                                isRequired: metadata.isRequired || false,
                                 cascadeDelete: false,
-                                displayField: 'name',
-                                searchableFields: ['name'],
-                                filterBy: {
-                                    isActive: true
-                                },
+                                displayField: metadata.displayField || 'name',
+                                searchableFields: metadata.searchableFields || ['name'],
+                                filterBy: filterBy,
                                 uiConfig: {
                                     showInList: true,
                                     showInDetail: true,
@@ -224,7 +235,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                                     allowInlineEdit: false,
                                     displayMode: 'dropdown'
                                 },
-                                displayConfig: (_a = association.displayConfig) === null || _a === void 0 ? void 0 : _a.sourceToTarget,
+                                displayConfig: (_c = association.displayConfig) === null || _c === void 0 ? void 0 : _c.sourceToTarget,
                                 _id: association._id
                             });
                         }
@@ -234,22 +245,32 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                     // Bu itemType target olarak kullanılıyor
                     for (const sourceItemType of sourceItemTypes) {
                         if (sourceItemType.code !== itemType.code) {
+                            // Association metadata'sından bilgileri al  
+                            const metadata = association.metadata || {};
+                            // FilterBy objesini oluştur
+                            const filterBy = { isActive: true };
+                            // Category filter varsa ekle (incoming için genelde gerek yok ama tutarlılık için)
+                            if (metadata.sourceCategoryFilter) {
+                                const Category = require('../models/Category').default;
+                                const categoryObj = yield Category.findOne({ code: metadata.sourceCategoryFilter });
+                                if (categoryObj) {
+                                    filterBy.category = categoryObj._id;
+                                }
+                            }
                             itemType.associations.incoming.push({
                                 sourceItemTypeCode: sourceItemType.code,
                                 sourceItemTypeName: sourceItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
                                 association: association.relationshipType,
                                 relationshipType: association.relationshipType,
                                 cardinality: {
-                                    min: 0,
-                                    max: undefined
+                                    min: ((_d = metadata.cardinality) === null || _d === void 0 ? void 0 : _d.min) || 0,
+                                    max: ((_e = metadata.cardinality) === null || _e === void 0 ? void 0 : _e.max) || undefined
                                 },
-                                isRequired: false,
+                                isRequired: metadata.isRequired || false,
                                 cascadeDelete: false,
-                                displayField: 'name',
-                                searchableFields: ['name'],
-                                filterBy: {
-                                    isActive: true
-                                },
+                                displayField: metadata.displayField || 'name',
+                                searchableFields: metadata.searchableFields || ['name'],
+                                filterBy: filterBy,
                                 uiConfig: {
                                     showInList: true,
                                     showInDetail: true,
@@ -257,7 +278,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                                     allowInlineEdit: false,
                                     displayMode: 'dropdown'
                                 },
-                                displayConfig: (_b = association.displayConfig) === null || _b === void 0 ? void 0 : _b.targetToSource,
+                                displayConfig: (_f = association.displayConfig) === null || _f === void 0 ? void 0 : _f.targetToSource,
                                 _id: association._id
                             });
                         }

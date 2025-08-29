@@ -4,7 +4,11 @@ import AttributeGroup from '../models/AttributeGroup';
 import Category from '../models/Category';
 import Family from '../models/Family';
 import ItemType from '../models/ItemType';
+import Association from '../models/Association';
+import Item from '../models/Item';
+import User from '../models/User';
 import localizationService from '../services/localizationService';
+import associationTypeService from '../services/associationTypeService';
 
 /**
  * Plicess Perde Üretim Sistemi Setup Script
@@ -33,7 +37,26 @@ async function setupPlicessPerdeSistemi() {
     await Family.deleteMany({});
     await AttributeGroup.deleteMany({});
     await Attribute.deleteMany({});
+    await Association.deleteMany({});
+    await Item.deleteMany({});
     console.log('✅ Mevcut veriler temizlendi');
+
+    // Test user'ı oluştur veya bul
+    console.log('👤 Test user oluşturuluyor...');
+    let testUser = await User.findOne({ email: 'admin@plicess.com' });
+    if (!testUser) {
+      // Mongoose ObjectId ile System Admin role'ünü kullan
+      const mongoose = require('mongoose');
+      testUser = await User.create({
+        firstName: 'Admin',
+        lastName: 'User',
+        email: 'admin@plicess.com',
+        password: 'temp123',
+        role: new mongoose.Types.ObjectId('685d9fc02ca2b7332e9ca043'), // System Admin role ID
+        isActive: true
+      });
+    }
+    console.log('✅ Test user hazır:', testUser.email);
 
     // ===========================================
     // 1. ATTRIBUTES (En temel seviye)
@@ -139,49 +162,49 @@ async function setupPlicessPerdeSistemi() {
       {
         nameTranslations: { tr: 'Adı', en: 'Order Owner Name' },
         code: 'order_owner_name',
-        descriptionTranslations: { tr: 'Sipariş sahibinin adı', en: 'Order owner name' },
+        descriptionTranslations: { tr: 'Sipariş sahibinin adı (isteğe bağlı)', en: 'Order owner name (optional)' },
         type: 'text',
-        isRequired: true,
+        isRequired: false,
         isActive: true
       },
       {
         nameTranslations: { tr: 'Soyadı', en: 'Order Owner Surname' },
         code: 'order_owner_surname',
-        descriptionTranslations: { tr: 'Sipariş sahibinin soyadı', en: 'Order owner surname' },
+        descriptionTranslations: { tr: 'Sipariş sahibinin soyadı (isteğe bağlı)', en: 'Order owner surname (optional)' },
         type: 'text',
-        isRequired: true,
+        isRequired: false,
         isActive: true
       },
       {
         nameTranslations: { tr: 'İl', en: 'Province' },
         code: 'province',
-        descriptionTranslations: { tr: 'İl bilgisi', en: 'Province information' },
+        descriptionTranslations: { tr: 'İl bilgisi (isteğe bağlı)', en: 'Province information (optional)' },
         type: 'text',
-        isRequired: true,
+        isRequired: false,
         isActive: true
       },
       {
         nameTranslations: { tr: 'İlçe', en: 'District' },
         code: 'district',
-        descriptionTranslations: { tr: 'İlçe bilgisi', en: 'District information' },
+        descriptionTranslations: { tr: 'İlçe bilgisi (isteğe bağlı)', en: 'District information (optional)' },
         type: 'text',
-        isRequired: true,
+        isRequired: false,
         isActive: true
       },
       {
         nameTranslations: { tr: 'Telefon', en: 'Order Phone' },
         code: 'order_phone',
-        descriptionTranslations: { tr: 'Sipariş sahibi telefon numarası', en: 'Order owner phone number' },
+        descriptionTranslations: { tr: 'Sipariş sahibi telefon numarası (isteğe bağlı)', en: 'Order owner phone number (optional)' },
         type: 'text',
-        isRequired: true,
+        isRequired: false,
         isActive: true
       },
       {
         nameTranslations: { tr: 'Adres', en: 'Order Address' },
         code: 'order_address',
-        descriptionTranslations: { tr: 'Sipariş sahibi adresi', en: 'Order owner address' },
+        descriptionTranslations: { tr: 'Sipariş sahibi adresi (isteğe bağlı)', en: 'Order owner address (optional)' },
         type: 'text',
-        isRequired: true,
+        isRequired: false,
         isActive: true
       },
       {
@@ -340,16 +363,18 @@ async function setupPlicessPerdeSistemi() {
         code: 'order_status',
         descriptionTranslations: { tr: 'Siparişin mevcut durumu', en: 'Current status of the order' },
         type: 'select',
-        options: [
-          { value: 'siparis_alindi', label: { tr: 'Sipariş Alındı', en: 'Order Received' } },
-          { value: 'kumas_bekleniyor', label: { tr: 'Kumaş Bekleniyor', en: 'Waiting for Fabric' } },
-          { value: 'kumas_kesildi', label: { tr: 'Kumaş Kesildi', en: 'Fabric Cut' } },
-          { value: 'delindi', label: { tr: 'Delindi', en: 'Perforated' } },
-          { value: 'kusgozü_atildi', label: { tr: 'Kuş Gözü Atıldı', en: 'Eyelets Applied' } },
-          { value: 'iplendi', label: { tr: 'İplendi', en: 'Threaded' } },
-          { value: 'paketlendi', label: { tr: 'Paketlendi', en: 'Packaged' } },
-          { value: 'gonderildi', label: { tr: 'Gönderildi', en: 'Shipped' } }
-        ],
+        validations: {
+          selectOptions: [
+            { value: 'siparis_alindi', label: { tr: 'Sipariş Alındı', en: 'Order Received' } },
+            { value: 'kumas_bekleniyor', label: { tr: 'Kumaş Bekleniyor', en: 'Waiting for Fabric' } },
+            { value: 'kumas_kesildi', label: { tr: 'Kumaş Kesildi', en: 'Fabric Cut' } },
+            { value: 'delindi', label: { tr: 'Delindi', en: 'Perforated' } },
+            { value: 'kusgozü_atildi', label: { tr: 'Kuş Gözü Atıldı', en: 'Eyelets Applied' } },
+            { value: 'iplendi', label: { tr: 'İplendi', en: 'Threaded' } },
+            { value: 'paketlendi', label: { tr: 'Paketlendi', en: 'Packaged' } },
+            { value: 'gonderildi', label: { tr: 'Gönderildi', en: 'Shipped' } }
+          ]
+        },
         isRequired: true,
         isActive: true
       },
@@ -401,7 +426,6 @@ async function setupPlicessPerdeSistemi() {
           code: attrDef.code,
           description: descriptionLocalization._id,
           type: attrDef.type,
-          ...(attrDef.options && { options: attrDef.options }),
           ...(attrDef.validations && { validations: attrDef.validations }),
           isRequired: attrDef.isRequired,
           isActive: attrDef.isActive
@@ -443,12 +467,7 @@ async function setupPlicessPerdeSistemi() {
         descriptionTranslations: { tr: 'Mağaza bilgileri grubu', en: 'Store information group' },
         attributeCodes: ['store_name', 'location', 'store_address']
       },
-      {
-        nameTranslations: { tr: 'Sipariş Sahibi Bilgileri', en: 'Order Owner Information' },
-        code: 'order_owner_info',
-        descriptionTranslations: { tr: 'Sipariş sahibi bilgileri grubu', en: 'Order owner information group' },
-        attributeCodes: ['order_owner_name', 'order_owner_surname', 'province', 'district', 'order_phone', 'order_address', 'note']
-      },
+
       {
         nameTranslations: { tr: 'Stok', en: 'Stock' },
         code: 'stock_info',
@@ -495,7 +514,7 @@ async function setupPlicessPerdeSistemi() {
         nameTranslations: { tr: 'Sipariş', en: 'Order' },
         code: 'order_info',
         descriptionTranslations: { tr: 'Sipariş bilgileri grubu', en: 'Order information group' },
-        attributeCodes: ['order_date', 'order_number', 'order_status']
+        attributeCodes: ['order_date', 'order_number', 'order_status', 'order_owner_name', 'order_owner_surname', 'province', 'district', 'order_phone', 'order_address', 'note']
       },
       {
         nameTranslations: { tr: 'Tekli Sistem Sipariş', en: 'Single System Order' },
@@ -1228,7 +1247,7 @@ async function setupPlicessPerdeSistemi() {
         descriptionTranslations: { tr: 'İş ortağı olan bireysel müşteriler', en: 'Individual customers who are business partners' },
         parent: 'individual_customers',
         categoryCode: 'individual',
-        attributeGroupCodes: ['order_owner_info']
+        attributeGroupCodes: ['personal_info']
       },
 
       // Kurumsal kategorisine bağlı ana aile
@@ -1469,6 +1488,494 @@ async function setupPlicessPerdeSistemi() {
       }
     }
 
+    // ===========================================
+    // 6. ASSOCIATIONS (İlişkiler)
+    // ===========================================
+    console.log('🔗 Associations oluşturuluyor...');
+    
+    const associationDefinitions = [
+      // 1. Müşteri → Sipariş İlişkisi (One-to-Many)
+      {
+        nameTranslations: { tr: 'Müşteri Siparişleri', en: 'Customer Orders' },
+        code: 'customer_orders',
+        descriptionTranslations: { tr: 'Müşteri ile siparişleri arasındaki ilişki', en: 'Relationship between customer and their orders' },
+        isDirectional: true,
+        relationshipType: 'one-to-many',
+        sourceItemTypeCode: 'customer',
+        targetItemTypeCode: 'order',
+        metadata: {
+          displayField: 'order_number',
+          searchableFields: ['order_number'],
+          isRequired: false,
+          cardinality: { min: 0, max: 100 }
+        }
+      },
+      
+      // 2. Sipariş → Kumaş Stok İlişkisi (Many-to-Many)
+      {
+        nameTranslations: { tr: 'Sipariş Kumaş Kullanımı', en: 'Order Fabric Usage' },
+        code: 'order_fabric_usage',
+        descriptionTranslations: { tr: 'Siparişte kullanılan kumaş stokları', en: 'Fabric stocks used in orders' },
+        isDirectional: true,
+        relationshipType: 'many-to-many',
+        sourceItemTypeCode: 'order',
+        targetItemTypeCode: 'stock',
+        metadata: {
+          targetCategoryFilter: 'fabric',
+          allowQuantity: true,
+          quantityAttribute: 'used_quantity',
+          displayField: 'stock_no',
+          searchableFields: ['stock_no'],
+          isRequired: true,
+          cardinality: { min: 1, max: 10 }
+        }
+      },
+      
+      // 3. Sipariş → Kasa Stok İlişkisi (Many-to-One)
+      {
+        nameTranslations: { tr: 'Sipariş Kasa Kullanımı', en: 'Order Case Usage' },
+        code: 'order_case_usage',
+        descriptionTranslations: { tr: 'Siparişte kullanılan kasa stoku', en: 'Case stock used in orders' },
+        isDirectional: true,
+        relationshipType: 'many-to-one',
+        sourceItemTypeCode: 'order',
+        targetItemTypeCode: 'stock',
+        metadata: {
+          targetCategoryFilter: 'case',
+          allowQuantity: true,
+          quantityAttribute: 'used_quantity',
+          displayField: 'stock_no',
+          searchableFields: ['stock_no'],
+          isRequired: true,
+          cardinality: { min: 1, max: 1 }
+        }
+      },
+      
+      // 4. Sipariş → Kapak Stok İlişkisi (Many-to-Many)
+      {
+        nameTranslations: { tr: 'Sipariş Kapak Kullanımı', en: 'Order Cover Usage' },
+        code: 'order_cover_usage',
+        descriptionTranslations: { tr: 'Siparişte kullanılan kapak stokları', en: 'Cover stocks used in orders' },
+        isDirectional: true,
+        relationshipType: 'many-to-many',
+        sourceItemTypeCode: 'order',
+        targetItemTypeCode: 'stock',
+        metadata: {
+          targetCategoryFilter: 'cover',
+          allowQuantity: true,
+          quantityAttribute: 'used_quantity',
+          displayField: 'stock_no',
+          searchableFields: ['stock_no'],
+          isRequired: false,
+          cardinality: { min: 0, max: 5 }
+        }
+      },
+      
+      // 5. Sipariş → Kilit Stok İlişkisi (Many-to-Many)
+      {
+        nameTranslations: { tr: 'Sipariş Kilit Kullanımı', en: 'Order Lock Usage' },
+        code: 'order_lock_usage',
+        descriptionTranslations: { tr: 'Siparişte kullanılan kilit stokları', en: 'Lock stocks used in orders' },
+        isDirectional: true,
+        relationshipType: 'many-to-many',
+        sourceItemTypeCode: 'order',
+        targetItemTypeCode: 'stock',
+        metadata: {
+          targetCategoryFilter: 'lock',
+          allowQuantity: true,
+          quantityAttribute: 'used_quantity',
+          displayField: 'stock_no',
+          searchableFields: ['stock_no'],
+          isRequired: false,
+          cardinality: { min: 0, max: 5 }
+        }
+      },
+      
+      // 6. Sipariş → İp Stok İlişkisi (Many-to-Many)
+      {
+        nameTranslations: { tr: 'Sipariş İp Kullanımı', en: 'Order Thread Usage' },
+        code: 'order_thread_usage',
+        descriptionTranslations: { tr: 'Siparişte kullanılan ip stokları', en: 'Thread stocks used in orders' },
+        isDirectional: true,
+        relationshipType: 'many-to-many',
+        sourceItemTypeCode: 'order',
+        targetItemTypeCode: 'stock',
+        metadata: {
+          targetCategoryFilter: 'thread',
+          allowQuantity: true,
+          quantityAttribute: 'used_quantity',
+          displayField: 'stock_no',
+          searchableFields: ['stock_no'],
+          isRequired: false,
+          cardinality: { min: 0, max: 5 }
+        }
+      },
+      
+      // 7. Sipariş → Şerit Stok İlişkisi (Many-to-Many)
+      {
+        nameTranslations: { tr: 'Sipariş Şerit Kullanımı', en: 'Order Strip Usage' },
+        code: 'order_strip_usage',
+        descriptionTranslations: { tr: 'Siparişte kullanılan şerit stokları', en: 'Strip stocks used in orders' },
+        isDirectional: true,
+        relationshipType: 'many-to-many',
+        sourceItemTypeCode: 'order',
+        targetItemTypeCode: 'stock',
+        metadata: {
+          targetCategoryFilter: 'strip',
+          allowQuantity: true,
+          quantityAttribute: 'used_quantity',
+          displayField: 'stock_no',
+          searchableFields: ['stock_no'],
+          isRequired: false,
+          cardinality: { min: 0, max: 5 }
+        }
+      },
+      
+      // 8. Sipariş → Kuşgözü Stok İlişkisi (Many-to-Many)
+      {
+        nameTranslations: { tr: 'Sipariş Kuşgözü Kullanımı', en: 'Order Eyelet Usage' },
+        code: 'order_eyelet_usage',
+        descriptionTranslations: { tr: 'Siparişte kullanılan kuşgözü stokları', en: 'Eyelet stocks used in orders' },
+        isDirectional: true,
+        relationshipType: 'many-to-many',
+        sourceItemTypeCode: 'order',
+        targetItemTypeCode: 'stock',
+        metadata: {
+          targetCategoryFilter: 'eyelet',
+          allowQuantity: true,
+          quantityAttribute: 'used_quantity',
+          displayField: 'stock_no',
+          searchableFields: ['stock_no'],
+          isRequired: false,
+          cardinality: { min: 0, max: 5 }
+        }
+      }
+    ];
+
+    const createdAssociations: any[] = [];
+    for (const assocDef of associationDefinitions) {
+      try {
+        // Name için localization oluştur
+        const nameLocalization = await localizationService.upsertTranslation({
+          key: `${assocDef.code}_name`,
+          namespace: 'associations',
+          translations: assocDef.nameTranslations
+        });
+
+        // Description için localization oluştur
+        const descriptionLocalization = await localizationService.upsertTranslation({
+          key: `${assocDef.code}_description`,
+          namespace: 'associations',
+          translations: assocDef.descriptionTranslations
+        });
+
+        // Source ve Target ItemType ID'lerini bul
+        const sourceItemType = createdItemTypes.find(it => it.code === assocDef.sourceItemTypeCode);
+        const targetItemType = createdItemTypes.find(it => it.code === assocDef.targetItemTypeCode);
+
+        if (!sourceItemType || !targetItemType) {
+          console.error(`❌ ItemType bulunamadı: source=${assocDef.sourceItemTypeCode}, target=${assocDef.targetItemTypeCode}`);
+          continue;
+        }
+
+        const associationData = {
+          code: assocDef.code,
+          name: nameLocalization._id,
+          description: descriptionLocalization._id,
+          isDirectional: assocDef.isDirectional,
+          relationshipType: assocDef.relationshipType as 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many',
+          allowedSourceTypes: [sourceItemType._id],
+          allowedTargetTypes: [targetItemType._id],
+          metadata: {
+            ...assocDef.metadata,
+            sourceItemTypeCode: assocDef.sourceItemTypeCode,
+            targetItemTypeCode: assocDef.targetItemTypeCode
+          }
+        };
+
+        // Service kullanarak oluştur (ItemType'ları otomatik günceller)
+        const createdAssociation = await associationTypeService.create(associationData, String(testUser._id));
+        createdAssociations.push({
+          ...createdAssociation.toObject(),
+          code: assocDef.code
+        });
+
+        console.log(`✅ Association oluşturuldu: ${assocDef.code} (${assocDef.relationshipType})`);
+      } catch (error) {
+        console.error(`❌ Association oluşturulamadı: ${assocDef.code}`, error);
+      }
+    }
+
+    // ===========================================
+    // 7. ÖRNEK STOK İTEMLARI OLUŞTUR
+    // ===========================================
+    console.log('📦 Örnek stok itemları oluşturuluyor...');
+
+    const stockItemType = createdItemTypes.find(it => it.code === 'stock');
+    const stockAttributes = createdAttributes.filter(attr => 
+      ['stock_no', 'fabric_width', 'fabric_length', 'fold_count', 'square_meter', 'case_connection', 'case_length', 
+       'strip_color', 'strip_thickness', 'thread_color', 'thread_length', 'cover_color', 'lock_color'].includes(attr.code)
+    );
+
+    const sampleStockItems = [
+      // Kumaş Stokları
+      {
+        familyCode: 'rose_1',
+        stockNo: 'ROSE1-001',
+        values: { fabric_width: 150, fabric_length: 50, fold_count: 1, square_meter: 75 }
+      },
+      {
+        familyCode: 'rose_2',
+        stockNo: 'ROSE2-001', 
+        values: { fabric_width: 150, fabric_length: 30, fold_count: 1, square_meter: 45 }
+      },
+      {
+        familyCode: 'liva_1',
+        stockNo: 'LIVA1-001',
+        values: { fabric_width: 140, fabric_length: 40, fold_count: 1, square_meter: 56 }
+      },
+      {
+        familyCode: 'silver_1',
+        stockNo: 'SILVER1-001',
+        values: { fabric_width: 160, fabric_length: 35, fold_count: 1, square_meter: 56 }
+      },
+      {
+        familyCode: 'blackout_series',
+        stockNo: 'BLACKOUT-001',
+        values: { fabric_width: 150, fabric_length: 25, fold_count: 1, square_meter: 37.5 }
+      },
+
+      // Kasa Stokları  
+      {
+        familyCode: 'white_case',
+        stockNo: 'KASA-BEYAZ-001',
+        values: { case_connection: 'standart', case_length: 150 }
+      },
+      {
+        familyCode: 'anthracite_case',
+        stockNo: 'KASA-ANTRASIT-001',
+        values: { case_connection: 'standart', case_length: 180 }
+      },
+      {
+        familyCode: 'black_case',
+        stockNo: 'KASA-SIYAH-001',
+        values: { case_connection: 'güçlü', case_length: 200 }
+      },
+
+      // Kapak Stokları
+      {
+        familyCode: 'white_cover',
+        stockNo: 'KAPAK-BEYAZ-001',
+        values: { cover_color: 'Beyaz' }
+      },
+      {
+        familyCode: 'anthracite_cover',
+        stockNo: 'KAPAK-ANTRASIT-001',
+        values: { cover_color: 'Antrasit' }
+      },
+
+      // Kilit Stokları
+      {
+        familyCode: 'white_lock',
+        stockNo: 'KILIT-BEYAZ-001',
+        values: { lock_color: 'Beyaz' }
+      },
+      {
+        familyCode: 'black_lock',
+        stockNo: 'KILIT-SIYAH-001',
+        values: { lock_color: 'Siyah' }
+      },
+
+      // İp Stokları
+      {
+        familyCode: 'white_thread',
+        stockNo: 'IP-BEYAZ-001',
+        values: { thread_color: 'Beyaz', thread_length: 100 }
+      },
+      {
+        familyCode: 'black_thread',
+        stockNo: 'IP-SIYAH-001',
+        values: { thread_color: 'Siyah', thread_length: 100 }
+      },
+      {
+        familyCode: 'brown_thread',
+        stockNo: 'IP-KAHVE-001',
+        values: { thread_color: 'Kahverengi', thread_length: 100 }
+      }
+    ];
+
+    const createdStockItems: any[] = [];
+    for (const stockDef of sampleStockItems) {
+      try {
+        const family = createdFamilies.find(f => f.code === stockDef.familyCode);
+        if (!family) {
+          console.error(`❌ Family bulunamadı: ${stockDef.familyCode}`);
+          continue;
+        }
+
+        // Attribute değerlerini prepare et
+        const attributeValues: any = {};
+        
+        // Stock No attribute'unu bul ve değerini set et
+        const stockNoAttr = stockAttributes.find(attr => attr.code === 'stock_no');
+        if (stockNoAttr) {
+          attributeValues[stockNoAttr._id] = stockDef.stockNo;
+        }
+
+        // Diğer değerleri set et
+        Object.keys(stockDef.values).forEach(key => {
+          const attr = stockAttributes.find(a => a.code === key);
+          if (attr) {
+            attributeValues[attr._id] = (stockDef.values as any)[key];
+          }
+        });
+
+        const itemData = {
+          itemType: stockItemType._id,
+          family: family._id,
+          category: family.category, // Family'nin kategorisini ekle
+          attributes: attributeValues,
+          isActive: true,
+          createdBy: testUser._id,
+          updatedBy: testUser._id
+        };
+
+        const createdItem = await Item.create(itemData);
+        createdStockItems.push({
+          ...createdItem.toObject(),
+          stockNo: stockDef.stockNo,
+          familyCode: stockDef.familyCode
+        });
+
+        console.log(`✅ Stok item oluşturuldu: ${stockDef.stockNo} (${stockDef.familyCode})`);
+      } catch (error) {
+        console.error(`❌ Stok item oluşturulamadı: ${stockDef.stockNo}`, error);
+      }
+    }
+
+    // ===========================================
+    // 8. ÖRNEK MÜŞTERİ İTEMLARI OLUŞTUR
+    // ===========================================
+    console.log('👥 Örnek müşteri itemları oluşturuluyor...');
+
+    const customerItemType = createdItemTypes.find(it => it.code === 'customer');
+    const customerAttributes = createdAttributes.filter(attr => 
+      ['first_name', 'last_name', 'phone', 'email', 'birthday', 'address', 'instagram', 'facebook', 'store_name', 'location', 'store_address'].includes(attr.code)
+    );
+
+    const sampleCustomerItems = [
+      // Bireysel Müşteriler
+      {
+        familyCode: 'individual_customers',
+        values: { 
+          first_name: 'Ahmet', 
+          last_name: 'Yılmaz', 
+          phone: '0532 123 45 67', 
+          email: 'ahmet.yilmaz@email.com',
+          address: 'Kadıköy, İstanbul'
+        }
+      },
+      {
+        familyCode: 'individual_social_media',
+        values: { 
+          first_name: 'Ayşe', 
+          last_name: 'Kaya', 
+          phone: '0533 987 65 43', 
+          email: 'ayse.kaya@email.com',
+          address: 'Beşiktaş, İstanbul',
+          instagram: '@ayse_kaya_style'
+        }
+      },
+      {
+        familyCode: 'individual_business_partner',
+        values: { 
+          first_name: 'Mehmet', 
+          last_name: 'Öztürk', 
+          phone: '0534 555 66 77', 
+          email: 'mehmet.ozturk@email.com',
+          address: 'Çankaya, Ankara'
+        }
+      },
+
+      // Kurumsal Müşteriler
+      {
+        familyCode: 'corporate_customers',
+        values: { 
+          store_name: 'Güzel Ev Dekorasyonu',
+          location: 'Merkez Mahallesi',
+          store_address: 'Atatürk Cad. No:123, Şişli, İstanbul'
+        }
+      },
+      {
+        familyCode: 'business_partners',
+        values: { 
+          store_name: 'Elit Perde Merkezi',
+          location: 'İş Merkezi',
+          store_address: 'Cumhuriyet Cad. No:456, Nişantaşı, İstanbul',
+          first_name: 'Fatma',
+          last_name: 'Arslan',
+          phone: '0535 111 22 33',
+          email: 'fatma@elitperde.com'
+        }
+      },
+      {
+        familyCode: 'solution_partners',
+        values: { 
+          store_name: 'Dekor Plus',
+          location: 'Sanayi Sitesi',
+          store_address: 'Organize Sanayi No:789, Bursa',
+          first_name: 'Ali',
+          last_name: 'Demir',
+          phone: '0536 444 55 66',
+          email: 'ali@dekorplus.com'
+        }
+      }
+    ];
+
+    const createdCustomerItems: any[] = [];
+    for (const customerDef of sampleCustomerItems) {
+      try {
+        const family = createdFamilies.find(f => f.code === customerDef.familyCode);
+        if (!family) {
+          console.error(`❌ Family bulunamadı: ${customerDef.familyCode}`);
+          continue;
+        }
+
+        // Attribute değerlerini prepare et
+        const attributeValues: any = {};
+        
+        // Değerleri set et
+        Object.keys(customerDef.values).forEach(key => {
+          const attr = customerAttributes.find(a => a.code === key);
+          if (attr) {
+            attributeValues[attr._id] = (customerDef.values as any)[key];
+          }
+        });
+
+        const itemData = {
+          itemType: customerItemType._id,
+          family: family._id,
+          category: family.category, // Family'nin kategorisini ekle
+          attributes: attributeValues,
+          isActive: true,
+          createdBy: testUser._id,
+          updatedBy: testUser._id
+        };
+
+        const createdItem = await Item.create(itemData);
+        createdCustomerItems.push({
+          ...createdItem.toObject(),
+          familyCode: customerDef.familyCode,
+          customerName: (customerDef.values as any).first_name || (customerDef.values as any).store_name
+        });
+
+        const displayName = (customerDef.values as any).first_name || (customerDef.values as any).store_name;
+        console.log(`✅ Müşteri item oluşturuldu: ${displayName} (${customerDef.familyCode})`);
+      } catch (error) {
+        console.error(`❌ Müşteri item oluşturulamadı: ${customerDef.familyCode}`, error);
+      }
+    }
+
     console.log(`\n🎉 Plicess Perde Sistemi başarıyla kuruldu!`);
     console.log(`📊 Toplam oluşturulan:`);
     console.log(`   - Attributes: ${createdAttributes.length}`);
@@ -1476,6 +1983,9 @@ async function setupPlicessPerdeSistemi() {
     console.log(`   - Categories: ${createdCategories.length}`);
     console.log(`   - Families: ${createdFamilies.length}`);
     console.log(`   - ItemTypes: ${createdItemTypes.length}`);
+    console.log(`   - Associations: ${createdAssociations.length}`);
+    console.log(`   - Stock Items: ${createdStockItems.length}`);
+    console.log(`   - Customer Items: ${createdCustomerItems.length}`);
     
     console.log(`\n📋 Detaylar:`);
     console.log(`   🎯 ItemTypes: Stok, Müşteri, Sipariş`);
@@ -1499,9 +2009,16 @@ async function setupPlicessPerdeSistemi() {
     console.log(`   Stok → Kumaş → Kumaşlar → Rose Serisi → Rose 1-10`);
     console.log(`   Müşteri → Bireysel → Bireysel Müşteriler → Bireysel Sosyal Medya`);
     console.log(`   Sipariş → Tekli Sistem → Tekli Sistem Ailesi`);
-    console.log(`\n🔗 İlişkiler Association ile kurulacak:`);
-    console.log(`   • Sipariş ↔ Müşteri (hangisi sipariş verdi)`);
-    console.log(`   • Sipariş ↔ Stok (hangi kumaş/kasa kullanıldı)`);
+    console.log(`\n🔗 Kurulan İlişkiler (Associations):`);
+    console.log(`   • Müşteri → Sipariş (1:N) - Bir müşteri birden fazla sipariş verebilir`);
+    console.log(`   • Sipariş → Kumaş Stok (N:N) - Miktar bilgisiyle stok takibi`);
+    console.log(`   • Sipariş → Kasa Stok (N:1) - Genelde bir sipariş bir kasa kullanır`);
+    console.log(`   • Sipariş → Kapak/Kilit/İp/Şerit/Kuşgözü Stok (N:N) - Tüm bileşenler için ayrı ilişkiler`);
+    
+    console.log(`\n💡 Stok Takibi:`);
+    console.log(`   • Her association'da kullanılan miktar attributes alanında saklanır`);
+    console.log(`   • targetCategoryFilter ile sadece ilgili stok kategorisinden seçim yapılır`);
+    console.log(`   • UI'da sipariş oluştururken her bileşen için stok seçimi yapabilirsiniz`);
 
   } catch (error) {
     console.error('❌ Kurulum hatası:', error);
