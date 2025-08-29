@@ -790,34 +790,69 @@ exports.deleteCategory = deleteCategory;
 const getCategoriesByItemType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { itemTypeId } = req.params;
-        // Family modeli üzerinden ItemType'ın kategorilerini bul
-        const Family = yield Promise.resolve().then(() => __importStar(require('../models/Family')));
-        // Bu ItemType'a ait tüm aileleri getir
-        const families = yield Family.default.find({
-            itemType: itemTypeId,
-            isActive: true
-        }).select('category').populate('category');
-        if (!families || families.length === 0) {
-            res.status(200).json({
-                success: true,
-                data: [],
-                message: 'Bu öğe tipi için kategori bulunamadı'
+        // Önce ItemType'ı bul ve category'sini al
+        const ItemType = yield Promise.resolve().then(() => __importStar(require('../models/ItemType')));
+        const itemType = yield ItemType.default.findById(itemTypeId);
+        if (!itemType) {
+            res.status(404).json({
+                success: false,
+                message: 'ItemType bulunamadı'
             });
             return;
         }
-        // Kategorileri unique yap ve tree format'a çevir
-        const categoryIds = [...new Set(families.map(f => { var _a, _b; return (_b = (_a = f.category) === null || _a === void 0 ? void 0 : _a._id) === null || _b === void 0 ? void 0 : _b.toString(); }).filter(Boolean))];
-        const categories = yield Category_1.default.find({
-            _id: { $in: categoryIds },
+        // ItemType'ın category'si yoksa boş dön
+        if (!itemType.category) {
+            res.status(200).json({
+                success: true,
+                data: [],
+                message: 'Bu ItemType için kategori tanımlanmamış'
+            });
+            return;
+        }
+        // ItemType'ın category'sini getir
+        const category = yield Category_1.default.findById(itemType.category)
+            .populate('name', 'key namespace translations')
+            .populate('description', 'key namespace translations')
+            .populate('parent');
+        if (!category) {
+            res.status(200).json({
+                success: true,
+                data: [],
+                message: 'ItemType kategorisi bulunamadı'
+            });
+            return;
+        }
+        // Bu kategoriye ait tüm Family'leri de getir
+        const Family = yield Promise.resolve().then(() => __importStar(require('../models/Family')));
+        const families = yield Family.default.find({
+            category: itemType.category,
+            isActive: true
+        })
+            .select('_id name code')
+            .populate('name', 'key namespace translations');
+        // Bu kategorinin alt kategorilerini bul (parent field'ı bu kategori olan kategoriler)
+        const subCategories = yield Category_1.default.find({
+            parent: itemType.category,
             isActive: true
         })
             .populate('name', 'key namespace translations')
             .populate('description', 'key namespace translations')
-            .populate('parent')
-            .sort('name');
+            .populate('parent');
+        // Her alt kategori için de family'leri getir
+        const subCategoriesWithFamilies = yield Promise.all(subCategories.map((subCat) => __awaiter(void 0, void 0, void 0, function* () {
+            const subFamilies = yield Family.default.find({
+                category: subCat._id,
+                isActive: true
+            })
+                .select('_id name code')
+                .populate('name', 'key namespace translations');
+            return Object.assign(Object.assign({}, subCat.toObject()), { families: subFamilies });
+        })));
+        // Ana kategoriyi response'a ekle
+        const categoryWithFamilies = Object.assign(Object.assign({}, category.toObject()), { families: families, subCategories: subCategoriesWithFamilies });
         res.status(200).json({
             success: true,
-            data: categories
+            data: [categoryWithFamilies]
         });
     }
     catch (error) {
