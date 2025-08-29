@@ -221,27 +221,10 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
               }
 
               (itemType as any).associations.outgoing.push({
+                ...association.toObject(),
                 targetItemTypeCode: targetItemType.code,
                 targetItemTypeName: targetItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
-                association: association.relationshipType,
-                relationshipType: association.relationshipType,
-                cardinality: {
-                  min: metadata.cardinality?.min || 0,
-                  max: metadata.cardinality?.max || undefined
-                },
-                isRequired: metadata.isRequired || false,
-                cascadeDelete: false,
-                displayField: metadata.displayField || 'name',
-                searchableFields: metadata.searchableFields || ['name'],
-                filterBy: filterBy,
-                uiConfig: {
-                  showInList: true,
-                  showInDetail: true,
-                  allowInlineCreate: false,
-                  allowInlineEdit: false,
-                  displayMode: 'dropdown'
-                },
-                displayConfig: association.displayConfig?.sourceToTarget,
+                cardinality: metadata.cardinality || { min: 0, max: undefined },
                 _id: association._id
               });
             }
@@ -268,27 +251,10 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
               }
 
               (itemType as any).associations.incoming.push({
+                ...association.toObject(),
                 sourceItemTypeCode: sourceItemType.code,
-                sourceItemTypeName: sourceItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
-                association: association.relationshipType,
-                relationshipType: association.relationshipType,
-                cardinality: {
-                  min: metadata.cardinality?.min || 0,
-                  max: metadata.cardinality?.max || undefined
-                },
-                isRequired: metadata.isRequired || false,
-                cascadeDelete: false,
-                displayField: metadata.displayField || 'name',
-                searchableFields: metadata.searchableFields || ['name'],
-                filterBy: filterBy,
-                uiConfig: {
-                  showInList: true,
-                  showInDetail: true,
-                  allowInlineCreate: false,
-                  allowInlineEdit: false,
-                  displayMode: 'dropdown'
-                },
-                displayConfig: association.displayConfig?.targetToSource,
+                sourceItemTypeName: sourceItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Siperiş',
+                cardinality: metadata.cardinality || { min: 0, max: undefined },
                 _id: association._id
               });
             }

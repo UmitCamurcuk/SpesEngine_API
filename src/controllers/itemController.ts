@@ -292,6 +292,21 @@ export const getItemsByType = async (req: Request, res: Response, next: NextFunc
     if (req.query.category) {
       filterParams.category = new mongoose.Types.ObjectId(req.query.category as string);
     }
+    
+    // Association filter criteria support
+    if (req.query.categories) {
+      const categoryIds = Array.isArray(req.query.categories) 
+        ? req.query.categories 
+        : [req.query.categories];
+      filterParams.category = { $in: categoryIds.map(id => new mongoose.Types.ObjectId(id as string)) };
+    }
+    
+    if (req.query.families) {
+      const familyIds = Array.isArray(req.query.families) 
+        ? req.query.families 
+        : [req.query.families];
+      filterParams.family = { $in: familyIds.map(id => new mongoose.Types.ObjectId(id as string)) };
+    }
 
     // Apply custom filters passed in the request body
     if (req.body && typeof req.body === 'object') {

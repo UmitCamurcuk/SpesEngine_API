@@ -278,6 +278,19 @@ const getItemsByType = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         if (req.query.category) {
             filterParams.category = new mongoose_1.default.Types.ObjectId(req.query.category);
         }
+        // Association filter criteria support
+        if (req.query.categories) {
+            const categoryIds = Array.isArray(req.query.categories)
+                ? req.query.categories
+                : [req.query.categories];
+            filterParams.category = { $in: categoryIds.map(id => new mongoose_1.default.Types.ObjectId(id)) };
+        }
+        if (req.query.families) {
+            const familyIds = Array.isArray(req.query.families)
+                ? req.query.families
+                : [req.query.families];
+            filterParams.family = { $in: familyIds.map(id => new mongoose_1.default.Types.ObjectId(id)) };
+        }
         // Apply custom filters passed in the request body
         if (req.body && typeof req.body === 'object') {
             Object.keys(req.body).forEach(key => {
