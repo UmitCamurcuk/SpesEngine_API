@@ -12,13 +12,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateItemAssociations = exports.getItemTypeAssociationRules = exports.searchItemsForAssociation = exports.removeAssociation = exports.createAssociation = exports.getItemAssociations = exports.deleteItem = exports.updateItem = exports.createItem = exports.getItemById = exports.getItemsByType = exports.getItems = exports.getItemsTest = void 0;
+exports.createRuleBasedAssociation = exports.getItemAssociationMetadata = exports.getFilteredItemsByRule = exports.getItemAssociationRules = exports.validateItemAssociations = exports.getItemTypeAssociationRules = exports.searchItemsForAssociation = exports.removeAssociation = exports.createAssociation = exports.getItemAssociations = exports.deleteItem = exports.updateItem = exports.createItem = exports.getItemById = exports.getItemsByType = exports.getItems = exports.getItemsTest = void 0;
 const Item_1 = __importDefault(require("../models/Item"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const ItemType_1 = __importDefault(require("../models/ItemType"));
 const Category_1 = __importDefault(require("../models/Category"));
 const Attribute_1 = __importDefault(require("../models/Attribute"));
 const associationService_1 = __importDefault(require("../services/associationService"));
+const enhancedAssociationService_1 = __importDefault(require("../services/enhancedAssociationService"));
 // GET tüm öğeleri getir (test için authentication olmadan)
 const getItemsTest = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -1259,3 +1260,117 @@ const validateItemAssociations = (req, res, next) => __awaiter(void 0, void 0, v
     }
 });
 exports.validateItemAssociations = validateItemAssociations;
+// GET item'ın enhanced association rules'ları
+const getItemAssociationRules = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const { includeInactive = false } = req.query;
+        // Item'ı getir ve itemType'ını bul
+        const item = yield Item_1.default.findById(id).populate('itemType');
+        if (!item) {
+            res.status(404).json({
+                success: false,
+                message: 'Item bulunamadı'
+            });
+            return;
+        }
+        const itemType = item.itemType;
+        const rules = yield enhancedAssociationService_1.default.getAssociationRules(itemType.code, includeInactive === 'true');
+        res.status(200).json({
+            success: true,
+            data: rules
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Association rules getirilirken hata oluştu'
+        });
+    }
+});
+exports.getItemAssociationRules = getItemAssociationRules;
+// GET kural tabanlı filtrelenmiş item'lar
+const getFilteredItemsByRule = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id, ruleCode } = req.params;
+        const { page = 1, limit = 10, searchQuery, additionalFilters, populate = true } = req.query;
+        // Pagination
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+        // Options
+        const options = {
+            skip,
+            limit: limitNum,
+            searchQuery: searchQuery,
+            additionalFilters: additionalFilters ? JSON.parse(additionalFilters) : undefined,
+            populate: populate === 'true'
+        };
+        const items = yield enhancedAssociationService_1.default.getFilteredItems(id, ruleCode, options);
+        // Total count için ayrı sorgu
+        const totalItems = yield enhancedAssociationService_1.default.getFilteredItems(id, ruleCode, Object.assign(Object.assign({}, options), { limit: undefined, skip: undefined }));
+        res.status(200).json({
+            success: true,
+            data: {
+                items,
+                pagination: {
+                    total: totalItems.length,
+                    page: pageNum,
+                    limit: limitNum,
+                    pages: Math.ceil(totalItems.length / limitNum)
+                }
+            }
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Filtrelenmiş item\'lar getirilirken hata oluştu'
+        });
+    }
+});
+exports.getFilteredItemsByRule = getFilteredItemsByRule;
+// GET association metadata
+const getItemAssociationMetadata = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id, ruleCode } = req.params;
+        const metadata = yield enhancedAssociationService_1.default.getAssociationMetadata(id, ruleCode);
+        res.status(200).json({
+            success: true,
+            data: metadata
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Association metadata getirilirken hata oluştu'
+        });
+    }
+});
+exports.getItemAssociationMetadata = getItemAssociationMetadata;
+// POST kural tabanlı association oluştur
+const createRuleBasedAssociation = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id, ruleCode } = req.params;
+        const { targetItemIds } = req.body;
+        if (!Array.isArray(targetItemIds) || targetItemIds.length === 0) {
+            res.status(400).json({
+                success: false,
+                message: 'Target item ID\'leri gerekli'
+            });
+            return;
+        }
+        yield enhancedAssociationService_1.default.createAssociationWithRules(id, targetItemIds, ruleCode);
+        res.status(201).json({
+            success: true,
+            message: 'Association başarıyla oluşturuldu'
+        });
+    }
+    catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message || 'Association oluşturulamadı'
+        });
+    }
+});
+exports.createRuleBasedAssociation = createRuleBasedAssociation;

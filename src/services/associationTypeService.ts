@@ -35,6 +35,10 @@ class AssociationTypeService {
       .populate('updatedBy', 'firstName lastName email name')
       .populate('allowedSourceTypes', 'code name')
       .populate('allowedTargetTypes', 'code name')
+      .populate('filterCriteria.allowedTargetCategories', 'code name')
+      .populate('filterCriteria.allowedTargetFamilies', 'code name')
+      .populate('filterCriteria.allowedSourceCategories', 'code name')
+      .populate('filterCriteria.allowedSourceFamilies', 'code name')
       .sort({ createdAt: -1 });
 
     // Name ve description localization'larını populate et
@@ -78,7 +82,11 @@ class AssociationTypeService {
       .populate('createdBy', 'firstName lastName email name')
       .populate('updatedBy', 'firstName lastName email name')
       .populate('allowedSourceTypes', 'code name')
-      .populate('allowedTargetTypes', 'code name');
+      .populate('allowedTargetTypes', 'code name')
+      .populate('filterCriteria.allowedTargetCategories', 'code name')
+      .populate('filterCriteria.allowedTargetFamilies', 'code name')
+      .populate('filterCriteria.allowedSourceCategories', 'code name')
+      .populate('filterCriteria.allowedSourceFamilies', 'code name');
     
     if (!association) {
       throw new NotFoundError('Association bulunamadı');

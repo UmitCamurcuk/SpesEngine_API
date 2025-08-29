@@ -13,6 +13,31 @@ export interface IDisplayColumnConfig {
   customFormat?: string;
 }
 
+// Association filtreleme kriterleri
+export interface IAssociationFilterCriteria {
+  // Target ItemType'da hangi kategorilerden seçim yapılabilir?
+  allowedTargetCategories?: mongoose.Types.ObjectId[];
+  // Target ItemType'da hangi ailelerden seçim yapılabilir?
+  allowedTargetFamilies?: mongoose.Types.ObjectId[];
+  // Source ItemType'da hangi kategorilerden seçim yapılabilir?
+  allowedSourceCategories?: mongoose.Types.ObjectId[];
+  // Source ItemType'da hangi ailelerden seçim yapılabilir?
+  allowedSourceFamilies?: mongoose.Types.ObjectId[];
+  // Ek attribute filtreleri
+  targetAttributeFilters?: {
+    attributeCode: string;
+    operator: 'equals' | 'contains' | 'in' | 'range' | 'exists';
+    value: any;
+    description?: string;
+  }[];
+  sourceAttributeFilters?: {
+    attributeCode: string;
+    operator: 'equals' | 'contains' | 'in' | 'range' | 'exists';
+    value: any;
+    description?: string;
+  }[];
+}
+
 export interface IDisplayConfig {
   sourceToTarget?: {
     enabled: boolean;
@@ -42,8 +67,9 @@ export interface IAssociation extends Document {
   relationshipType?: 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many';
   allowedSourceTypes: any[]; // ObjectId array
   allowedTargetTypes: any[]; // ObjectId array
+  filterCriteria?: IAssociationFilterCriteria; // YENİ: Filtreleme kriterleri
   metadata?: Record<string, any>;
-  displayConfig?: IDisplayConfig; // YENİ ALAN
+  displayConfig?: IDisplayConfig;
   createdBy?: any;
   updatedBy?: any;
   createdAt: Date;
@@ -88,6 +114,44 @@ const AssociationSchema: Schema = new Schema(
       ref: 'ItemType',
       required: true,
     }],
+    filterCriteria: {
+      allowedTargetCategories: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Category'
+      }],
+      allowedTargetFamilies: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Family'
+      }],
+      allowedSourceCategories: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Category'
+      }],
+      allowedSourceFamilies: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Family'
+      }],
+      targetAttributeFilters: [{
+        attributeCode: { type: String, required: true },
+        operator: { 
+          type: String, 
+          enum: ['equals', 'contains', 'in', 'range', 'exists'],
+          required: true 
+        },
+        value: { type: Schema.Types.Mixed, required: true },
+        description: { type: String }
+      }],
+      sourceAttributeFilters: [{
+        attributeCode: { type: String, required: true },
+        operator: { 
+          type: String, 
+          enum: ['equals', 'contains', 'in', 'range', 'exists'],
+          required: true 
+        },
+        value: { type: Schema.Types.Mixed, required: true },
+        description: { type: String }
+      }]
+    },
     metadata: {
       type: Map,
       of: Schema.Types.Mixed,

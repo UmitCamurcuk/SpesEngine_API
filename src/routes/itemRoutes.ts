@@ -13,7 +13,12 @@ import {
   removeAssociation,
   searchItemsForAssociation,
   getItemTypeAssociationRules,
-  validateItemAssociations
+  validateItemAssociations,
+  // Enhanced association endpoints
+  getItemAssociationRules,
+  getFilteredItemsByRule,
+  getItemAssociationMetadata,
+  createRuleBasedAssociation
 } from '../controllers/itemController';
 
 const router = express.Router();
@@ -69,5 +74,29 @@ router
 router
   .route('/:id/associations/validate')
   .post(checkAccess(['ITEMS_VIEW']), validateItemAssociations);
+
+// ============================================================================
+// ENHANCED ASSOCIATION ROUTES (Rule-based)
+// ============================================================================
+
+// Get item's association rules
+router
+  .route('/:id/association-rules')
+  .get(checkAccess(['ITEMS_VIEW']), getItemAssociationRules);
+
+// Get filtered items by rule
+router
+  .route('/:id/rule/:ruleCode/filtered-items')
+  .get(checkAccess(['ITEMS_VIEW']), getFilteredItemsByRule);
+
+// Get association metadata for rule
+router
+  .route('/:id/rule/:ruleCode/metadata')
+  .get(checkAccess(['ITEMS_VIEW']), getItemAssociationMetadata);
+
+// Create rule-based association
+router
+  .route('/:id/rule/:ruleCode/associate')
+  .post(checkAccess(['ITEMS_UPDATE']), createRuleBasedAssociation);
 
 export default router; 

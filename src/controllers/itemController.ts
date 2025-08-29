@@ -6,6 +6,7 @@ import Category from '../models/Category';
 import AttributeGroup from '../models/AttributeGroup';
 import Attribute from '../models/Attribute';
 import associationService from '../services/associationService';
+import EnhancedAssociationService from '../services/enhancedAssociationService';
 
 // GET tüm öğeleri getir (test için authentication olmadan)
 export const getItemsTest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -1365,6 +1366,150 @@ export const validateItemAssociations = async (req: Request, res: Response, next
     res.status(500).json({
       success: false,
       message: error.message || 'Association validation işleminde hata oluştu'
+    });
+  }
+};
+
+// GET item'ın enhanced association rules'ları
+export const getItemAssociationRules = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { includeInactive = false } = req.query;
+
+    // Item'ı getir ve itemType'ını bul
+    const item = await Item.findById(id).populate('itemType');
+    if (!item) {
+      res.status(404).json({
+        success: false,
+        message: 'Item bulunamadı'
+      });
+      return;
+    }
+
+    const itemType = item.itemType as any;
+    const rules = await EnhancedAssociationService.getAssociationRules(
+      itemType.code,
+      includeInactive === 'true'
+    );
+
+    res.status(200).json({
+      success: true,
+      data: rules
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Association rules getirilirken hata oluştu'
+    });
+  }
+};
+
+// GET kural tabanlı filtrelenmiş item'lar
+export const getFilteredItemsByRule = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id, ruleCode } = req.params;
+    const {
+      page = 1,
+      limit = 10,
+      searchQuery,
+      additionalFilters,
+      populate = true
+    } = req.query;
+
+    // Pagination
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Options
+    const options = {
+      skip,
+      limit: limitNum,
+      searchQuery: searchQuery as string,
+      additionalFilters: additionalFilters ? JSON.parse(additionalFilters as string) : undefined,
+      populate: populate === 'true'
+    };
+
+    const items = await EnhancedAssociationService.getFilteredItems(
+      id,
+      ruleCode,
+      options
+    );
+
+    // Total count için ayrı sorgu
+    const totalItems = await EnhancedAssociationService.getFilteredItems(
+      id,
+      ruleCode,
+      { ...options, limit: undefined, skip: undefined }
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        items,
+        pagination: {
+          total: totalItems.length,
+          page: pageNum,
+          limit: limitNum,
+          pages: Math.ceil(totalItems.length / limitNum)
+        }
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Filtrelenmiş item\'lar getirilirken hata oluştu'
+    });
+  }
+};
+
+// GET association metadata
+export const getItemAssociationMetadata = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id, ruleCode } = req.params;
+
+    const metadata = await EnhancedAssociationService.getAssociationMetadata(id, ruleCode);
+
+    res.status(200).json({
+      success: true,
+      data: metadata
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Association metadata getirilirken hata oluştu'
+    });
+  }
+};
+
+// POST kural tabanlı association oluştur
+export const createRuleBasedAssociation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id, ruleCode } = req.params;
+    const { targetItemIds } = req.body;
+
+    if (!Array.isArray(targetItemIds) || targetItemIds.length === 0) {
+      res.status(400).json({
+        success: false,
+        message: 'Target item ID\'leri gerekli'
+      });
+      return;
+    }
+
+    await EnhancedAssociationService.createAssociationWithRules(
+      id,
+      targetItemIds,
+      ruleCode
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Association başarıyla oluşturuldu'
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Association oluşturulamadı'
     });
   }
 }; 

@@ -21,6 +21,7 @@ import permissionGroupRoutes from './routes/permissionGroupRoutes';
 import localizationRoutes from './routes/localizationRoutes';
 import relationshipRoutes from './routes/relationshipRoutes';
 import associationRoutes from './routes/associationRoutes';
+import associationRuleRoutes from './routes/associationRuleRoutes';
 import systemSettingsRoutes from './routes/systemSettingsRoutes';
 // Env değişkenlerini yükle
 dotenv.config();
@@ -69,6 +70,7 @@ app.use('/api/localizations', localizationRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/relationships', relationshipRoutes);
 app.use('/api/associations', associationRoutes);
+app.use('/api/association-rules', associationRuleRoutes);
 app.use('/api/system', systemSettingsRoutes);
 
 // Ana route

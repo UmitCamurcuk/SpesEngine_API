@@ -48,4 +48,23 @@ router
 router
     .route('/:id/associations/validate')
     .post((0, auth_middleware_1.checkAccess)(['ITEMS_VIEW']), itemController_1.validateItemAssociations);
+// ============================================================================
+// ENHANCED ASSOCIATION ROUTES (Rule-based)
+// ============================================================================
+// Get item's association rules
+router
+    .route('/:id/association-rules')
+    .get((0, auth_middleware_1.checkAccess)(['ITEMS_VIEW']), itemController_1.getItemAssociationRules);
+// Get filtered items by rule
+router
+    .route('/:id/rule/:ruleCode/filtered-items')
+    .get((0, auth_middleware_1.checkAccess)(['ITEMS_VIEW']), itemController_1.getFilteredItemsByRule);
+// Get association metadata for rule
+router
+    .route('/:id/rule/:ruleCode/metadata')
+    .get((0, auth_middleware_1.checkAccess)(['ITEMS_VIEW']), itemController_1.getItemAssociationMetadata);
+// Create rule-based association
+router
+    .route('/:id/rule/:ruleCode/associate')
+    .post((0, auth_middleware_1.checkAccess)(['ITEMS_UPDATE']), itemController_1.createRuleBasedAssociation);
 exports.default = router;
