@@ -23,8 +23,8 @@ import {
 
 const router = express.Router();
 
-// Tüm rotalar için token kontrolü - Geçici olarak kaldırıldı
-// router.use(authenticateToken);
+// Tüm rotalar için token kontrolü
+router.use(authenticateToken);
 
 router
   .route('/')
@@ -33,7 +33,7 @@ router
 
 router
   .route('/:id')
-  .get(getItemById) // Geçici olarak authentication kaldırıldı
+  .get(checkAccess(['ITEMS_VIEW']), getItemById)
   .put(checkAccess(['ITEMS_UPDATE']), updateItem)
   .delete(checkAccess(['ITEMS_DELETE']), deleteItem);
 
