@@ -430,7 +430,7 @@ const getItemsByType = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.getItemsByType = getItemsByType;
-// GET belirli bir öğeyi getir - Modern full hierarchy approach
+// GET belirli bir öğeyi getir - Optimized hierarchy approach
 const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const Family = require('../models/Family').default;
@@ -466,69 +466,6 @@ const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                 }
             ]
         })
-            .populate({
-            path: 'category',
-            populate: [
-                { path: 'name', select: 'key namespace translations' },
-                { path: 'description', select: 'key namespace translations' },
-                { path: 'parent', select: 'name code description' },
-                {
-                    path: 'attributeGroups',
-                    populate: [
-                        { path: 'name', select: 'key namespace translations' },
-                        { path: 'description', select: 'key namespace translations' },
-                        {
-                            path: 'attributes',
-                            select: 'name code type description isRequired isActive options',
-                            populate: [
-                                { path: 'name', select: 'key namespace translations' },
-                                { path: 'description', select: 'key namespace translations' },
-                                {
-                                    path: 'options',
-                                    select: 'name code type description isActive',
-                                    populate: [
-                                        { path: 'name', select: 'key namespace translations' },
-                                        { path: 'description', select: 'key namespace translations' }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        })
-            .populate({
-            path: 'family',
-            populate: [
-                { path: 'name', select: 'key namespace translations' },
-                { path: 'description', select: 'key namespace translations' },
-                { path: 'parent', select: 'name code description' },
-                { path: 'category', select: 'name code description' },
-                {
-                    path: 'attributeGroups',
-                    populate: [
-                        { path: 'name', select: 'key namespace translations' },
-                        { path: 'description', select: 'key namespace translations' },
-                        {
-                            path: 'attributes',
-                            select: 'name code type description isRequired isActive options',
-                            populate: [
-                                { path: 'name', select: 'key namespace translations' },
-                                { path: 'description', select: 'key namespace translations' },
-                                {
-                                    path: 'options',
-                                    select: 'name code type description isActive',
-                                    populate: [
-                                        { path: 'name', select: 'key namespace translations' },
-                                        { path: 'description', select: 'key namespace translations' }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        })
             .populate('createdBy', 'name email firstName lastName')
             .populate('updatedBy', 'name email firstName lastName')
             .lean();
@@ -539,9 +476,10 @@ const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             });
             return;
         }
-        // 2. Category hierarchy'sini getir (parent categories)
-        if (item.category && item.category._id) {
-            const getCategoryHierarchy = (categoryId) => __awaiter(void 0, void 0, void 0, function* () {
+        // 2. Optimize edilmiş response yapısını oluştur
+        const buildOptimizedResponse = (item) => __awaiter(void 0, void 0, void 0, function* () {
+            // Categories hiyerarşisini oluştur
+            const buildCategoriesHierarchy = (categoryId) => __awaiter(void 0, void 0, void 0, function* () {
                 const hierarchy = [];
                 let currentCategory = yield Category_1.default.findById(categoryId)
                     .populate({ path: 'name', select: 'key namespace translations' })
@@ -572,7 +510,17 @@ const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                     .populate('parent')
                     .lean();
                 while (currentCategory) {
-                    hierarchy.unshift(currentCategory); // Beginning'e ekle
+                    // Attribute'lara value ekle
+                    if (currentCategory.attributeGroups) {
+                        for (const group of currentCategory.attributeGroups) {
+                            if (group.attributes) {
+                                for (const attr of group.attributes) {
+                                    attr.value = item.attributes[attr._id] || null;
+                                }
+                            }
+                        }
+                    }
+                    hierarchy.unshift(currentCategory);
                     if (currentCategory.parent) {
                         const parentId = typeof currentCategory.parent === 'string'
                             ? currentCategory.parent
@@ -612,12 +560,8 @@ const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                 }
                 return hierarchy;
             });
-            const categoryHierarchy = yield getCategoryHierarchy(String(item.category._id));
-            item.categoryHierarchy = categoryHierarchy;
-        }
-        // 3. Family hierarchy'sini getir (parent families)
-        if (item.family && item.family._id) {
-            const getFamilyHierarchy = (familyId) => __awaiter(void 0, void 0, void 0, function* () {
+            // Families hiyerarşisini oluştur
+            const buildFamiliesHierarchy = (familyId) => __awaiter(void 0, void 0, void 0, function* () {
                 const hierarchy = [];
                 let currentFamily = yield Family.findById(familyId)
                     .populate({ path: 'name', select: 'key namespace translations' })
@@ -646,9 +590,20 @@ const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                     ]
                 })
                     .populate('parent')
+                    .populate('category', 'name code')
                     .lean();
                 while (currentFamily) {
-                    hierarchy.unshift(currentFamily); // Beginning'e ekle
+                    // Attribute'lara value ekle
+                    if (currentFamily.attributeGroups) {
+                        for (const group of currentFamily.attributeGroups) {
+                            if (group.attributes) {
+                                for (const attr of group.attributes) {
+                                    attr.value = item.attributes[attr._id] || null;
+                                }
+                            }
+                        }
+                    }
+                    hierarchy.unshift(currentFamily);
                     if (currentFamily.parent) {
                         const parentId = typeof currentFamily.parent === 'string'
                             ? currentFamily.parent
@@ -680,6 +635,7 @@ const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                             ]
                         })
                             .populate('parent')
+                            .populate('category', 'name code')
                             .lean();
                     }
                     else {
@@ -688,26 +644,40 @@ const getItemById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                 }
                 return hierarchy;
             });
-            const familyHierarchy = yield getFamilyHierarchy(String(item.family._id));
-            item.familyHierarchy = familyHierarchy;
-        }
-        // 4. Association'ları getir ve populate et
-        try {
-            const associations = yield associationService_1.default.getItemAssociations(item._id.toString(), {
-                populate: true,
-                populateFields: ['itemType', 'family', 'category'],
-                includeInactive: false
-            });
-            item.populatedAssociations = associations;
-        }
-        catch (associationError) {
-            console.warn('Association fetch error:', associationError);
-            item.populatedAssociations = [];
-        }
-        console.log('✅ Item fetched successfully with full hierarchy and associations');
+            // ItemType'ın attribute groups'ına value ekle
+            const addValuesToItemTypeAttributes = (itemType) => {
+                if (itemType.attributeGroups) {
+                    for (const group of itemType.attributeGroups) {
+                        if (group.attributes) {
+                            for (const attr of group.attributes) {
+                                attr.value = item.attributes[attr._id] || null;
+                            }
+                        }
+                    }
+                }
+                return itemType;
+            };
+            // Optimize edilmiş response
+            const optimizedResponse = {
+                id: item._id,
+                code: item.code,
+                isActive: item.isActive,
+                itemType: addValuesToItemTypeAttributes(item.itemType),
+                categories: item.category ? yield buildCategoriesHierarchy(String(item.category._id)) : [],
+                families: item.family ? yield buildFamiliesHierarchy(String(item.family._id)) : [],
+                itemAttributes: item.attributes,
+                createdAt: item.createdAt,
+                createdBy: item.createdBy,
+                updatedAt: item.updatedAt,
+                updatedBy: item.updatedBy
+            };
+            return optimizedResponse;
+        });
+        const optimizedData = yield buildOptimizedResponse(item);
+        console.log('✅ Item fetched successfully with optimized structure');
         res.status(200).json({
             success: true,
-            data: item
+            data: optimizedData
         });
     }
     catch (error) {
