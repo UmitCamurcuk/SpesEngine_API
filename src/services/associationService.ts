@@ -539,9 +539,11 @@ class AssociationService {
   }
 
   private getAssociationKey(rule: IAssociationRule): string {
-    const itemTypeCode = rule.targetItemTypeCode || rule.sourceItemTypeCode;
-    const relationshipType = rule.association || rule.relationshipType;
-    return `${itemTypeCode}_${relationshipType}`;
+    // Frontend ile uyumlu key oluştur
+    const sourceType = rule.sourceItemTypeCode || 'unknown';
+    const targetType = rule.targetItemTypeCode || 'unknown';
+    const relationshipType = rule.association || rule.relationshipType || 'unknown';
+    return `${sourceType}_${targetType}_${relationshipType}`;
   }
 
   private async validateCustomRules(

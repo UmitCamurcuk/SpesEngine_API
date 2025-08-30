@@ -222,6 +222,8 @@ export const getItemTypeById = async (req: Request, res: Response, next: NextFun
 
               (itemType as any).associations.outgoing.push({
                 ...association.toObject(),
+                sourceItemTypeCode: itemType.code,
+                sourceItemTypeName: itemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
                 targetItemTypeCode: targetItemType.code,
                 targetItemTypeName: targetItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş',
                 cardinality: metadata.cardinality || { min: 0, max: undefined },

@@ -213,7 +213,7 @@ const getItemTypeById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                                     filterBy.category = categoryObj._id;
                                 }
                             }
-                            itemType.associations.outgoing.push(Object.assign(Object.assign({}, association.toObject()), { targetItemTypeCode: targetItemType.code, targetItemTypeName: targetItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş', cardinality: metadata.cardinality || { min: 0, max: undefined }, _id: association._id }));
+                            itemType.associations.outgoing.push(Object.assign(Object.assign({}, association.toObject()), { sourceItemTypeCode: itemType.code, sourceItemTypeName: itemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş', targetItemTypeCode: targetItemType.code, targetItemTypeName: targetItemType.code === 'CUSTOMER' ? 'Müşteri' : 'Sipariş', cardinality: metadata.cardinality || { min: 0, max: undefined }, _id: association._id }));
                         }
                     }
                 }
